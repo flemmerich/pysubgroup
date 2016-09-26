@@ -26,7 +26,7 @@ def equalFrequencyDiscretization (data, attributeName, nbins=5):
     sortedData = sorted(data[attributeName])
     cutpoints = []
     for i in range(1, nbins):
-        position = i * numberInstances / nbins
+        position = i * numberInstances // nbins
         while True:
             if (position >= numberInstances):
                 break

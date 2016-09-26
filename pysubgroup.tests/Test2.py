@@ -11,12 +11,12 @@ from InterestingnessMeasures import WRAccQF
 import heapq
 
 
-data, meta = arff.loadarff('C:/data/Datasets/credit-g.arff')
+data, meta = arff.loadarff('C:/test/credit-g.arff')
 # print meta['class']
-target = NominalSelector ('class', "bad")
+target = NominalSelector ("class", b'good')
 
 sel = NumericSelector ('credit_amount', 4741, float("inf"))
-print sum (1 for x in data if sel.covers(x))
+print (sum (1 for x in data if sel.covers(x)))
 
 sg = Subgroup(target, [sel])
-print WRAccQF().evaluateFromDataset(data, sg)
+print (WRAccQF().evaluateFromDataset(data, sg))

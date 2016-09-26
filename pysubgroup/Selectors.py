@@ -5,6 +5,7 @@ Created on 26.04.2016
 '''
 import SGDUtils
 import numpy as np
+import pandas as pd
 
 def createSelectors (data, nbins=5, intervals_only=True):
     sels = createNominalSelectors(data)
@@ -15,7 +16,7 @@ def createNominalSelectors(data):
     nominal_selectors = []
     for i, attr_name in enumerate(data.dtype.names):
         # # is nominal?
-        if data.dtype[i].type is np.string_:
+        if (data.dtype[i].type is np.string_) or (data.dtype[i].type is np.object_):
         # if meta.types()[i] == "nominal":
             # this gives a list of attribute values for the attribute with name attr_name
             for val in np.unique(data[attr_name]):

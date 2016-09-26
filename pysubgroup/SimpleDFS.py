@@ -21,7 +21,11 @@ class SimpleDFS(object):
         if (optimisticEstimate <= SGDUtils.minimumRequiredQuality(result, task)):
             return result
         
-        quality = task.qf.evaluateFromDataset(task.data, sg) 
+        if task.qf.supportsWeights():
+            print ("weights")
+            quality = task.qf.evaluateFromDataset(task.data, sg, task.weightingAttribute)
+        else: 
+            quality = task.qf.evaluateFromDataset(task.data, sg)
         SGDUtils.addIfRequired (result, sg, quality, task)
      
         if (len(prefix) < task.depth):

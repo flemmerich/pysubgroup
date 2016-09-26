@@ -2,15 +2,26 @@ import cProfile
 import heapq
 import time
 
-from scipy.io import arff
+import numpy as np
+import pandas as pd
 
 from Selectors import NominalSelector
 import SubgroupDiscoveryTask, Selectors, BSD, SimpleDFS
 
+# Create some data
+d = np.array([[1, 'test', 'true', 2], \
+               [2, 'test2', 'true', 5], \
+               [5, 'test', 'False', 1], \
+               [3, 'test', 'False', 100]])
+df = pd.DataFrame(d)
+df.columns = ['intTest', 'strTest', 'trg', 'weights']
 
-data = arff.loadarff('C:/test/credit-g.arff') [0]
+df['intTest'] = df['intTest'].astype(int)
+df['weights'] = df['weights'].astype(int)
+data = df.to_records(False, True)
+
 # print meta['class']
-target = NominalSelector ('class', b'bad')
+target = NominalSelector ('trg', 'False')
 
 # sel2 = NominalSelector ('checking_status', 'no checking')
 
@@ -24,7 +35,7 @@ searchSpace = Selectors.createSelectors(data, intervals_only=False)
 searchSpace = [x for x in searchSpace if x.attributeName != target.attributeName]
 print (searchSpace)
 
-task = SubgroupDiscoveryTask.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=10, depth=3)
+task = SubgroupDiscoveryTask.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=10, depth=3, weightingAttribute='weights')
 algo = SimpleDFS.SimpleDFS()
 start_time = time.clock()
 result = algo.execute(task)

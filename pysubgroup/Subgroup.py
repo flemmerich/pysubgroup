@@ -58,3 +58,9 @@ class Subgroup(object):
     def count(self, data):
         return sum(1 for x in data if self.covers(x)) 
     
+    def __eq__(self, other): 
+        return self.__dict__ == other.__dict__
+    
+    def __lt__(self, other): 
+        return str(self) < str(other)
+    
