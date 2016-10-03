@@ -3,7 +3,7 @@ Created on 29.04.2016
 
 @author: lemmerfn
 '''
-from Subgroup import Subgroup
+from pysubgroup.Subgroup import Subgroup
 from heapq import heappush
 
 class BeamSearch(object):

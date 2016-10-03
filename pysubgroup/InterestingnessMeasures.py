@@ -3,7 +3,7 @@ Created on 28.04.2016
 
 @author: lemmerfn
 '''
-from __future__ import division
+from pysubgroup import SGDUtils
 
 class AbstractInterestingnessMeasure(object):
     def optimisticEstimateFromDataset(self, data, subgroup):
@@ -31,10 +31,10 @@ class StandardQF (AbstractInterestingnessMeasure, BoundedInterestingnessMeasure)
         self.a = a
 
     def evaluateFromDataset(self, data, subgroup, weightingAttribute=None):
-        return self.evaluateFromStatistics (*extractStatisticsFromDataset(data, subgroup, weightingAttribute))
+        return self.evaluateFromStatistics (*SGDUtils.extractStatisticsFromDataset(data, subgroup, weightingAttribute))
     
     def optimisticEstimateFromDataset(self, data, subgroup):
-        return self.optimisticEstimateFromStatistics (*extractStatisticsFromDataset(data, subgroup))
+        return self.optimisticEstimateFromStatistics (*SGDUtils.extractStatisticsFromDataset(data, subgroup))
 
     def evaluateFromStatistics (self, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup):
         return StandardQF.standardQF (self.a, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)
@@ -56,26 +56,3 @@ class RelativeGainQF (StandardQF):
 class SimpleBinomial(StandardQF):
     def __init__(self):
         self.a = 0.5
-
-def extractStatisticsFromDataset (data, subgroup, weightingAttribute=None): 
-    if (weightingAttribute == None):
-        instancesDataset = positivesDataset = instancesSubgroup = positivesSubgroup = 0
-        for i in data:
-            positive = subgroup.target.covers(i)
-            instancesDataset += 1
-            positivesDataset += positive  # +1 if True
-            if (subgroup.subgroupDescription.covers(i)):
-                instancesSubgroup += 1
-                positivesSubgroup += positive
-        return (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)
-    else:
-        instancesDataset = positivesDataset = instancesSubgroup = positivesSubgroup = 0
-        for i in data:
-            weightI = i[weightingAttribute]
-            positive = subgroup.target.covers(i)
-            instancesDataset += weightI
-            positivesDataset += positive * weightI  # +1 if True
-            if (subgroup.subgroupDescription.covers(i)):
-                instancesSubgroup += weightI
-                positivesSubgroup += positive * weightI
-        return (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)

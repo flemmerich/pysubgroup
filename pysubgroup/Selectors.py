@@ -3,9 +3,8 @@ Created on 26.04.2016
 
 @author: lemmerfn
 '''
-import SGDUtils
+from pysubgroup import SGDUtils
 import numpy as np
-import pandas as pd
 
 def createSelectors (data, nbins=5, intervals_only=True):
     sels = createNominalSelectors(data)
@@ -16,20 +15,30 @@ def createNominalSelectors(data):
     nominal_selectors = []
     for i, attr_name in enumerate(data.dtype.names):
         # # is nominal?
-        if (data.dtype[i].type is np.string_) or (data.dtype[i].type is np.object_):
-        # if meta.types()[i] == "nominal":
-            # this gives a list of attribute values for the attribute with name attr_name
-            for val in np.unique(data[attr_name]):
-                nominal_selectors.append (NominalSelector(attr_name, val))
+        nominal_selectors.extend(createNominalSelectorsForAttribute(data, attr_name))
     return nominal_selectors
 
+def createNominalSelectorsForAttribute(data, attr_name):
+    nominal_selectors = []
+    if (data.dtype[attr_name].type is np.string_) or (data.dtype[attr_name].type is np.object_):
+            # if meta.types()[i] == "nominal":
+                # this gives a list of attribute values for the attribute with name attr_name
+        for val in np.unique(data[attr_name]):
+            nominal_selectors.append (NominalSelector(attr_name, val))
+    return nominal_selectors        
+                    
 def createNumericSelectors(data, nbins=5, intervals_only=True):
     numeric_selectors = []
     for i, attr_name in enumerate(data.dtype.names):
         if ((data.dtype[i] == 'float64') or (data.dtype[i] == 'float32') or data.dtype[i] == 'int'):
+            numeric_selectors.extend(createNumericSelectorForAttribute(data, attr_name, nbins, intervals_only))
+    return numeric_selectors
+
+def createNumericSelectorForAttribute(data, attr_name, nbins=5, intervals_only=True):
+            numeric_selectors = []
             uniqueValues = np.unique(data[attr_name])
             if (len(uniqueValues) <= nbins):
-                for val in uniqueValues:
+                for val in uniqueValues: 
                     numeric_selectors.append(NominalSelector(attr_name, val))
             else: 
                 cutpoints = SGDUtils.equalFrequencyDiscretization(data, attr_name, nbins)
@@ -43,15 +52,15 @@ def createNumericSelectors(data, nbins=5, intervals_only=True):
                     for c in cutpoints:
                         numeric_selectors.append(NumericSelector(attr_name, c, float("inf")))
                         numeric_selectors.append(NumericSelector(attr_name, float("-inf"), c))
-    return numeric_selectors
+            return numeric_selectors
 
 class NominalSelector:
     def __init__(self, attributeName, attributeValue):
         self.attributeName = attributeName
         self.attributeValue = attributeValue
 
-    def covers (self, dataInstance):
-        return dataInstance[self.attributeName] == self.attributeValue
+    def covers (self, data):
+        return data[self.attributeName] == self.attributeValue
     
     def __repr__(self):
         return "{" + str(self.attributeName) + "==" + str(self.attributeValue) + "}"
@@ -81,7 +90,7 @@ class NumericSelector:
 
     def covers (self, dataInstance):
         val = dataInstance[self.attributeName]
-        return (val >= self.lowerBound) and (val < self.upperBound)
+        return np.logical_and(val >= self.lowerBound, val < self.upperBound)
     
     def __repr__(self):
         if self.lowerBound == float("-inf"):

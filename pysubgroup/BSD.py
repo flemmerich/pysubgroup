@@ -5,8 +5,8 @@ Created on 29.04.2016
 '''
 import copy
 from bitarray import bitarray
-import InterestingnessMeasures, SGDUtils
-from Subgroup import Subgroup
+from pysubgroup import SGDUtils
+from pysubgroup.Subgroup import Subgroup
 
 class BSD(object):
     def execute (self, task):

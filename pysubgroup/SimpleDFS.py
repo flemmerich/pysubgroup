@@ -4,8 +4,9 @@ Created on 29.04.2016
 @author: lemmerfn
 '''
 import copy
-import InterestingnessMeasures, SGDUtils
-from Subgroup import Subgroup
+import pysubgroup.InterestingnessMeasures
+import pysubgroup.SGDUtils
+from pysubgroup.Subgroup import Subgroup
 
 class SimpleDFS(object):
     
@@ -16,17 +17,16 @@ class SimpleDFS(object):
         sg = Subgroup(task.target, copy.copy(prefix))
         
         optimisticEstimate = float("inf")
-        if isinstance(task.qf, InterestingnessMeasures.BoundedInterestingnessMeasure):
+        if isinstance(task.qf, pysubgroup.InterestingnessMeasures.BoundedInterestingnessMeasure):
             optimisticEstimate = task.qf.optimisticEstimateFromDataset(task.data, sg)
-        if (optimisticEstimate <= SGDUtils.minimumRequiredQuality(result, task)):
+        if (optimisticEstimate <= pysubgroup.SGDUtils.minimumRequiredQuality(result, task)):
             return result
         
         if task.qf.supportsWeights():
-            print ("weights")
             quality = task.qf.evaluateFromDataset(task.data, sg, task.weightingAttribute)
         else: 
             quality = task.qf.evaluateFromDataset(task.data, sg)
-        SGDUtils.addIfRequired (result, sg, quality, task)
+        pysubgroup.SGDUtils.addIfRequired (result, sg, quality, task)
      
         if (len(prefix) < task.depth):
             newModificationSet = copy.copy(modificationSet)
@@ -36,4 +36,7 @@ class SimpleDFS(object):
                 self.searchInternal(task, prefix, newModificationSet, result)
                 # remove the sel again
                 prefix.pop(-1)
+        
+
+        result.sort(key=lambda x: x[0])
         return result

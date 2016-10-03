@@ -3,9 +3,15 @@ Created on 28.04.2016
 
 @author: lemmerfn
 '''
+from pysubgroup import SGDUtils
+import numpy as np
+
 class SubgroupDescription(object):
     def __init__(self, selectors):
-        self.selectors = selectors
+        if isinstance(selectors, list):
+            self.selectors = selectors
+        else:
+            self.selectors = [selectors]
     
     def __repr__(self):
         result = "{"
@@ -15,7 +21,9 @@ class SubgroupDescription(object):
         return result + "}"
     
     def covers(self, instance):
-        return all(sel.covers(instance) for sel in self.selectors)
+        if (not self.selectors):
+            return np.full((1, len(instance)), True, dtype=bool)
+        return np.all([sel.covers(instance) for sel in self.selectors], axis=0)
     
     def count (self, data):
         return sum(1 for x in data if self.covers(x)) 
@@ -48,12 +56,15 @@ class Subgroup(object):
             self.subgroupDescription = subgroupDescription
         else:
             self.subgroupDescription = SubgroupDescription(subgroupDescription)
+            
+        # initialize empty cache for statistics
+        self.statistics = {} 
     
     def __repr__(self):
         return "<<" + str(self.target) + "; D: " + str(self.subgroupDescription) + ">>"
     
     def covers(self, instance):
-        return all(sel.covers(instance) for sel in self.selectors)
+        return self.subgroupDescription.covers(instance)
     
     def count(self, data):
         return sum(1 for x in data if self.covers(x)) 
@@ -64,3 +75,23 @@ class Subgroup(object):
     def __lt__(self, other): 
         return str(self) < str(other)
     
+    def calculateStatistics (self, data, weightingAttribute=None):
+        (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = SGDUtils.extractStatisticsFromDataset(data, self)
+        self.statistics['size_sg'] = instancesSubgroup
+        self.statistics['size_dataset'] = instancesDataset
+        self.statistics['positives_sg'] = positivesSubgroup
+        self.statistics['positives_dataset'] = positivesDataset
+        self.statistics['target_share_sg'] = positivesSubgroup / instancesSubgroup
+        self.statistics['target_share_dataset'] = positivesDataset / instancesDataset
+        
+        if (weightingAttribute != None):
+            (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = SGDUtils.extractStatisticsFromDataset(data, self, weightingAttribute)
+        self.statistics['size_sg_weighted'] = instancesSubgroup
+        self.statistics['size_dataset_weighted'] = instancesDataset
+        self.statistics['positives_sg_weighted'] = positivesSubgroup
+        self.statistics['positives_dataset_weighted'] = positivesDataset
+        self.statistics['target_share_sg_weighted'] = positivesSubgroup / instancesSubgroup
+        self.statistics['target_share_dataset_weighted'] = positivesDataset / instancesDataset
+    
+            
+            
