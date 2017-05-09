@@ -1,22 +1,15 @@
-from __future__ import division 
-import cProfile
-import time
+import pysubgroup.subgroup as sg
+import pysubgroup.algorithms as algo
+import pysubgroup.measures as measures
+import pandas as pd
 
-from scipy.io import arff
+data = pd.read_csv("C:/data/titanic.csv")
 
-import SubgroupDiscoveryTask, Selectors, BSD, SimpleDFS
-from Selectors import NominalSelector, NumericSelector
-from Subgroup import Subgroup
-from InterestingnessMeasures import WRAccQF
-import heapq
+target = sg.NominalSelector ('survived', 0)
+searchSpace = sg.createSelectors(data, ignore_attributes=['survived'])
+task = algo.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=3, depth=1, qf=measures.WRAccQF())
 
+result = algo.SimpleDFS().execute(task)
 
-data, meta = arff.loadarff('C:/test/credit-g.arff')
-# print meta['class']
-target = NominalSelector ("class", b'good')
-
-sel = NumericSelector ('credit_amount', 4741, float("inf"))
-print (sum (1 for x in data if sel.covers(x)))
-
-sg = Subgroup(target, [sel])
-print (WRAccQF().evaluateFromDataset(data, sg))
+for (q, sg) in result:
+    print (str(q) + ":\t" + str(sg.subgroupDescription))

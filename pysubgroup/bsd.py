@@ -4,11 +4,12 @@ Created on 29.04.2016
 @author: lemmerfn
 '''
 import copy
+import pysubgroup.utils as ut
+from pysubgroup.subgroup import Subgroup
 from bitarray import bitarray
-from pysubgroup import SGDUtils
-from pysubgroup.Subgroup import Subgroup
 
 class BSD(object):
+    
     def execute (self, task):
         self.popSize = len(task.data)
         
@@ -26,7 +27,8 @@ class BSD(object):
             for i, inst in enumerate(task.data):
                 selBitset[i] = sel.covers(inst)
             self.bitsets [sel] = selBitset
-        return self.searchInternal(task, [], task.searchSpace, [], self.popSize * bitarray('1'))
+        result = self.searchInternal(task, [], task.searchSpace, [], self.popSize * bitarray('1'))
+        return result.sort(key=lambda x: x[0], reverse=True)
     
     
     def searchInternal(self, task, prefix, modificationSet, result, bitset):
@@ -37,11 +39,11 @@ class BSD(object):
         sgPositiveCount = positiveInstances.count()
          
         optimisticEstimate = task.qf.optimisticEstimateFromStatistics (self.popSize, self.popPositives, sgSize, sgPositiveCount)
-        if (optimisticEstimate <= SGDUtils.minimumRequiredQuality(result, task)):
+        if (optimisticEstimate <= ut.minimumRequiredQuality(result, task)):
             return result
         
         quality = task.qf.evaluateFromStatistics (self.popSize, self.popPositives, sgSize, sgPositiveCount) 
-        SGDUtils.addIfRequired (result, sg, quality, task)
+        ut.addIfRequired (result, sg, quality, task)
      
         if (len(prefix) < task.depth):
             newModificationSet = copy.copy(modificationSet)

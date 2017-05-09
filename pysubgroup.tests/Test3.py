@@ -2,13 +2,13 @@ import cProfile
 import heapq
 import time
 
+import SGDUtils
+from Selectors import NominalSelector
+import Subgroup
+import SubgroupDiscoveryTask, Selectors, BSD, SimpleDFS
 import numpy as np
 import pandas as pd
 
-from Selectors import NominalSelector
-import SubgroupDiscoveryTask, Selectors, BSD, SimpleDFS
-import SGDUtils
-import Subgroup
 
 # Create some data
 d = np.array([[1, 'test', 'true', 2], \

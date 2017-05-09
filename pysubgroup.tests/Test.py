@@ -1,39 +1,17 @@
-import cProfile
-import heapq
-import time
-
 from scipy.io import arff
 
-from Selectors import NominalSelector
-import SubgroupDiscoveryTask, Selectors, BSD, SimpleDFS
+import pysubgroup.subgroup as sg
+import pysubgroup.algorithms as algo
+import pysubgroup.measures as measures
+import pandas as pd
 
+data = pd.DataFrame (arff.loadarff("C:\data\Datasets\credit-g.arff") [0])
 
-data = arff.loadarff('C:/test/credit-g.arff') [0]
-# print meta['class']
-target = NominalSelector ('class', b'bad')
+target = sg.NominalSelector ('class', b'bad')
+searchSpace = sg.createSelectors(data, ignore_attributes=['class'])
+task = algo.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=10, depth=1, qf=measures.ChiSquaredQF(direction="bidirect"))
 
-# sel2 = NominalSelector ('checking_status', 'no checking')
-
-# sg = Subgroup(NominalSelector ('class', "bad"), [NominalSelector ('checking_status', "'no checking'")])
-# qf = WRAccQF()
-# print qf.evaluateFromDataset(data, sg)
-# print sel.covers(data[0])
-# print sum(1 for i in data if sel.covers(i))
-
-searchSpace = Selectors.createSelectors(data, intervals_only=False)
-searchSpace = [x for x in searchSpace if x.attributeName != target.attributeName]
-print (searchSpace)
-
-task = SubgroupDiscoveryTask.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=10, depth=3)
-algo = SimpleDFS.SimpleDFS()
-start_time = time.clock()
-result = algo.execute(task)
-stop_time = time.clock()
-print (stop_time - start_time, "seconds")
-# cProfile.run('result = algo.execute(task)')
-
-print (result)
-result = heapq.nlargest(len(result), result)
+result = algo.SimpleDFS().execute(task)
 
 for (q, sg) in result:
     print (str(q) + ":\t" + str(sg.subgroupDescription))   
