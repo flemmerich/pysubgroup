@@ -3,7 +3,6 @@
 	<name>pysubgroup</name>
 	<comment></comment>
 	<projects>
-		<project>Optimization</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

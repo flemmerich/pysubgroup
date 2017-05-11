@@ -39,8 +39,14 @@ class ChiSquaredQF (AbstractInterestingnessMeasure):
         negativesSubgroup = instancesSubgroup - positivesSubgroup
         negativesDataset = instancesDataset - positivesDataset
         negativesComplement = negativesDataset - negativesSubgroup
-        val = scipy.stats.chi2_contingency([[positivesSubgroup, positivesComplement],
-                                            [negativesSubgroup, negativesComplement]], correction=False)[0]
+        
+        observed = [positivesSubgroup, positivesComplement,negativesSubgroup, negativesComplement]
+        
+        if round(positivesSubgroup) < 0 or round(positivesComplement) < 0 or round(negativesSubgroup) <0 or round (negativesComplement) < 0:
+            print ("XXXXX")
+        val = scipy.stats.chi2_contingency([[round(positivesSubgroup), round(positivesComplement)],
+                                            [round(negativesSubgroup), round(negativesComplement)]], correction=False)[0]
+        
         if bidirect:
             return val
         elif direction_positive and p_subgroup > p_dataset:

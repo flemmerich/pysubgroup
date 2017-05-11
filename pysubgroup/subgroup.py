@@ -6,25 +6,15 @@ Created on 28.04.2016
 import numpy as np
 import pandas as pd
 import pysubgroup.utils as ut
+from functools import total_ordering
 
+@total_ordering
 class SubgroupDescription(object):
     def __init__(self, selectors):
-        if isinstance(selectors, list):
+        if isinstance(selectors, list) or isinstance(selectors, tuple):
             self.selectors = selectors
         else:
             self.selectors = [selectors]
-    
-    def to_string(self, open_brackets="", closing_brackets="", sel_open_bracket="", sel_closing_bracket="", and_term=" AND "):
-        if not self.selectors:
-            return "Dataset"
-        result = open_brackets
-        for sel in self.selectors:
-            result += str(sel) + and_term
-        result = result [:-len(and_term)]
-        return result + closing_brackets
-    
-    def __repr__(self):
-        return self.to_string()
     
     def covers(self, instance):
         # empty description ==> return a list of all '1's
@@ -37,8 +27,133 @@ class SubgroupDescription(object):
         return sum(1 for x in data if self.covers(x))
     
     def getAttributes(self):
-       return set([x.getAttributeName() for x in self.selectors])
+        return set([x.getAttributeName() for x in self.selectors])
+   
+    def to_string(self, open_brackets="", closing_brackets="", sel_open_bracket="", sel_closing_bracket="", and_term=" AND "):
+        if not self.selectors:
+            return "Dataset"
+        result = open_brackets
+        for sel in self.selectors:
+            result += str(sel) + and_term
+        result = result [:-len(and_term)]
+        return result + closing_brackets
+    
+    def __repr__(self):
+        return self.to_string()
+   
+    def __eq__(self, other): 
+        return set(self.selectors) == set(other.selectors)
+    
+    def __lt__(self, other): 
+        return str(self) < str(other)
+    
+@total_ordering
+class NominalSelector:
+    def __init__(self, attributeName, attributeValue, name=None):
+        self.attributeName = attributeName
+        self.attributeValue = attributeValue
+        self.selector_name = name
 
+    def covers (self, data):
+        return data[self.attributeName] == self.attributeValue
+    
+    def to_string(self, open_brackets="", closing_brackets=""):
+        if self.selector_name == None:
+            return open_brackets + str(self.attributeName) + "=" + str(self.attributeValue) + closing_brackets
+        return open_brackets + self.selector_name + closing_brackets
+    
+    def __repr__(self):
+        return self.to_string()
+    
+    def __eq__(self, other): 
+        return self.__dict__ == other.__dict__
+    
+    def __lt__(self, other): 
+        return str(self) < str(other)
+    
+    def __hash__(self): 
+        return str(self).__hash__()
+    
+    def getAttributeName(self):
+        return self.attributeName
+
+@total_ordering
+class NegatedSelector:
+    def __init__(self, selector):
+        self.selector = selector
+
+    def covers (self, dataInstance):
+        return not self.selector.covers(dataInstance)
+    
+    def __repr__(self):
+        return self.to_string()
+    
+    def __eq__(self, other): 
+        return self.__dict__ == other.__dict__
+    
+    def __lt__(self, other): 
+        return str(self) < str(other)
+    
+    def __hash__(self): 
+        return str(self).__hash__()
+    
+    def to_string(self, open_brackets="", closing_brackets=""):
+        return "NOT " + str(self.selector, open_brackets, closing_brackets)
+    
+    def getAttributeName(self):
+        return self.selector.attributeName
+    
+# Including the lower bound, excluding the upperBound
+@total_ordering
+class NumericSelector:
+    def __init__(self, attributeName, lowerBound, upperBound, name=None):
+        self.attributeName = attributeName
+        self.lowerBound = lowerBound
+        self.upperBound = upperBound
+        self.selector_name = name
+
+    def covers (self, dataInstance):
+        val = dataInstance[self.attributeName]
+        return np.logical_and(val >= self.lowerBound, val < self.upperBound)
+    
+    def __repr__(self):
+        return self.to_string()
+    
+    def __eq__(self, other): 
+        return self.__dict__ == other.__dict__
+    
+    def __lt__(self, other): 
+        return str(self) < str(other)
+    
+    def __hash__(self): 
+        return str(self).__hash__()
+
+    
+    def to_string(self, open_brackets="", closing_brackets="", roundingDigits=2):
+        formatter = "{0:." + str(roundingDigits) + "f}"
+        ub = self.upperBound
+        lb = self.lowerBound
+        if ub % 1:
+            ub = formatter.format(ub)
+        if lb % 1:
+            lb = formatter.format(lb)
+        
+        if self.selector_name != None:
+            repre = self.selector_name
+        elif self.lowerBound == float("-inf") and self.upperBound == float("inf"):
+            repre = self.attributeName + "= anything"
+        elif self.lowerBound == float("-inf"):
+            repre = self.attributeName + "<" + str(ub)
+        elif self.upperBound == float("inf"):
+            repre = self.attributeName + ">=" + str(lb)
+        else:
+            repre = self.attributeName + ": [" + str(lb) + ":" + str(ub) + "["
+        return open_brackets + repre + closing_brackets
+    
+    def getAttributeName(self):
+        return self.attributeName 
+
+@total_ordering
 class NominalTarget(object):
     def __init__(self, targetSelector):
         self.targetSelector = targetSelector
@@ -46,13 +161,19 @@ class NominalTarget(object):
     def __repr__(self):
         return "T: " + str(self.targetSelector)
     
+    def __eq__(self, other): 
+        return self.__dict__ == other.__dict__
+    
+    def __lt__(self, other): 
+        return str(self) < str(other)
+    
     def covers(self, instance):
         return self.targetSelector.covers(instance)
     
     def getAttributes(self):
         return [self.targetSelector.getAttributeName()]
 
-
+@total_ordering
 class Subgroup(object):
     def __init__(self, target, subgroupDescription):
         # If its already a NominalTarget object, we are fine, otherwise we create a new one
@@ -163,82 +284,6 @@ def createNumericSelectorForAttribute(data, attr_name, nbins=5, intervals_only=T
                         numeric_selectors.append(NumericSelector(attr_name, float("-inf"), c))
                 
             return numeric_selectors
-
-class NominalSelector:
-    def __init__(self, attributeName, attributeValue, name=None):
-        self.attributeName = attributeName
-        self.attributeValue = attributeValue
-        self.selector_name = name
-
-    def covers (self, data):
-        return data[self.attributeName] == self.attributeValue
-    
-    def to_string(self, open_brackets="", closing_brackets=""):
-        if self.selector_name == None:
-            return open_brackets + str(self.attributeName) + "=" + str(self.attributeValue) + closing_brackets
-        return open_brackets + self.selector_name + closing_brackets
-    
-    def __repr__(self):
-        return self.to_string()
-    
-    def getAttributeName(self):
-        return self.attributeName
-
-class NegatedSelector:
-    def __init__(self, selector):
-        self.selector = selector
-
-    def covers (self, dataInstance):
-        return not self.selector.covers(dataInstance)
-    
-    def __repr__(self):
-        return self.to_string()
-    
-    def to_string(self, open_brackets="", closing_brackets=""):
-        return "NOT " + str(self.selector, open_brackets, closing_brackets)
-    
-    def getAttributeName(self):
-        return self.selector.attributeName
-    
-# Including the lower bound, excluding the upperBound
-class NumericSelector:
-    def __init__(self, attributeName, lowerBound, upperBound, name=None):
-        self.attributeName = attributeName
-        self.lowerBound = lowerBound
-        self.upperBound = upperBound
-        self.selector_name = name
-
-    def covers (self, dataInstance):
-        val = dataInstance[self.attributeName]
-        return np.logical_and(val >= self.lowerBound, val < self.upperBound)
-    
-    def __repr__(self):
-        return self.to_string()
-    
-    def to_string(self, open_brackets="", closing_brackets="", roundingDigits=2):
-        formatter = "{0:." + str(roundingDigits) + "f}"
-        ub = self.upperBound
-        lb = self.lowerBound
-        if ub % 1:
-            ub = formatter.format(ub)
-        if lb % 1:
-            lb = formatter.format(lb)
-        
-        if self.selector_name != None:
-            repre = self.selector_name
-        elif self.lowerBound == float("-inf") and self.upperBound == float("inf"):
-            repre = self.attributeName + "= anything"
-        elif self.lowerBound == float("-inf"):
-            repre = self.attributeName + "<" + str(ub)
-        elif self.upperBound == float("inf"):
-            repre = self.attributeName + ">=" + str(lb)
-        else:
-            repre = self.attributeName + ": [" + str(lb) + ":" + str(ub) + "["
-        return open_brackets + repre + closing_brackets
-    
-    def getAttributeName(self):
-        return self.attributeName
-
 
 def removeTargetAttributes (selectors, target):
     result = []

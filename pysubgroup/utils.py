@@ -12,11 +12,14 @@ import pandas as pd
 all_statistics = ('size_sg', 'size_dataset', 'positives_sg', 'positives_dataset', 'size_complement', 'relative_size_sg', 'relative_size_complement', 'coverage_sg', 'coverage_complement', 'target_share_sg', 'target_share_complement', 'target_share_dataset', 'lift')
 all_statistics_weighted = all_statistics + ('size_sg_weighted', 'size_dataset_weighted', 'positives_sg_weighted', 'positives_dataset_weighted', 'size_complement_weighted', 'relative_size_sg_weighted', 'relative_size_complement_weighted', 'coverage_sg_weighted', 'coverage_complement_weighted', 'target_share_sg_weighted', 'target_share_complement_weighted', 'target_share_dataset_weighted', 'lift_weighted')
 
-def addIfRequired (result, sg, quality, task):
+def addIfRequired (result, sg, quality, task, check_for_duplicates=False):
     if (quality > task.minQuality):
+        if (check_for_duplicates and (quality, sg) in result):
+            return
         if (len(result) < task.resultSetSize):
             heappush(result, (quality, sg))
         elif (quality > result[0][0]):
+            
             heappop(result)
             heappush(result, (quality, sg))
 
