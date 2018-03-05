@@ -3,9 +3,9 @@ Created on 02.05.2016
 
 @author: lemmerfn
 '''
-from heapq import heappush, heappop
 from functools import partial
-
+from heapq import heappush, heappop
+import itertools
 import numpy as np
 import pandas as pd
 
@@ -110,6 +110,9 @@ def resultsAsDataFrame (data, result, statisticsToShow=all_statistics, autoround
         df = results_df_autoround(df)
     return df
 
+def conditional_invert (val, invert):
+    return - 2* (invert -0.5) * val
+
 
 def results_df_autoround (df):
     return df.round({
@@ -142,26 +145,6 @@ def results_df_autoround (df):
                 'target_share_dataset_weighted':3,
                 'lift_weighted':3})
 
-
-def extractStatisticsFromDataset (data, subgroup, weightingAttribute=None): 
-    if (weightingAttribute == None):
-        sgInstances = subgroup.subgroupDescription.covers(data)
-        positives = subgroup.target.covers(data)
-        instancesSubgroup = np.sum(sgInstances)
-        positivesDataset = np.sum(positives)
-        instancesDataset = len(data)
-        positivesSubgroup = np.sum(np.logical_and(sgInstances, positives))
-        return (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)  
-    else:
-        weights = data[weightingAttribute]
-        sgInstances = subgroup.subgroupDescription.covers(data)
-        positives = subgroup.target.covers(data)                         
-
-        instancesDataset = np.sum(weights)
-        instancesSubgroup = np.sum(np.dot(sgInstances, weights))
-        positivesDataset = np.sum(np.dot(positives, weights))
-        positivesSubgroup = np.sum(np.dot(np.logical_and(sgInstances, positives), weights))
-        return (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)
 
 def perc_formatter (x):
     return "{0:.1f}%".format(x * 100)
@@ -213,3 +196,13 @@ def isNumericalAttribute (data, attribute_name):
 
 def remove_selectors_with_attributes(selector_list, attribute_list):
     return [x for x in selector_list if not x.attributeName in attribute_list]
+
+def effective_sample_size(weights):
+    return sum(weights) ** 2 / sum(weights ** 2)
+
+# from https://docs.python.org/3/library/itertools.html#recipes
+def powerset(iterable):
+        "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+        s = list(iterable)
+        return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)))
+

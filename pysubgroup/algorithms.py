@@ -17,7 +17,7 @@ class SubgroupDiscoveryTask(object):
     '''
     Capsulates all parameters required to perform standard subgroup discovery 
     '''
-    def __init__(self, data, target, searchSpace, qf=m.WRAccQF(), resultSetSize=10, depth=3, minQuality=0, weightingAttribute=None):
+    def __init__(self, data, target, searchSpace, qf, resultSetSize=10, depth=3, minQuality=0, weightingAttribute=None):
             self.data = data
             self.target = target
             self.searchSpace = searchSpace
@@ -45,16 +45,16 @@ class Apriori(object):
             promising_candidates = []
             for sg in next_level_candidates:
                 if (measure_statistics_based):
-                    statistics = ut.extractStatisticsFromDataset(task.data, sg)
+                    statistics = sg.get_base_statistics(task.data)
                     ut.addIfRequired (result, sg, task.qf.evaluateFromStatistics (*statistics), task)
                     optimistic_estimate = task.qf.optimisticEstimateFromStatistics (*statistics) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
                 else:
                     ut.addIfRequired (result, sg, task.qf.evaluateFromDataset(task.data, sg), task)
                     optimistic_estimate = task.qf.optimisticEstimateFromDataset(task.data, sg) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
                 
-                #optimistic_estimate = task.qf.optimisticEstimateFromDataset(task.data, sg) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf") 
-                #quality = task.qf.evaluateFromDataset(task.data, sg)
-                #ut.addIfRequired (result, sg, quality, task)
+                # optimistic_estimate = task.qf.optimisticEstimateFromDataset(task.data, sg) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf") 
+                # quality = task.qf.evaluateFromDataset(task.data, sg)
+                # ut.addIfRequired (result, sg, quality, task)
                 if (optimistic_estimate >= ut.minimumRequiredQuality(result, task)):
                     promising_candidates.append(sg.subgroupDescription.selectors)
             
@@ -96,7 +96,7 @@ class BestFirstSearch (object):
             sg = Subgroup (task.target, candidate_description)
             
             if (measure_statistics_based):
-                statistics = ut.extractStatisticsFromDataset(task.data, sg)
+                statistics = sg.get_base_statistics(task.data)
                 ut.addIfRequired (result, sg, task.qf.evaluateFromStatistics (*statistics), task)
                 optimistic_estimate = task.qf.optimisticEstimateFromStatistics (*statistics) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
             else:
@@ -118,7 +118,7 @@ class BeamSearch(object):
     '''
     Implements the BeamSearch algorithm. Its a basic implementation without any optimization, i.e., refinements get tested multiple times.
     '''
-    def __init__(self, beamWidth, beamWidthAdaptive=False):
+    def __init__(self, beamWidth=20, beamWidthAdaptive=False):
         self.beamWidth = beamWidth
         self.beamWidthAdaptive = beamWidthAdaptive
     

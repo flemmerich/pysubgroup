@@ -5,7 +5,7 @@ import pandas as pd
 
 data = pd.DataFrame (arff.loadarff("C:\data\Datasets\credit-g.arff") [0])
 
-target = ps.NominalSelector ('class', b'bad')
+target = ps.NominalTarget ('class', 'bad')
 searchSpace = ps.createSelectors(data, ignore=['class'])
 task = ps.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=10, depth=3, qf=ps.StandardQF(0.5))
 

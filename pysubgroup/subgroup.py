@@ -1,4 +1,4 @@
-'''
+''' 
 Created on 28.04.2016
 
 @author: lemmerfn
@@ -66,6 +66,8 @@ class NominalSelector:
         return self.to_string()
     
     def __eq__(self, other): 
+        if None == other:
+            return False
         return self.__dict__ == other.__dict__
     
     def __lt__(self, other): 
@@ -154,35 +156,16 @@ class NumericSelector:
         return self.attributeName 
 
 @total_ordering
-class NominalTarget(object):
-    def __init__(self, targetSelector):
-        self.targetSelector = targetSelector
-        
-    def __repr__(self):
-        return "T: " + str(self.targetSelector)
-    
-    def __eq__(self, other): 
-        return self.__dict__ == other.__dict__
-    
-    def __lt__(self, other): 
-        return str(self) < str(other)
-    
-    def covers(self, instance):
-        return self.targetSelector.covers(instance)
-    
-    def getAttributes(self):
-        return [self.targetSelector.getAttributeName()]
-
-@total_ordering
 class Subgroup(object):
     def __init__(self, target, subgroupDescription):
         # If its already a NominalTarget object, we are fine, otherwise we create a new one
-        if (isinstance(target, NominalTarget)):
-            self.target = target
-        else:
-            self.target = NominalTarget(target)
+        # if (isinstance(target, NominalTarget) or isinstance(target, NumericTarget)):
+        #    self.target = target
+        # else:
+        #    self.target = NominalTarget(target)
         
         # If its already a SubgroupDescription object, we are fine, otherwise we create a new one
+        self.target = target
         if (isinstance(subgroupDescription, (SubgroupDescription))):
             self.subgroupDescription = subgroupDescription
         else:
@@ -206,39 +189,11 @@ class Subgroup(object):
     def __lt__(self, other): 
         return str(self) < str(other)
     
+    def get_base_statistics (self, data, weightingAttribute=None):
+        return self.target.get_base_statistics (data, self, weightingAttribute=None)
+    
     def calculateStatistics (self, data, weightingAttribute=None):
-        (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = ut.extractStatisticsFromDataset(data, self)
-        self.statistics['size_sg'] = instancesSubgroup
-        self.statistics['size_dataset'] = instancesDataset
-        self.statistics['positives_sg'] = positivesSubgroup
-        self.statistics['positives_dataset'] = positivesDataset
-        
-        self.statistics['size_complement'] = instancesDataset - instancesSubgroup
-        self.statistics['relative_size_sg'] = instancesSubgroup / instancesDataset
-        self.statistics['relative_size_complement'] = (instancesDataset - instancesSubgroup) / instancesDataset
-        self.statistics['coverage_sg'] = positivesSubgroup / positivesDataset
-        self.statistics['coverage_complement'] = (positivesDataset - positivesSubgroup) / positivesDataset
-        self.statistics['target_share_sg'] = positivesSubgroup / instancesSubgroup
-        self.statistics['target_share_complement'] = (positivesDataset - positivesSubgroup) / (instancesDataset - instancesSubgroup)
-        self.statistics['target_share_dataset'] = positivesDataset / instancesDataset
-        self.statistics['lift'] = (positivesSubgroup / instancesSubgroup) / (positivesDataset / instancesDataset)
-        
-        if (weightingAttribute != None):
-            (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = ut.extractStatisticsFromDataset(data, self, weightingAttribute)
-        self.statistics['size_sg_weighted'] = instancesSubgroup
-        self.statistics['size_dataset_weighted'] = instancesDataset
-        self.statistics['positives_sg_weighted'] = positivesSubgroup
-        self.statistics['positives_dataset_weighted'] = positivesDataset
-        
-        self.statistics['size_complement_weighted'] = instancesDataset - instancesSubgroup
-        self.statistics['relative_size_sg_weighted'] = instancesSubgroup / instancesDataset
-        self.statistics['relative_size_complement_weighted'] = (instancesDataset - instancesSubgroup) / instancesDataset
-        self.statistics['coverage_sg_weighted'] = positivesSubgroup / positivesDataset
-        self.statistics['coverage_complement_weighted'] = (positivesDataset - positivesSubgroup) / positivesDataset
-        self.statistics['target_share_sg_weighted'] = positivesSubgroup / instancesSubgroup
-        self.statistics['target_share_complement_weighted'] = (positivesDataset - positivesSubgroup) / (instancesDataset - instancesSubgroup)
-        self.statistics['target_share_dataset_weighted'] = positivesDataset / instancesDataset
-        self.statistics['lift_weighted'] = (positivesSubgroup / instancesSubgroup) / (positivesDataset / instancesDataset)
+        self.target.calculateStatistics(self, data, weightingAttribute)
         
 
 def createSelectors (data, nbins=5, intervals_only=True, ignore=[]):

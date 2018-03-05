@@ -8,7 +8,7 @@ import pysubgroup.utils as ut
 from pysubgroup.subgroup import Subgroup
 from bitarray import bitarray
 
-class BSD(object):
+class BSD_Bitarray(object):
     
     def execute (self, task):
         self.popSize = len(task.data)

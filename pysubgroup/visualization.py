@@ -1,7 +1,7 @@
 from functools import partial
 from matplotlib import pyplot as plt
 import numpy as np
-import pysubgroup.measures as m
+import pysubgroup.boolean_target as bt
 
 def plot_sgbars (sgs, shares_sg, shares_compl, sg_relative_sizes, ylabel="target share", title="Discovered Subgroups", dynamic_widths=False, suffix=""):
     x = np.arange (len(sgs))
@@ -29,7 +29,7 @@ def plot_sgbars (sgs, shares_sg, shares_compl, sg_relative_sizes, ylabel="target
     
     return fig
 
-def plot_roc (data, result_df, qf=m.StandardQF(0.5), levels=40):
+def plot_roc (data, result_df, qf=bt.StandardQF(0.5), levels=40):
     instances_dataset = len(data)
     positives_dataset = np.max(result_df['positives_dataset'])
     negatives_dataset = instances_dataset - positives_dataset
@@ -54,8 +54,8 @@ def plot_roc (data, result_df, qf=m.StandardQF(0.5), levels=40):
     
     # plt.colorbar(cp)
     plt.title('Discovered subgroups')
-    plt.xlabel('size')
-    plt.ylabel('target share')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
     
     return plt.figure()
 
