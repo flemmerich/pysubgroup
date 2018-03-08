@@ -6,7 +6,7 @@ Created on 29.09.2017
 import numpy as np
 import pysubgroup as ps
 from functools import total_ordering
-from measures import AbstractInterestingnessMeasure, \
+from pysubgroup.measures import AbstractInterestingnessMeasure, \
     BoundedInterestingnessMeasure
 from pysubgroup.utils import conditional_invert
 

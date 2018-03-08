@@ -15,8 +15,8 @@ class BSD_Bitarray(object):
         
         # generate target bitset
         self.targetBitset = bitarray(self.popSize)
-        for i, inst in enumerate(task.data):
-            self.targetBitset[i] = task.target.covers(inst)
+        for index, row in task.data.iterrows():
+            self.targetBitset[index] = task.target.covers(row)
         self.popPositives = self.targetBitset.count()
 
         # generate selector bitsets
@@ -24,11 +24,12 @@ class BSD_Bitarray(object):
         for sel in task.searchSpace:
             # generate bitset
             selBitset = bitarray(self.popSize)
-            for i, inst in enumerate(task.data):
-                selBitset[i] = sel.covers(inst)
+            for index, row in task.data.iterrows():
+                selBitset[index] = sel.covers(row)
             self.bitsets [sel] = selBitset
         result = self.searchInternal(task, [], task.searchSpace, [], self.popSize * bitarray('1'))
-        return result.sort(key=lambda x: x[0], reverse=True)
+        result.sort(key=lambda x: x[0], reverse=True)
+        return result
     
     
     def searchInternal(self, task, prefix, modificationSet, result, bitset):

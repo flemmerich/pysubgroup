@@ -4,7 +4,7 @@ import pysubgroup as ps
 import pandas as pd
 from timeit import default_timer as timer
 
-data = pd.DataFrame (arff.loadarff("C:\data\Datasets\credit-g.arff") [0])
+data = pd.DataFrame (arff.loadarff("../data/credit-g.arff") [0])
 
 target = ps.NominalTarget ('class', b'bad')
 searchSpace = ps.createSelectors(data, ignore=['class'])

@@ -8,6 +8,7 @@ import pandas as pd
 import pysubgroup.utils as ut
 from functools import total_ordering
 
+
 @total_ordering
 class SubgroupDescription(object):
     def __init__(self, selectors):
@@ -22,7 +23,10 @@ class SubgroupDescription(object):
             return np.full(len(instance), True, dtype=bool)
         # non-empty description
         return np.all([sel.covers(instance) for sel in self.selectors], axis=0)
-    
+
+    def __len__(self):
+        return len(self.selectors)
+
     def count (self, data):
         return sum(1 for x in data if self.covers(x))
     
@@ -122,6 +126,8 @@ class NumericSelector:
         return self.to_string()
     
     def __eq__(self, other): 
+        if other == None:
+            return False
         return self.__dict__ == other.__dict__
     
     def __lt__(self, other): 
@@ -181,16 +187,18 @@ class Subgroup(object):
         return self.subgroupDescription.covers(instance)
     
     def count(self, data):
-        return sum(1 for x in data if self.covers(x)) 
-    
-    def __eq__(self, other): 
+        return np.sum(self.subgroupDescription.covers(data))
+
+    def __eq__(self, other):
+        if other == None:
+            return False
         return self.__dict__ == other.__dict__
     
     def __lt__(self, other): 
         return str(self) < str(other)
     
     def get_base_statistics (self, data, weightingAttribute=None):
-        return self.target.get_base_statistics (data, self, weightingAttribute=None)
+        return self.target.get_base_statistics (data, self, weightingAttribute)
     
     def calculateStatistics (self, data, weightingAttribute=None):
         self.target.calculateStatistics(self, data, weightingAttribute)

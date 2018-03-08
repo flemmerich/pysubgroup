@@ -5,7 +5,7 @@ import pandas as pd
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
-data = pd.DataFrame (arff.loadarff("C:\data\Datasets\credit-g.arff") [0])
+data = pd.DataFrame (arff.loadarff("../data/credit-g.arff") [0])
 
 target = ps.NumericTarget ('credit_amount')
 sg = ps.Subgroup (target, ps.NominalSelector("purpose", b"other"))

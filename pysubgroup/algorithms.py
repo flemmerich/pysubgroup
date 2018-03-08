@@ -149,8 +149,7 @@ class BeamSearch(object):
                         quality = task.qf.evaluateFromDataset (task.data, sg)
                         ut.addIfRequired(beam, sg, quality, task, check_for_duplicates=True)
             depth += 1
-            print (beam)
-        
+
         result = beam [:task.resultSetSize]
         result.sort(key=lambda x: x[0], reverse=True) 
         return result

@@ -5,7 +5,7 @@ Created on 29.09.2017
 '''
 import numpy as np
 from functools import total_ordering
-from measures import AbstractInterestingnessMeasure, \
+from pysubgroup.measures import AbstractInterestingnessMeasure, \
     BoundedInterestingnessMeasure
 
 @total_ordering
@@ -57,7 +57,21 @@ class CountQF (AbstractInterestingnessMeasure, BoundedInterestingnessMeasure):
         return instancesSubgroup
 
     def isApplicable(self, subgroup):
-        return True
+        return isinstance(subgroup.target, FITarget)
+
+    def supportsWeights(self):
+        return False
+
+
+class AreaQF(AbstractInterestingnessMeasure):
+    def __init__(self):
+        pass
+
+    def evaluateFromDataset(self, data, subgroup, weightingAttribute=None):
+        return len(subgroup.subgroupDescription) * subgroup.subgroupDescription.covers(data).sum()
+
+    def isApplicable(self, subgroup):
+        return isinstance(subgroup.target, FITarget)
 
     def supportsWeights(self):
         return False

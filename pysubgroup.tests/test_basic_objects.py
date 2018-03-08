@@ -7,7 +7,7 @@ import pandas as pd
 import pysubgroup as ps
 
 if __name__ == '__main__':
-    data = pd.read_csv("C:/data/titanic.csv")
+    data = pd.read_csv("~/datasets/titanic.csv")
     target = ps.NominalSelector ('survived', 0)
     
     s1 = ps.Subgroup (target, [])

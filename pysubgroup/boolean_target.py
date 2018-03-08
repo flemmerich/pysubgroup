@@ -6,9 +6,9 @@ Created on 29.09.2017
 import numpy as np
 import scipy.stats
 from functools import total_ordering
-from measures import AbstractInterestingnessMeasure, \
+from pysubgroup.measures import AbstractInterestingnessMeasure, \
     BoundedInterestingnessMeasure
-import utils as ut
+import pysubgroup.utils as ut
 from pysubgroup.subgroup import SubgroupDescription, Subgroup, NominalSelector
 
 @total_ordering
@@ -20,6 +20,8 @@ class NominalTarget(object):
         If target_attribute and target_value are given, the target_selector is computed using attribute and value
         """
         if target_attribute != None and target_value != None:
+            if target_selector is not None:
+                raise BaseException("NominalTarget is to be constructed EITHER by a selector OR by attribute/value pair")
             target_selector = NominalSelector(target_attribute, target_value)
         if target_selector is None:
             raise BaseException("No target selector given")
@@ -191,10 +193,10 @@ class StandardQF (AbstractInterestingnessMeasure, BoundedInterestingnessMeasure)
             raise BaseException("Quality measure cannot be used for this target class")
         return self.evaluateFromStatistics (*subgroup.get_base_statistics(data, weightingAttribute))
     
-    def optimisticEstimateFromDataset(self, data, subgroup):
+    def optimisticEstimateFromDataset(self, data, subgroup, weightingAttribute=None):
         if not self.isApplicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
-        return self.optimisticEstimateFromStatistics (*subgroup.get_base_statistics(data, subgroup))
+        return self.optimisticEstimateFromStatistics (*subgroup.get_base_statistics(data, weightingAttribute))
 
     def evaluateFromStatistics (self, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup):
         return StandardQF.standardQF (self.a, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)
