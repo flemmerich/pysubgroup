@@ -30,7 +30,7 @@ class NumericTarget(object):
         return [self.target_variable]
     
     def get_base_statistics (self, data, subgroup, weightingAttribute=None): 
-        if (weightingAttribute == None):
+        if (weightingAttribute is None):
             sg_instances = subgroup.subgroupDescription.covers(data)
             all_target_values = data[self.target_variable]
             sg_target_values = all_target_values[sg_instances]
@@ -43,7 +43,7 @@ class NumericTarget(object):
             raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
         
     def calculateStatistics (self, subgroup, data, weightingAttribute=None):
-        if weightingAttribute != None:
+        if weightingAttribute is not None:
             raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
         sg_instances = subgroup.subgroupDescription.covers(data)
         all_target_values = data[self.target_variable]
@@ -119,6 +119,9 @@ class GAStandardQF_numeric (AbstractInterestingnessMeasure):
 
     def supportsWeights(self):
         return True
+
+    def isApplicable(self, subgroup):
+        return isinstance(subgroup.target, NumericTarget)
     
 def getMaxGeneralizationMean(data, subgroup, weightingAttribute=None):
     selectors = subgroup.subgroupDescription.selectors

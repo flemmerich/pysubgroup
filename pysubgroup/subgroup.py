@@ -108,7 +108,8 @@ class NegatedSelector:
     
     def getAttributeName(self):
         return self.selector.attributeName
-    
+
+
 # Including the lower bound, excluding the upperBound
 @total_ordering
 class NumericSelector:
@@ -136,7 +137,6 @@ class NumericSelector:
     def __hash__(self): 
         return str(self).__hash__()
 
-    
     def to_string(self, open_brackets="", closing_brackets="", roundingDigits=2):
         formatter = "{0:." + str(roundingDigits) + "f}"
         ub = self.upperBound
@@ -160,6 +160,7 @@ class NumericSelector:
     
     def getAttributeName(self):
         return self.attributeName 
+
 
 @total_ordering
 class Subgroup(object):
@@ -204,12 +205,16 @@ class Subgroup(object):
         self.target.calculateStatistics(self, data, weightingAttribute)
         
 
-def createSelectors (data, nbins=5, intervals_only=True, ignore=[]):
+def createSelectors (data, nbins=5, intervals_only=True, ignore=None):
+    if ignore is None:
+        ignore = []
     sels = createNominalSelectors(data, ignore)
     sels.extend(createNumericSelectors(data, nbins, intervals_only, ignore=ignore))
     return sels
 
-def createNominalSelectors(data, ignore=[]):
+def createNominalSelectors(data, ignore=None):
+    if ignore is None:
+        ignore = []
     nominal_selectors = []
     for attr_name in [x for x in data.select_dtypes(exclude=['number']).columns.values if x not in ignore]:
         nominal_selectors.extend(createNominalSelectorsForAttribute(data, attr_name))
@@ -221,7 +226,9 @@ def createNominalSelectorsForAttribute(data, attribute_name):
         nominal_selectors.append (NominalSelector(attribute_name, val))
     return nominal_selectors        
                     
-def createNumericSelectors(data, nbins=5, intervals_only=True, weightingAttribute=None, ignore=[]):
+def createNumericSelectors(data, nbins=5, intervals_only=True, weightingAttribute=None, ignore=None):
+    if ignore is None:
+        ignore = []
     numeric_selectors = []
     for attr_name in [x for x in data.select_dtypes(include=['number']).columns.values if x not in ignore]:
         numeric_selectors.extend(createNumericSelectorForAttribute(data, attr_name, nbins, intervals_only, weightingAttribute))

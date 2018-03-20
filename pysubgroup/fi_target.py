@@ -3,7 +3,6 @@ Created on 29.09.2017
 
 @author: lemmerfn
 '''
-import numpy as np
 from functools import total_ordering
 from pysubgroup.measures import AbstractInterestingnessMeasure, \
     BoundedInterestingnessMeasure

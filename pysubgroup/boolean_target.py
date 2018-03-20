@@ -211,15 +211,18 @@ class StandardQF (AbstractInterestingnessMeasure, BoundedInterestingnessMeasure)
         return isinstance(subgroup.target, NominalTarget)
 
 class WRAccQF (StandardQF):
-    def __init__(self):
+    def __init__(self, a):
+        super().__init__(a)
         self.a = 1.0
         
 class LiftQF (StandardQF):
-    def __init__(self):
+    def __init__(self, a):
+        super().__init__(a)
         self.a = 0.0
         
 class SimpleBinomial(StandardQF):
-    def __init__(self):
+    def __init__(self, a):
+        super().__init__(a)
         self.a = 0.5
         
 #####
@@ -240,7 +243,11 @@ class GAStandardQF (AbstractInterestingnessMeasure):
 
     def supportsWeights(self):
         return True
-    
+
+    def isApplicable(self, subgroup):
+        return isinstance(subgroup.target, NominalTarget)
+
+
 def getMaxGeneralizationTargetShare(data, subgroup, weightingAttribute=None):
     selectors = subgroup.subgroupDescription.selectors
     generalizations = ut.powerset(selectors)
@@ -252,5 +259,7 @@ def getMaxGeneralizationTargetShare(data, subgroup, weightingAttribute=None):
         targetShare = positivesSubgroup / instancesSubgroup
         maxTargetShare = max(maxTargetShare, targetShare)
     return maxTargetShare
+
+
 
 
