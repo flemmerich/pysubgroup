@@ -208,3 +208,27 @@ def powerset(iterable):
         s = list(iterable)
         return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)))
 
+
+#####
+# bitset operations
+#####
+def to_bits (list_of_ints):
+    v = 0
+    for x in list_of_ints:
+        v += 1 << x
+    return v
+
+
+def count_bits (bitset_as_int):
+    c = 0
+    while bitset_as_int > 0:
+        c += 1
+        bitset_as_int &= bitset_as_int - 1
+    return c
+
+
+def find_set_bits(bitset_as_int):
+    while bitset_as_int > 0:
+        x = bitset_as_int.bit_length() - 1
+        yield x
+        bitset_as_int = bitset_as_int - (1 << x)

@@ -1,6 +1,5 @@
 from .subgroup import *
 from .algorithms import *
-from .bsd import *
 from .measures import *
 from .utils import *
 from .visualization import *

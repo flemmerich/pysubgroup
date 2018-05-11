@@ -29,8 +29,7 @@ Therefore, a lot of literature has been devoted to the topic of subgroup discove
 
 ### Prerequisites and Installation
 pysubgroup is built to fit in the standard Python data analysis environment from the scipy-stack.
-Thus, it can be used just having pandas/numpy installed. Visualizations are carried out with the matplotlib library.
-Some algorithms (at the moment BSD) might require additional packages, but the goal is to avoid this altogher.
+Thus, it can be used just having pandas (including its dependencies numpy, scipy, and matplotlib) installed. Visualizations are carried out with the matplotlib library.
 
 pysubgroup consists of pure Python code. Thus, you can simply download the code from the repository and copy it in your `site-packages` directory.
 pysubgroup is also on PyPI and should be installable using:  

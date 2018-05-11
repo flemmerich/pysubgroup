@@ -8,9 +8,9 @@ from heapq import heappush, heappop
 from itertools import islice
 
 from pysubgroup.subgroup import Subgroup, SubgroupDescription
+from typing import List
 import pysubgroup.utils as ut
 import pysubgroup.measures as m
-
 
 
 class SubgroupDiscoveryTask(object):
@@ -153,14 +153,16 @@ class BeamSearch(object):
         result = beam [:task.resultSetSize]
         result.sort(key=lambda x: x[0], reverse=True) 
         return result
-        
+
+
 class SimpleDFS(object):
     def execute (self, task, useOptimisticEstimates=True):
         result = self.searchInternal(task, [], task.searchSpace, [], useOptimisticEstimates)
         result.sort(key=lambda x: x[0], reverse=True)
         return result
-    
-    def searchInternal(self, task, prefix, modificationSet, result, useOptimisticEstimates):
+
+
+    def searchInternal(self, task: SubgroupDiscoveryTask, prefix: List, modificationSet: List, result: List, useOptimisticEstimates: bool) -> List:
         sg = Subgroup(task.target, SubgroupDescription(copy.copy(prefix)))
         
         optimisticEstimate = float("inf")
@@ -181,6 +183,56 @@ class SimpleDFS(object):
                 prefix.append(sel)
                 newModificationSet.pop(0)
                 self.searchInternal(task, prefix, newModificationSet, result, useOptimisticEstimates)
+                # remove the sel again
+                prefix.pop(-1)
+        return result
+
+
+class BSD (object):
+
+    def execute(self, task):
+        self.popSize = len(task.data)
+
+        # generate target bitset
+        self.targetBitset = 0
+        for index, row in task.data.iterrows():
+            self.targetBitset += task.target.covers(row) << index
+        self.popPositives = ut.count_bits(self.targetBitset)
+
+        # generate selector bitsets
+        self.bitsets = {}
+        for sel in task.searchSpace:
+            # generate bitset
+            selBitset = 0
+            for index, row in task.data.iterrows():
+                selBitset += sel.covers(row) << index
+            self.bitsets[sel] = selBitset
+        result = self.searchInternal(task, [], task.searchSpace, [], (1 << self.popSize) - 1)
+        result.sort(key=lambda x: x[0], reverse=True)
+        return result
+
+    def searchInternal(self, task, prefix, modificationSet, result, bitset):
+        sg = Subgroup(task.target, copy.copy(prefix))
+
+        sgSize = ut.count_bits(bitset)
+        positiveInstances = bitset & self.targetBitset
+        sgPositiveCount = ut.count_bits(positiveInstances)
+
+        optimisticEstimate = task.qf.optimisticEstimateFromStatistics(self.popSize, self.popPositives, sgSize,
+                                                                      sgPositiveCount)
+        if (optimisticEstimate <= ut.minimumRequiredQuality(result, task)):
+            return result
+
+        quality = task.qf.evaluateFromStatistics(self.popSize, self.popPositives, sgSize, sgPositiveCount)
+        ut.addIfRequired(result, sg, quality, task)
+
+        if (len(prefix) < task.depth):
+            newModificationSet = copy.copy(modificationSet)
+            for sel in modificationSet:
+                prefix.append(sel)
+                newBitset = bitset & self.bitsets[sel]
+                newModificationSet.pop(0)
+                self.searchInternal(task, prefix, newModificationSet, result, newBitset)
                 # remove the sel again
                 prefix.pop(-1)
         return result
