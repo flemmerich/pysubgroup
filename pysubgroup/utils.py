@@ -232,3 +232,22 @@ def find_set_bits(bitset_as_int):
         x = bitset_as_int.bit_length() - 1
         yield x
         bitset_as_int = bitset_as_int - (1 << x)
+
+
+#####
+# TID-list operations
+#####
+def intersect_of_ordered_list(list_1, list_2):
+    result = []
+    i = 0
+    j = 0
+    while i < len(list_1) and j < len(list_2):
+        if list_1[i] < list_2[j]:
+                i += 1
+        elif list_2[j] < list_1[i]:
+            j+= 1
+        else:
+            result.append(list_1[i])
+            j += 1
+            i += 1
+    return result

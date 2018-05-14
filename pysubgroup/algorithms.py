@@ -6,11 +6,11 @@ Created on 29.04.2016
 import copy
 from heapq import heappush, heappop
 from itertools import islice
-
-from pysubgroup.subgroup import Subgroup, SubgroupDescription
 from typing import List
-import pysubgroup.utils as ut
+
 import pysubgroup.measures as m
+import pysubgroup.utils as ut
+from pysubgroup.subgroup import Subgroup, SubgroupDescription
 
 
 class SubgroupDiscoveryTask(object):
@@ -189,7 +189,10 @@ class SimpleDFS(object):
 
 
 class BSD (object):
-
+"""
+Implementation of the BSD algorithm for binary targets. See
+Lemmerich, Florian, Mathias Rohlfs, and Martin Atzmueller. "Fast Discovery of Relevant Subgroup Patterns." FLAIRS Conference. 2010.
+"""
     def execute(self, task):
         self.popSize = len(task.data)
 
@@ -236,3 +239,59 @@ class BSD (object):
                 # remove the sel again
                 prefix.pop(-1)
         return result
+
+
+class TID_SD (object):
+    """
+    Implementation of a depth-first-search with look-ahead using vertical ID lists as data structure.
+    """
+
+    def execute(self, task):
+        self.popSize = len(task.data)
+
+        # generate target bitset
+        self.targetBitset = []
+        for index, row in task.data.iterrows():
+            if task.target.covers(row):
+                self.targetBitset.append(index)
+        self.popPositives = len(self.targetBitset)
+
+        # generate selector bitsets
+        self.bitsets = {}
+        for sel in task.searchSpace:
+            # generate bitset
+            selBitset = []
+            for index, row in task.data.iterrows():
+                if sel.covers(row):
+                    selBitset.append(index)
+            self.bitsets[sel] = selBitset
+        result = self.searchInternal(task, [], task.searchSpace, [], list(range(self.popSize)))
+        result.sort(key=lambda x: x[0], reverse=True)
+        return result
+
+    def searchInternal(self, task, prefix, modificationSet, result, bitset):
+        sg = Subgroup(task.target, copy.copy(prefix))
+
+        sgSize = len(bitset)
+        positiveInstances = ut.intersect_of_ordered_list(bitset, self.targetBitset)
+        sgPositiveCount = len(positiveInstances)
+
+        optimisticEstimate = task.qf.optimisticEstimateFromStatistics(self.popSize, self.popPositives, sgSize,
+                                                                      sgPositiveCount)
+        if (optimisticEstimate <= ut.minimumRequiredQuality(result, task)):
+            return result
+
+        quality = task.qf.evaluateFromStatistics(self.popSize, self.popPositives, sgSize, sgPositiveCount)
+        ut.addIfRequired(result, sg, quality, task)
+
+        if (len(prefix) < task.depth):
+            newModificationSet = copy.copy(modificationSet)
+            for sel in modificationSet:
+                prefix.append(sel)
+                newBitset = ut.intersect_of_ordered_list(bitset, self.bitsets[sel])
+                newModificationSet.pop(0)
+                self.searchInternal(task, prefix, newModificationSet, result, newBitset)
+                # remove the sel again
+                prefix.pop(-1)
+        return result
+

@@ -19,7 +19,7 @@ class NominalTarget(object):
         Creates a new target for the boolean model class (classic subgroup discovery). 
         If target_attribute and target_value are given, the target_selector is computed using attribute and value
         """
-        if target_attribute != None and target_value != None:
+        if target_attribute is not None and target_value is not None:
             if target_selector is not None:
                 raise BaseException("NominalTarget is to be constructed EITHER by a selector OR by attribute/value pair")
             target_selector = NominalSelector(target_attribute, target_value)
@@ -43,7 +43,7 @@ class NominalTarget(object):
         return [self.targetSelector.getAttributeName()]
 
     def get_base_statistics (self, data, subgroup, weightingAttribute=None): 
-        if (weightingAttribute == None):
+        if weightingAttribute is None:
             sgInstances = subgroup.subgroupDescription.covers(data)
             positives = subgroup.target.covers(data)
             instancesSubgroup = np.sum(sgInstances)
@@ -79,7 +79,7 @@ class NominalTarget(object):
         subgroup.statistics['target_share_dataset'] = positivesDataset / instancesDataset
         subgroup.statistics['lift'] = (positivesSubgroup / instancesSubgroup) / (positivesDataset / instancesDataset)
         
-        if (weightingAttribute != None):
+        if (weightingAttribute is not None):
             (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = subgroup.get_base_statistics(data, self, weightingAttribute)
         subgroup.statistics['size_sg_weighted'] = instancesSubgroup
         subgroup.statistics['size_dataset_weighted'] = instancesDataset
@@ -158,7 +158,7 @@ class ChiSquaredQF (AbstractInterestingnessMeasure):
     def evaluateFromDataset(self, data, subgroup, weightingAttribute=None):
         if not self.isApplicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
-        if weightingAttribute == None:
+        if weightingAttribute is None:
             result = self.evaluateFromStatistics (*subgroup.get_base_statistics(data))
         else:
             (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = subgroup.get_base_statistics(data, weightingAttribute)
