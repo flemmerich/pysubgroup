@@ -3,14 +3,16 @@ Created on 02.05.2016
 
 @author: lemmerfn
 '''
-from heapq import heappush, heappop
 from functools import partial
-
+from heapq import heappush, heappop
+import itertools
 import numpy as np
 import pandas as pd
 
 all_statistics = ('size_sg', 'size_dataset', 'positives_sg', 'positives_dataset', 'size_complement', 'relative_size_sg', 'relative_size_complement', 'coverage_sg', 'coverage_complement', 'target_share_sg', 'target_share_complement', 'target_share_dataset', 'lift')
 all_statistics_weighted = all_statistics + ('size_sg_weighted', 'size_dataset_weighted', 'positives_sg_weighted', 'positives_dataset_weighted', 'size_complement_weighted', 'relative_size_sg_weighted', 'relative_size_complement_weighted', 'coverage_sg_weighted', 'coverage_complement_weighted', 'target_share_sg_weighted', 'target_share_complement_weighted', 'target_share_dataset_weighted', 'lift_weighted')
+all_statistics_numeric = ('size_sg', 'size_dataset', 'mean_sg', 'mean_dataset', 'std_sg', 'std_dataset', 'median_sg', 'median_dataset', 'max_sg', 'max_dataset', 'min_sg', 'min_dataset', 'mean_lift', 'median_lift')
+
 
 def addIfRequired (result, sg, quality, task, check_for_duplicates=False):
     if (quality > task.minQuality):
@@ -110,6 +112,9 @@ def resultsAsDataFrame (data, result, statisticsToShow=all_statistics, autoround
         df = results_df_autoround(df)
     return df
 
+def conditional_invert (val, invert):
+    return - 2* (invert -0.5) * val
+
 
 def results_df_autoround (df):
     return df.round({
@@ -142,26 +147,6 @@ def results_df_autoround (df):
                 'target_share_dataset_weighted':3,
                 'lift_weighted':3})
 
-
-def extractStatisticsFromDataset (data, subgroup, weightingAttribute=None): 
-    if (weightingAttribute == None):
-        sgInstances = subgroup.subgroupDescription.covers(data)
-        positives = subgroup.target.covers(data)
-        instancesSubgroup = np.sum(sgInstances)
-        positivesDataset = np.sum(positives)
-        instancesDataset = len(data)
-        positivesSubgroup = np.sum(np.logical_and(sgInstances, positives))
-        return (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)  
-    else:
-        weights = data[weightingAttribute]
-        sgInstances = subgroup.subgroupDescription.covers(data)
-        positives = subgroup.target.covers(data)                         
-
-        instancesDataset = np.sum(weights)
-        instancesSubgroup = np.sum(np.dot(sgInstances, weights))
-        positivesDataset = np.sum(np.dot(positives, weights))
-        positivesSubgroup = np.sum(np.dot(np.logical_and(sgInstances, positives), weights))
-        return (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)
 
 def perc_formatter (x):
     return "{0:.1f}%".format(x * 100)
@@ -213,3 +198,37 @@ def isNumericalAttribute (data, attribute_name):
 
 def remove_selectors_with_attributes(selector_list, attribute_list):
     return [x for x in selector_list if not x.attributeName in attribute_list]
+
+def effective_sample_size(weights):
+    return sum(weights) ** 2 / sum(weights ** 2)
+
+# from https://docs.python.org/3/library/itertools.html#recipes
+def powerset(iterable):
+        "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+        s = list(iterable)
+        return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)))
+
+
+#####
+# bitset operations
+#####
+def to_bits (list_of_ints):
+    v = 0
+    for x in list_of_ints:
+        v += 1 << x
+    return v
+
+
+def count_bits (bitset_as_int):
+    c = 0
+    while bitset_as_int > 0:
+        c += 1
+        bitset_as_int &= bitset_as_int - 1
+    return c
+
+
+def find_set_bits(bitset_as_int):
+    while bitset_as_int > 0:
+        x = bitset_as_int.bit_length() - 1
+        yield x
+        bitset_as_int = bitset_as_int - (1 << x)

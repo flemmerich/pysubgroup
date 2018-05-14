@@ -1,5 +1,9 @@
-from pysubgroup.subgroup import *
-from pysubgroup.algorithms import *
-from pysubgroup.measures import *
-from pysubgroup.utils import * 
-from pysubgroup.visualization import * 
+from .subgroup import *
+from .algorithms import *
+from .measures import *
+from .utils import *
+from .visualization import *
+
+from .boolean_target import *
+from .numeric_target import *
+from .fi_target import *

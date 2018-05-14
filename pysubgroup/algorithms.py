@@ -8,16 +8,16 @@ from heapq import heappush, heappop
 from itertools import islice
 
 from pysubgroup.subgroup import Subgroup, SubgroupDescription
+from typing import List
 import pysubgroup.utils as ut
 import pysubgroup.measures as m
-
 
 
 class SubgroupDiscoveryTask(object):
     '''
     Capsulates all parameters required to perform standard subgroup discovery 
     '''
-    def __init__(self, data, target, searchSpace, qf=m.WRAccQF(), resultSetSize=10, depth=3, minQuality=0, weightingAttribute=None):
+    def __init__(self, data, target, searchSpace, qf, resultSetSize=10, depth=3, minQuality=0, weightingAttribute=None):
             self.data = data
             self.target = target
             self.searchSpace = searchSpace
@@ -45,16 +45,16 @@ class Apriori(object):
             promising_candidates = []
             for sg in next_level_candidates:
                 if (measure_statistics_based):
-                    statistics = ut.extractStatisticsFromDataset(task.data, sg)
+                    statistics = sg.get_base_statistics(task.data)
                     ut.addIfRequired (result, sg, task.qf.evaluateFromStatistics (*statistics), task)
                     optimistic_estimate = task.qf.optimisticEstimateFromStatistics (*statistics) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
                 else:
                     ut.addIfRequired (result, sg, task.qf.evaluateFromDataset(task.data, sg), task)
                     optimistic_estimate = task.qf.optimisticEstimateFromDataset(task.data, sg) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
                 
-                #optimistic_estimate = task.qf.optimisticEstimateFromDataset(task.data, sg) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf") 
-                #quality = task.qf.evaluateFromDataset(task.data, sg)
-                #ut.addIfRequired (result, sg, quality, task)
+                # optimistic_estimate = task.qf.optimisticEstimateFromDataset(task.data, sg) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf") 
+                # quality = task.qf.evaluateFromDataset(task.data, sg)
+                # ut.addIfRequired (result, sg, quality, task)
                 if (optimistic_estimate >= ut.minimumRequiredQuality(result, task)):
                     promising_candidates.append(sg.subgroupDescription.selectors)
             
@@ -96,7 +96,7 @@ class BestFirstSearch (object):
             sg = Subgroup (task.target, candidate_description)
             
             if (measure_statistics_based):
-                statistics = ut.extractStatisticsFromDataset(task.data, sg)
+                statistics = sg.get_base_statistics(task.data)
                 ut.addIfRequired (result, sg, task.qf.evaluateFromStatistics (*statistics), task)
                 optimistic_estimate = task.qf.optimisticEstimateFromStatistics (*statistics) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
             else:
@@ -118,7 +118,7 @@ class BeamSearch(object):
     '''
     Implements the BeamSearch algorithm. Its a basic implementation without any optimization, i.e., refinements get tested multiple times.
     '''
-    def __init__(self, beamWidth, beamWidthAdaptive=False):
+    def __init__(self, beamWidth=20, beamWidthAdaptive=False):
         self.beamWidth = beamWidth
         self.beamWidthAdaptive = beamWidthAdaptive
     
@@ -149,19 +149,20 @@ class BeamSearch(object):
                         quality = task.qf.evaluateFromDataset (task.data, sg)
                         ut.addIfRequired(beam, sg, quality, task, check_for_duplicates=True)
             depth += 1
-            print (beam)
-        
+
         result = beam [:task.resultSetSize]
         result.sort(key=lambda x: x[0], reverse=True) 
         return result
-        
+
+
 class SimpleDFS(object):
     def execute (self, task, useOptimisticEstimates=True):
         result = self.searchInternal(task, [], task.searchSpace, [], useOptimisticEstimates)
         result.sort(key=lambda x: x[0], reverse=True)
         return result
-    
-    def searchInternal(self, task, prefix, modificationSet, result, useOptimisticEstimates):
+
+
+    def searchInternal(self, task: SubgroupDiscoveryTask, prefix: List, modificationSet: List, result: List, useOptimisticEstimates: bool) -> List:
         sg = Subgroup(task.target, SubgroupDescription(copy.copy(prefix)))
         
         optimisticEstimate = float("inf")
@@ -182,6 +183,56 @@ class SimpleDFS(object):
                 prefix.append(sel)
                 newModificationSet.pop(0)
                 self.searchInternal(task, prefix, newModificationSet, result, useOptimisticEstimates)
+                # remove the sel again
+                prefix.pop(-1)
+        return result
+
+
+class BSD (object):
+
+    def execute(self, task):
+        self.popSize = len(task.data)
+
+        # generate target bitset
+        self.targetBitset = 0
+        for index, row in task.data.iterrows():
+            self.targetBitset += task.target.covers(row) << index
+        self.popPositives = ut.count_bits(self.targetBitset)
+
+        # generate selector bitsets
+        self.bitsets = {}
+        for sel in task.searchSpace:
+            # generate bitset
+            selBitset = 0
+            for index, row in task.data.iterrows():
+                selBitset += sel.covers(row) << index
+            self.bitsets[sel] = selBitset
+        result = self.searchInternal(task, [], task.searchSpace, [], (1 << self.popSize) - 1)
+        result.sort(key=lambda x: x[0], reverse=True)
+        return result
+
+    def searchInternal(self, task, prefix, modificationSet, result, bitset):
+        sg = Subgroup(task.target, copy.copy(prefix))
+
+        sgSize = ut.count_bits(bitset)
+        positiveInstances = bitset & self.targetBitset
+        sgPositiveCount = ut.count_bits(positiveInstances)
+
+        optimisticEstimate = task.qf.optimisticEstimateFromStatistics(self.popSize, self.popPositives, sgSize,
+                                                                      sgPositiveCount)
+        if (optimisticEstimate <= ut.minimumRequiredQuality(result, task)):
+            return result
+
+        quality = task.qf.evaluateFromStatistics(self.popSize, self.popPositives, sgSize, sgPositiveCount)
+        ut.addIfRequired(result, sg, quality, task)
+
+        if (len(prefix) < task.depth):
+            newModificationSet = copy.copy(modificationSet)
+            for sel in modificationSet:
+                prefix.append(sel)
+                newBitset = bitset & self.bitsets[sel]
+                newModificationSet.pop(0)
+                self.searchInternal(task, prefix, newModificationSet, result, newBitset)
                 # remove the sel again
                 prefix.pop(-1)
         return result

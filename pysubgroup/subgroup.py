@@ -1,4 +1,4 @@
-'''
+''' 
 Created on 28.04.2016
 
 @author: lemmerfn
@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pysubgroup.utils as ut
 from functools import total_ordering
+
 
 @total_ordering
 class SubgroupDescription(object):
@@ -22,7 +23,10 @@ class SubgroupDescription(object):
             return np.full(len(instance), True, dtype=bool)
         # non-empty description
         return np.all([sel.covers(instance) for sel in self.selectors], axis=0)
-    
+
+    def __len__(self):
+        return len(self.selectors)
+
     def count (self, data):
         return sum(1 for x in data if self.covers(x))
     
@@ -66,6 +70,8 @@ class NominalSelector:
         return self.to_string()
     
     def __eq__(self, other): 
+        if None == other:
+            return False
         return self.__dict__ == other.__dict__
     
     def __lt__(self, other): 
@@ -102,7 +108,8 @@ class NegatedSelector:
     
     def getAttributeName(self):
         return self.selector.attributeName
-    
+
+
 # Including the lower bound, excluding the upperBound
 @total_ordering
 class NumericSelector:
@@ -120,6 +127,8 @@ class NumericSelector:
         return self.to_string()
     
     def __eq__(self, other): 
+        if other == None:
+            return False
         return self.__dict__ == other.__dict__
     
     def __lt__(self, other): 
@@ -128,7 +137,6 @@ class NumericSelector:
     def __hash__(self): 
         return str(self).__hash__()
 
-    
     def to_string(self, open_brackets="", closing_brackets="", roundingDigits=2):
         formatter = "{0:." + str(roundingDigits) + "f}"
         ub = self.upperBound
@@ -153,36 +161,18 @@ class NumericSelector:
     def getAttributeName(self):
         return self.attributeName 
 
-@total_ordering
-class NominalTarget(object):
-    def __init__(self, targetSelector):
-        self.targetSelector = targetSelector
-        
-    def __repr__(self):
-        return "T: " + str(self.targetSelector)
-    
-    def __eq__(self, other): 
-        return self.__dict__ == other.__dict__
-    
-    def __lt__(self, other): 
-        return str(self) < str(other)
-    
-    def covers(self, instance):
-        return self.targetSelector.covers(instance)
-    
-    def getAttributes(self):
-        return [self.targetSelector.getAttributeName()]
 
 @total_ordering
 class Subgroup(object):
     def __init__(self, target, subgroupDescription):
         # If its already a NominalTarget object, we are fine, otherwise we create a new one
-        if (isinstance(target, NominalTarget)):
-            self.target = target
-        else:
-            self.target = NominalTarget(target)
+        # if (isinstance(target, NominalTarget) or isinstance(target, NumericTarget)):
+        #    self.target = target
+        # else:
+        #    self.target = NominalTarget(target)
         
         # If its already a SubgroupDescription object, we are fine, otherwise we create a new one
+        self.target = target
         if (isinstance(subgroupDescription, (SubgroupDescription))):
             self.subgroupDescription = subgroupDescription
         else:
@@ -198,55 +188,33 @@ class Subgroup(object):
         return self.subgroupDescription.covers(instance)
     
     def count(self, data):
-        return sum(1 for x in data if self.covers(x)) 
-    
-    def __eq__(self, other): 
+        return np.sum(self.subgroupDescription.covers(data))
+
+    def __eq__(self, other):
+        if other == None:
+            return False
         return self.__dict__ == other.__dict__
     
     def __lt__(self, other): 
         return str(self) < str(other)
     
+    def get_base_statistics (self, data, weightingAttribute=None):
+        return self.target.get_base_statistics (data, self, weightingAttribute)
+    
     def calculateStatistics (self, data, weightingAttribute=None):
-        (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = ut.extractStatisticsFromDataset(data, self)
-        self.statistics['size_sg'] = instancesSubgroup
-        self.statistics['size_dataset'] = instancesDataset
-        self.statistics['positives_sg'] = positivesSubgroup
-        self.statistics['positives_dataset'] = positivesDataset
-        
-        self.statistics['size_complement'] = instancesDataset - instancesSubgroup
-        self.statistics['relative_size_sg'] = instancesSubgroup / instancesDataset
-        self.statistics['relative_size_complement'] = (instancesDataset - instancesSubgroup) / instancesDataset
-        self.statistics['coverage_sg'] = positivesSubgroup / positivesDataset
-        self.statistics['coverage_complement'] = (positivesDataset - positivesSubgroup) / positivesDataset
-        self.statistics['target_share_sg'] = positivesSubgroup / instancesSubgroup
-        self.statistics['target_share_complement'] = (positivesDataset - positivesSubgroup) / (instancesDataset - instancesSubgroup)
-        self.statistics['target_share_dataset'] = positivesDataset / instancesDataset
-        self.statistics['lift'] = (positivesSubgroup / instancesSubgroup) / (positivesDataset / instancesDataset)
-        
-        if (weightingAttribute != None):
-            (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = ut.extractStatisticsFromDataset(data, self, weightingAttribute)
-        self.statistics['size_sg_weighted'] = instancesSubgroup
-        self.statistics['size_dataset_weighted'] = instancesDataset
-        self.statistics['positives_sg_weighted'] = positivesSubgroup
-        self.statistics['positives_dataset_weighted'] = positivesDataset
-        
-        self.statistics['size_complement_weighted'] = instancesDataset - instancesSubgroup
-        self.statistics['relative_size_sg_weighted'] = instancesSubgroup / instancesDataset
-        self.statistics['relative_size_complement_weighted'] = (instancesDataset - instancesSubgroup) / instancesDataset
-        self.statistics['coverage_sg_weighted'] = positivesSubgroup / positivesDataset
-        self.statistics['coverage_complement_weighted'] = (positivesDataset - positivesSubgroup) / positivesDataset
-        self.statistics['target_share_sg_weighted'] = positivesSubgroup / instancesSubgroup
-        self.statistics['target_share_complement_weighted'] = (positivesDataset - positivesSubgroup) / (instancesDataset - instancesSubgroup)
-        self.statistics['target_share_dataset_weighted'] = positivesDataset / instancesDataset
-        self.statistics['lift_weighted'] = (positivesSubgroup / instancesSubgroup) / (positivesDataset / instancesDataset)
+        self.target.calculateStatistics(self, data, weightingAttribute)
         
 
-def createSelectors (data, nbins=5, intervals_only=True, ignore=[]):
+def createSelectors (data, nbins=5, intervals_only=True, ignore=None):
+    if ignore is None:
+        ignore = []
     sels = createNominalSelectors(data, ignore)
     sels.extend(createNumericSelectors(data, nbins, intervals_only, ignore=ignore))
     return sels
 
-def createNominalSelectors(data, ignore=[]):
+def createNominalSelectors(data, ignore=None):
+    if ignore is None:
+        ignore = []
     nominal_selectors = []
     for attr_name in [x for x in data.select_dtypes(exclude=['number']).columns.values if x not in ignore]:
         nominal_selectors.extend(createNominalSelectorsForAttribute(data, attr_name))
@@ -258,7 +226,9 @@ def createNominalSelectorsForAttribute(data, attribute_name):
         nominal_selectors.append (NominalSelector(attribute_name, val))
     return nominal_selectors        
                     
-def createNumericSelectors(data, nbins=5, intervals_only=True, weightingAttribute=None, ignore=[]):
+def createNumericSelectors(data, nbins=5, intervals_only=True, weightingAttribute=None, ignore=None):
+    if ignore is None:
+        ignore = []
     numeric_selectors = []
     for attr_name in [x for x in data.select_dtypes(include=['number']).columns.values if x not in ignore]:
         numeric_selectors.extend(createNumericSelectorForAttribute(data, attr_name, nbins, intervals_only, weightingAttribute))
