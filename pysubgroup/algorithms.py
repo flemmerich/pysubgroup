@@ -189,10 +189,10 @@ class SimpleDFS(object):
 
 
 class BSD (object):
-"""
-Implementation of the BSD algorithm for binary targets. See
-Lemmerich, Florian, Mathias Rohlfs, and Martin Atzmueller. "Fast Discovery of Relevant Subgroup Patterns." FLAIRS Conference. 2010.
-"""
+    """
+    Implementation of the BSD algorithm for binary targets. See
+    Lemmerich, Florian, Mathias Rohlfs, and Martin Atzmueller. "Fast Discovery of Relevant Subgroup Patterns." FLAIRS Conference. 2010.
+    """
     def execute(self, task):
         self.popSize = len(task.data)
 

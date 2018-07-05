@@ -1,4 +1,4 @@
-#Pysubgroup
+# Pysubgroup
 
 **pysubgroup** is a Python package that enables subgroup discovery in Python+pandas (scipy stack) data analysis environment. It provides for a lightweight, easy-to-use, extensible and freely available implementation of state-of-the-art algorithms, interestingness measures and presentation options.
 
@@ -88,7 +88,7 @@ Anyways, here is an outline on the most important classes:
 
 **License**
 I am happy about anyone using this software. Thus, this work is put under an Apache license. However, if this constitutes
-any hinderance to your application, please feel free to contact me, I am sure that we can work something out.
+any hindrance to your application, please feel free to contact me, I am sure that we can work something out.
 
     Copyright 2016-2018 Florian Lemmerich
         
