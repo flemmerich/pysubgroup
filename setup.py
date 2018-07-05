@@ -11,7 +11,7 @@ setup(
     author_email='florian@lemmerich.net',
     description='pysubgroup is a Python library for the data analysis task of subgroup discovery.',
     install_requires=[
-              'pandas','scipy','numpy','matplotlib'
+              'pandas', 'scipy', 'numpy', 'matplotlib'
           ],
     python_requires='>=3.5'
 )
