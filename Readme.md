@@ -49,7 +49,7 @@ import pysubgroup as ps
 import pandas as pd
 
 data = pd.read_csv("C:/data/titanic.csv")
-target = ps.NominalSelector ('survived', True)
+target = ps.NominalTarget ('survived', True)
 searchspace = ps.createSelectors(data, ignore=['survived'])
 task = ps.SubgroupDiscoveryTask (data, target, searchspace, 
             resultSetSize=5, depth=2, qf=ps.ChiSquaredQF())
