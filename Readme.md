@@ -44,9 +44,9 @@ import pandas as pd
 
 data = pd.read_csv("C:/data/titanic.csv")
 target = ps.NominalSelector ('survived', True)
-searchspace = ps.createSelectors(data, ignore=['survived'])
+searchspace = ps.create_selectors(data, ignore=['survived'])
 task = ps.SubgroupDiscoveryTask (data, target, searchspace, 
-            resultSetSize=5, depth=2, qf=ps.ChiSquaredQF())
+            result_set_size=5, depth=2, qf=ps.ChiSquaredQF())
 result = ps.BeamSearch().execute(task)
 ```
 he first two lines import the _pandas_ data analysis environment and the _pysubgroup_ package.
@@ -63,7 +63,7 @@ To just print the result, we could for example do:
 
 ```python
 for (q, sg) in result:
-    print (str(q) + ":\t" + str(sg.subgroupDescription)
+    print (str(q) + ":\t" + str(sg.subgroup_description)
 ```
 
 to get:
@@ -90,7 +90,7 @@ Anyways, here is an outline on the most important classes:
 I am happy about anyone using this software. Thus, this work is put under an Apache license. However, if this constitutes
 any hindrance to your application, please feel free to contact me, I am sure that we can work something out.
 
-    Copyright 2016-2018 Florian Lemmerich
+    Copyright 2016-2019 Florian Lemmerich
         
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

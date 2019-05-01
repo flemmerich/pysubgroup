@@ -4,8 +4,7 @@ Created on 29.04.2016
 @author: lemmerfn
 '''
 import copy
-import pysubgroup.utils as ut
-from pysubgroup.subgroup import Subgroup
+import pysubgroup as ps
 from bitarray import bitarray
 
 class BSD_Bitarray(object):
@@ -33,18 +32,18 @@ class BSD_Bitarray(object):
     
     
     def searchInternal(self, task, prefix, modificationSet, result, bitset):
-        sg = Subgroup(task.target, copy.copy(prefix))
+        sg = ps.Subgroup(task.target, copy.copy(prefix))
         
         sgSize = bitset.count()
         positiveInstances = bitset & self.targetBitset
         sgPositiveCount = positiveInstances.count()
          
-        optimisticEstimate = task.qf.optimisticEstimateFromStatistics (self.popSize, self.popPositives, sgSize, sgPositiveCount)
-        if (optimisticEstimate <= ut.minimumRequiredQuality(result, task)):
+        optimisticEstimate = task.qf.optimistic_estimate_from_statistics (self.popSize, self.popPositives, sgSize, sgPositiveCount)
+        if (optimisticEstimate <= ps.minimum_required_quality(result, task)):
             return result
         
-        quality = task.qf.evaluateFromStatistics (self.popSize, self.popPositives, sgSize, sgPositiveCount) 
-        ut.addIfRequired (result, sg, quality, task)
+        quality = task.qf.evaluate_from_statistics(self.popSize, self.popPositives, sgSize, sgPositiveCount)
+        ps.add_if_required (result, sg, quality, task)
      
         if (len(prefix) < task.depth):
             newModificationSet = copy.copy(modificationSet)

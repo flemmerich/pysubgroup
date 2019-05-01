@@ -2,9 +2,9 @@ from setuptools import setup
 
 setup(
     name='pysubgroup',
-    version='0.5.2',
-    packages=['', 'test'],
-    package_dir={'': 'pysubgroup', 'test': "pysubgroup.tests"},
+    version='0.6.0',
+    packages=['pysubgroup', 'pysubgroup.tests'],
+    package_dir={'pysubgroup': 'pysubgroup', 'pysubgroup.tests': "pysubgroup.tests"},
     url='http://florian.lemmerich.net/pysubgroup',
     license='',
     author='Florian Lemmerich',
@@ -13,5 +13,5 @@ setup(
     install_requires=[
               'pandas', 'scipy', 'numpy', 'matplotlib'
           ],
-    python_requires='>=3.5'
+    python_requires='>=3.6'
 )

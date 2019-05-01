@@ -7,8 +7,8 @@ from timeit import default_timer as timer
 data = pd.DataFrame (arff.loadarff("../data/credit-g.arff") [0])
 
 target = ps.NominalTarget ('class', b'bad')
-searchSpace = ps.createSelectors(data, ignore=['class'])
-task = ps.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=10, depth=3, qf=ps.ChiSquaredQF(direction="bidirect"))
+searchSpace = ps.create_selectors(data, ignore=['class'])
+task = ps.SubgroupDiscoveryTask (data, target, searchSpace, result_set_size=10, depth=3, qf=ps.ChiSquaredQF(direction="bidirect"))
 
 start = timer()
 result = ps.SimpleDFS().execute(task)
@@ -17,6 +17,6 @@ end = timer()
 print("Time elapsed: ", (end - start)) 
 
 for (q, sg) in result:
-    print (str(q) + ":\t" + str(sg.subgroupDescription))   
+    print (str(q) + ":\t" + str(sg.subgroup_description))
 
-# print WRAccQF().evaluateFromDataset(data, Subgroup(target, []))
+# print WRAccQF().evaluate_from_dataset(data, Subgroup(target, []))

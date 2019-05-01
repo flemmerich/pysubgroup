@@ -6,18 +6,17 @@ import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
 data = pd.read_csv("~/datasets/titanic.csv")
-searchSpace = ps.createSelectors(data, ignore="survived")
+searchSpace = ps.create_selectors(data, ignore="survived")
 dt = data.dtypes
 
-task = ps.SubgroupDiscoveryTask (data, ps.FITarget, searchSpace, resultSetSize=10, depth=5, qf=ps.CountQF())
+task = ps.SubgroupDiscoveryTask (data, ps.FITarget, searchSpace, result_set_size=10, depth=5, qf=ps.CountQF())
 result = ps.SimpleDFS().execute(task)
 
 for (q, sg) in result:
-    print (str(q) + ":\t" + str(sg.subgroupDescription))
+    print(str(q) + ":\t" + str(sg.subgroup_description))
 
-
-task = ps.SubgroupDiscoveryTask (data, ps.FITarget, searchSpace, resultSetSize=10, depth=3, qf=ps.AreaQF())
+task = ps.SubgroupDiscoveryTask (data, ps.FITarget, searchSpace, result_set_size=10, depth=3, qf=ps.AreaQF())
 result = ps.SimpleDFS().execute(task)
 
 for (q, sg) in result:
-    print (f"{q}\t{sg.subgroupDescription}\t{sg.count(data)}")
+    print (f"{q}\t{sg.subgroup_description}\t{sg.count(data)}")

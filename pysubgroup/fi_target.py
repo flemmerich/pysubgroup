@@ -4,8 +4,7 @@ Created on 29.09.2017
 @author: lemmerfn
 '''
 from functools import total_ordering
-from pysubgroup.measures import AbstractInterestingnessMeasure, \
-    BoundedInterestingnessMeasure
+import pysubgroup as ps
 
 @total_ordering
 class FITarget(object):
@@ -21,56 +20,57 @@ class FITarget(object):
     def __lt__(self, other): 
         return str(self) < str(other)
     
-    def getAttributes(self):
+    def get_attributes(self):
         return []
     
-    def get_base_statistics (self, data, subgroup, weightingAttribute=None): 
-        if (weightingAttribute == None):
-            sg_instances = subgroup.subgroupDescription.covers(data)
+    def get_base_statistics (self, data, subgroup, weighting_attribute=None):
+        if weighting_attribute is None:
+            sg_instances = subgroup.subgroup_description.covers(data)
             return sg_instances.sum()  
         else:
             raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
         
-    def calculateStatistics (self, subgroup, data, weightingAttribute=None):
-        if weightingAttribute != None:
+    def calculate_statistics (self, subgroup, data, weighting_attribute=None):
+        if weighting_attribute is not None:
             raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
-        sg_instances = subgroup.subgroupDescription.covers(data)
+        sg_instances = subgroup.subgroup_description.covers(data)
         
         subgroup.statistics['size_sg'] = len(sg_instances)
-        subgroup.statistics['size_dataset'] = len (data)
-        
-class CountQF (AbstractInterestingnessMeasure, BoundedInterestingnessMeasure):
+        subgroup.statistics['size_dataset'] = len(data)
+
+
+class CountQF (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
     def __init__(self):
         pass
     
-    def evaluateFromDataset(self, data, subgroup, weightingAttribute=None):
-        return subgroup.subgroupDescription.covers(data).sum()
+    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
+        return subgroup.subgroup_description.covers(data).sum()
     
-    def optimisticEstimateFromDataset(self, data, subgroup):
-        return subgroup.subgroupDescription.covers(data).sum()
+    def optimistic_estimate_from_dataset(self, data, subgroup):
+        return subgroup.subgroup_description.covers(data).sum()
         
-    def evaluateFromStatistics (self, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup):
+    def evaluate_from_statistics(self, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup):
         return instancesSubgroup
     
-    def optimisticEstimateFromStatistics (self, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup):
+    def optimistic_estimate_from_statistics(self, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup):
         return instancesSubgroup
 
-    def isApplicable(self, subgroup):
+    def is_applicable(self, subgroup):
         return isinstance(subgroup.target, FITarget)
 
-    def supportsWeights(self):
+    def supports_weights(self):
         return False
 
 
-class AreaQF(AbstractInterestingnessMeasure):
+class AreaQF(ps.AbstractInterestingnessMeasure):
     def __init__(self):
         pass
 
-    def evaluateFromDataset(self, data, subgroup, weightingAttribute=None):
-        return len(subgroup.subgroupDescription) * subgroup.subgroupDescription.covers(data).sum()
+    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
+        return len(subgroup.subgroup_description) * subgroup.subgroup_description.covers(data).sum()
 
-    def isApplicable(self, subgroup):
+    def is_applicable(self, subgroup):
         return isinstance(subgroup.target, FITarget)
 
-    def supportsWeights(self):
+    def supports_weights(self):
         return False

@@ -4,21 +4,21 @@ Created on 28.04.2016
 @author: lemmerfn
 '''
 import numpy as np
-import pysubgroup.utils as ut
+import pysubgroup as ps
 
 
 class AbstractInterestingnessMeasure(object):
-    def optimisticEstimateFromDataset(self, data, subgroup):
+    def optimistic_estimate_from_dataset(self, data, subgroup):
         return float("inf")
 
-    def optimisticEstimateFromStatistics(self, instancesDataset, positivesDataset, instancesSubgroup,
-                                         positivesSubgroup):
+    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
+                                         positives_subgroup):
         return float("inf")
 
-    def supportsWeights(self):
+    def supports_weights(self):
         return False
 
-    def isApplicable(self, subgroup):
+    def is_applicable(self, subgroup):
         return False
 
 
@@ -29,100 +29,90 @@ class BoundedInterestingnessMeasure:
 class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInterestingnessMeasure):
     def __init__(self, measures, weights=None):
         self.measures = measures
-        if weights == None:
+        if weights is None:
             weights = [1] * len(measures)
         self.weights = weights
 
-    def evaluateFromDataset(self, data, subgroup, weightingAttribute=None):
-        if not self.isApplicable(subgroup):
+    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
+        if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
-        return np.dot([m.evaluateFromDataset(data, subgroup, weightingAttribute) for m in self.measures], self.weights)
+        return np.dot([m.evaluate_from_dataset(data, subgroup, weighting_attribute) for m in self.measures], self.weights)
 
-    def optimisticEstimateFromDataset(self, data, subgroup):
-        if not self.isApplicable(subgroup):
+    def optimistic_estimate_from_dataset(self, data, subgroup):
+        if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
         return np.dot([m.optimisticEstimateFromDataset(data, subgroup) for m in self.measures], self.weights)
 
-    def evaluateFromStatistics(self, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup):
+    def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         return np.dot(
-            [m.evaluateFromStatistics(instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) for m in
+            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in
              self.measures], self.weights)
 
-    def optimisticEstimateFromStatistics(self, instancesDataset, positivesDataset, instancesSubgroup,
-                                         positivesSubgroup):
+    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
+                                         positives_subgroup):
         return np.dot(
-            [m.evaluateFromStatistics(instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) for m in
+            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in
              self.measures], self.weights)
 
-    def isApplicable(self, subgroup):
-        return all([x.isApplicable(subgroup) for x in self.measures])
+    def is_applicable(self, subgroup):
+        return all([x.is_applicable(subgroup) for x in self.measures])
 
-    def supportsWeights(self):
-        return all([x.supportsWeights() for x in self.measures])
+    def supports_weights(self):
+        return all([x.supports_weights() for x in self.measures])
 
 
 ##########
 # Filter
 ##########
-
-def uniqueAttributes(resultSet, data):
+def unique_attributes(result_set, data):
     result = []
-    usedAttributes = []
-    for (q, sg) in resultSet:
-        atts = sg.subgroupDescription.getAttributes()
-        if not atts in usedAttributes or all([ut.isCategoricalAttribute(data, x) for x in atts]):
+    used_attributes = []
+    for (q, sg) in result_set:
+        atts = sg.subgroup_description.getAttributes()
+        if atts not in used_attributes or all([ps.isCategoricalAttribute(data, x) for x in atts]):
             result.append((q, sg))
-            usedAttributes.append(atts)
+            used_attributes.append(atts)
     return result
 
 
-def minimumStatisticFilter(resultSet, statistic, minimum, data):
+def minimum_statistic_filter(result_set, statistic, minimum, data):
     result = []
-    for (q, sg) in resultSet:
+    for (q, sg) in result_set:
         if len(sg.statistics) == 0:
-            sg.calculateStatistics(data)
+            sg.calculate_statistics(data)
         if sg.statistics[statistic] >= minimum:
             result.append((q, sg))
     return result
 
 
-def minimumQualityFilter(resultSet, minimum):
+def minimum_quality_filter(result_set, minimum):
     result = []
-    for (q, sg) in resultSet:
+    for (q, sg) in result_set:
         if q >= minimum:
             result.append((q, sg))
     return result
 
 
-def maximumStatisticFilter(resultSet, statistic, maximum):
+def maximum_statistic_filter(result_set, statistic, maximum):
     result = []
-    for (q, sg) in resultSet:
+    for (q, sg) in result_set:
         if sg.statistics[statistic] <= maximum:
             result.append((q, sg))
     return result
 
 
-def overlapFilter(resultSet, data, similarity_level=0.9):
+def overlap_filter(result_set, data, similarity_level=0.9):
     result = []
     resultSGs = []
-    for (q, sg) in resultSet:
+    for (q, sg) in result_set:
         if not overlapsList(sg, resultSGs, data, similarity_level):
             resultSGs.append(sg)
             result.append((q, sg))
     return result
 
 
-def overlapsList(sg, listOfSGs, data, similarity_level=0.9):
-    for anotherSG in listOfSGs:
-        if overlaps(sg, anotherSG, data, similarity_level):
+def overlaps_list(sg, list_of_sgs, data, similarity_level=0.9):
+    for anotherSG in list_of_sgs:
+        if ps.overlap(sg, anotherSG, data) > similarity_level:
             return True
     return False
-
-
-def overlaps(sg, anotherSG, data, similarity_level=0.9):
-    coverSG = sg.covers(data)
-    coverAnotherSG = anotherSG.covers(data)
-    union = np.logical_or(coverSG, coverAnotherSG)
-    intercept = np.logical_and(coverSG, coverAnotherSG)
-    sim = np.sum(intercept) / np.sum(union)
-    return (sim) > similarity_level

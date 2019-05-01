@@ -6,16 +6,16 @@ import pandas as pd
 data = pd.DataFrame (arff.loadarff("../data/credit-g.arff") [0])
 
 target = ps.NominalTarget ('class', b'bad')
-searchSpace = ps.createNominalSelectors(data, ignore=['class'])
-task = ps.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=10, depth=3, qf=ps.StandardQF(1.0))
+searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
+task = ps.SubgroupDiscoveryTask (data, target, searchSpace, result_set_size=10, depth=3, qf=ps.StandardQF(1.0))
 
 result = ps.BeamSearch(beamWidth=10).execute(task)
 for (q, sg) in result:
-    print (str(q) + ":\t" + str(sg.subgroupDescription))
+    print (str(q) + ":\t" + str(sg.subgroup_description))
 
 print ("******")
 result = ps.SimpleDFS().execute(task)
 for (q, sg) in result:
-    print (str(q) + ":\t" + str(sg.subgroupDescription))
+    print (str(q) + ":\t" + str(sg.subgroup_description))
 
-# print WRAccQF().evaluateFromDataset(data, Subgroup(target, []))
+# print WRAccQF().evaluate_from_dataset(data, Subgroup(target, []))
