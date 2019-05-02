@@ -25,13 +25,13 @@ class BSD_Bitarray(object):
             selBitset = bitarray(self.popSize)
             for index, row in task.data.iterrows():
                 selBitset[index] = sel.covers(row)
-            self.bitsets [sel] = selBitset
-        result = self.searchInternal(task, [], task.search_space, [], self.popSize * bitarray('1'))
+            self.bitsets[sel] = selBitset
+        result = self.search_internal(task, [], task.search_space, [], self.popSize * bitarray('1'))
         result.sort(key=lambda x: x[0], reverse=True)
         return result
     
     
-    def searchInternal(self, task, prefix, modificationSet, result, bitset):
+    def search_internal(self, task, prefix, modificationSet, result, bitset):
         sg = ps.Subgroup(task.target, copy.copy(prefix))
         
         sgSize = bitset.count()
@@ -45,13 +45,13 @@ class BSD_Bitarray(object):
         quality = task.qf.evaluate_from_statistics(self.popSize, self.popPositives, sgSize, sgPositiveCount)
         ps.add_if_required (result, sg, quality, task)
      
-        if (len(prefix) < task.depth):
+        if len(prefix) < task.depth:
             newModificationSet = copy.copy(modificationSet)
             for sel in modificationSet:
                 prefix.append(sel)
                 newBitset = bitset & self.bitsets [sel]
                 newModificationSet.pop(0)
-                self.searchInternal(task, prefix, newModificationSet, result, newBitset)
+                self.search_internal(task, prefix, newModificationSet, result, newBitset)
                 # remove the sel again
                 prefix.pop(-1)
         return result

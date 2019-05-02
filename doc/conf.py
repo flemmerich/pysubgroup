@@ -58,7 +58,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pysubgroup'
-copyright = '2017, Florian Lemmerich'
+copyright = '2017-2019, Florian Lemmerich'
 author = 'Florian Lemmerich'
 
 # The version info for the project you're documenting, acts as replacement for

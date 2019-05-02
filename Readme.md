@@ -43,7 +43,7 @@ import pysubgroup as ps
 import pandas as pd
 
 data = pd.read_csv("C:/data/titanic.csv")
-target = ps.NominalSelector ('survived', True)
+target = ps.NominalTarget ('survived', True)
 searchspace = ps.create_selectors(data, ignore=['survived'])
 task = ps.SubgroupDiscoveryTask (data, target, searchspace, 
             result_set_size=5, depth=2, qf=ps.ChiSquaredQF())
@@ -68,11 +68,11 @@ for (q, sg) in result:
 
 to get:
 ```python
-0.12299581962099379:	sex=female
-0.08104087527086673:	sex=female AND parch: [0:1[
-0.07404400749118316:	sex=female AND sibsp: [0:1[
-0.06634564375093743:	sex=female AND embarked=S
-0.06416820495821081:	sex=female AND pclass=1
+52.30879551820728:	Sex=female
+52.30879551820728:	Sex=male
+36.528775497473646:	Sex=female AND Parch=0
+32.07982038616973:	Sex=female AND SibSp: [0:1[
+31.587048503611975:	Sex=male AND Parch=0
 ```
 However, there are also utility functions that allow you to export results to a pandas dataframe, to csv, or directly to latex.
 

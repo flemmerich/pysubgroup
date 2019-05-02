@@ -7,7 +7,7 @@ import copy
 import functools
 from heapq import heappush, heappop
 from itertools import islice
-from typing import List
+
 import numpy as np
 import pysubgroup as ps
 
@@ -51,7 +51,8 @@ class Apriori(object):
                     ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)
                     optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
                 
-                # optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
+                # optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg)
+                # if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
                 # quality = task.qf.evaluate_from_dataset(task.data, sg)
                 # ut.add_if_required (result, sg, quality, task)
                 if optimistic_estimate >= ps.minimum_required_quality(result, task):
@@ -84,7 +85,7 @@ class BestFirstSearch (object):
 
         # init the first level
         for sel in task.search_space:
-            queue.append ((float("-inf"), [sel]))
+            queue.append((float("-inf"), [sel]))
         
         while queue:
             q, candidate_description = heappop(queue)
@@ -163,7 +164,7 @@ class SimpleDFS(object):
 
     def search_internal(self, task, prefix, modification_set, result, use_optimistic_estimates):
         sg = ps.Subgroup(task.target, ps.SubgroupDescription(copy.copy(prefix)))
-        optimistic_estimate = float("inf")
+
         if use_optimistic_estimates and len(prefix) < task.depth and isinstance(task.qf, ps.BoundedInterestingnessMeasure):
             optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg)
             if optimistic_estimate <= ps.minimum_required_quality(result, task):
@@ -173,7 +174,7 @@ class SimpleDFS(object):
             quality = task.qf.evaluate_from_dataset(task.data, sg, task.weighting_attribute)
         else: 
             quality = task.qf.evaluate_from_dataset(task.data, sg)
-        ps.add_if_required (result, sg, quality, task)
+        ps.add_if_required(result, sg, quality, task)
      
         if len(prefix) < task.depth:
             new_modification_set = copy.copy(modification_set)
@@ -189,7 +190,8 @@ class SimpleDFS(object):
 class BSD (object):
     """
     Implementation of the BSD algorithm for binary targets. See
-    Lemmerich, Florian, Mathias Rohlfs, and Martin Atzmueller. "Fast Discovery of Relevant Subgroup Patterns." FLAIRS Conference. 2010.
+    Lemmerich, Florian, Mathias Rohlfs, and Martin Atzmueller. "Fast Discovery of Relevant Subgroup Patterns.",
+    FLAIRS Conference. 2010.
     """
     def execute(self, task):
         self.pop_size = len(task.data)
@@ -210,7 +212,7 @@ class BSD (object):
         sg_positive_count = positive_instances.sum()
 
         optimistic_estimate = task.qf.optimistic_estimate_from_statistics(self.pop_size, self.pop_positives, sg_size,
-                                                                       sg_positive_count)
+                                                                          sg_positive_count)
         if optimistic_estimate <= ps.minimum_required_quality(result, task):
             return result
 
@@ -220,12 +222,12 @@ class BSD (object):
         ps.add_if_required(result, sg, quality, task)
 
         if len(prefix) < task.depth:
-            newModificationSet = copy.copy(modification_set)
+            new_modification_set = copy.copy(modification_set)
             for sel in modification_set:
                 prefix.append(sel)
                 newBitset = np.logical_and(bitset, self.bitsets[sel])
-                newModificationSet.pop(0)
-                self.search_internal(task, prefix, newModificationSet, result, newBitset)
+                new_modification_set.pop(0)
+                self.search_internal(task, prefix, new_modification_set, result, newBitset)
                 # remove the sel again
                 prefix.pop(-1)
         return result
@@ -255,18 +257,18 @@ class TID_SD (object):
             # generate data structure
             x = task.target.covers(task.data)
             if use_sets:
-                selBitset = set (x.nonzero()[0])
+                sel_bitset = set (x.nonzero()[0])
             else:
-                selBitset = list(x.nonzero()[0])
-            self.bitsets[sel] = selBitset
+                sel_bitset = list(x.nonzero()[0])
+            self.bitsets[sel] = sel_bitset
         if use_sets:
-            result = self.searchInternal(task, [], task.search_space, [], set(range(self.popSize)), use_sets)
+            result = self.search_internal(task, [], task.search_space, [], set(range(self.popSize)), use_sets)
         else:
-            result = self.searchInternal(task, [], task.search_space, [], list(range(self.popSize)), use_sets)
+            result = self.search_internal(task, [], task.search_space, [], list(range(self.popSize)), use_sets)
         result.sort(key=lambda x: x[0], reverse=True)
         return result
 
-    def searchInternal(self, task, prefix, modificationSet, result, bitset, use_sets):
+    def search_internal(self, task, prefix, modificationSet, result, bitset, use_sets):
 
         sgSize = len(bitset)
         if use_sets:
@@ -294,17 +296,18 @@ class TID_SD (object):
                 else:
                     newBitset = ps.intersect_of_ordered_list(bitset, self.bitsets[sel])
                 newModificationSet.pop(0)
-                self.searchInternal(task, prefix, newModificationSet, result, newBitset, use_sets)
+                self.search_internal(task, prefix, newModificationSet, result, newBitset, use_sets)
                 # remove the sel again
                 prefix.pop(-1)
         return result
 
-class DFS_numeric (object):
+
+class DFSNumeric(object):
     def execute(self, task):
         if not isinstance (task.qf, ps.StandardQFNumeric):
             NotImplemented("BSD_numeric so far is only implemented for StandardQFNumeric")
-        self.popSize = len(task.data)
-        sorted_data =  task.data.sort_values(task.target.get_attributes(), ascending=False)
+        self.pop_size = len(task.data)
+        sorted_data = task.data.sort_values(task.target.get_attributes(), ascending=False)
 
         # generate target bitset
         self.target_values = sorted_data[task.target.get_attributes()[0]].values
@@ -317,23 +320,23 @@ class DFS_numeric (object):
         for sel in task.search_space:
             # generate bitset
             self.bitsets[sel] = sel.covers(sorted_data).values
-        result = self.searchInternal(task, [], task.search_space, [], np.ones(len(sorted_data), dtype=bool))
+        result = self.search_internal(task, [], task.search_space, [], np.ones(len(sorted_data), dtype=bool))
         result.sort(key=lambda x: x[0], reverse=True)
 
         return result
 
-    def searchInternal(self, task, prefix, modificationSet, result, bitset):
-        sgSize = bitset.sum()
-        if sgSize == 0:
+    def search_internal(self, task, prefix, modification_set, result, bitset):
+        sg_size = bitset.sum()
+        if sg_size == 0:
             return
         target_values_sg = self.target_values[bitset]
 
         target_values_cs = np.cumsum(target_values_sg)
-        mean_values_cs = target_values_cs / (np.arange (len(target_values_cs)) +1)
-        qualities = self.f (np.arange (len(target_values_cs)) + 1, mean_values_cs)
-        optimisticEstimate = np.max(qualities)
+        mean_values_cs = target_values_cs / (np.arange(len(target_values_cs)) + 1)
+        qualities = self.f (np.arange(len(target_values_cs)) + 1, mean_values_cs)
+        optimistic_estimate = np.max(qualities)
 
-        if (optimisticEstimate <= ps.minimum_required_quality(result, task)):
+        if optimistic_estimate <= ps.minimum_required_quality(result, task):
             return result
 
         sg = ps.Subgroup(task.target, copy.copy(prefix))
@@ -341,13 +344,13 @@ class DFS_numeric (object):
         quality = qualities[-1]
         ps.add_if_required(result, sg, quality, task)
 
-        if (len(prefix) < task.depth):
-            newModificationSet = copy.copy(modificationSet)
-            for sel in modificationSet:
+        if len(prefix) < task.depth:
+            new_modification_set = copy.copy(modification_set)
+            for sel in modification_set:
                 prefix.append(sel)
-                newBitset = bitset & self.bitsets[sel]
-                newModificationSet.pop(0)
-                self.searchInternal(task, prefix, newModificationSet, result, newBitset)
+                new_bitset = bitset & self.bitsets[sel]
+                new_modification_set.pop(0)
+                self.search_internal(task, prefix, new_modification_set, result, new_bitset)
                 # remove the sel again
                 prefix.pop(-1)
         return result

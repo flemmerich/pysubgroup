@@ -1,7 +1,7 @@
 import pysubgroup as ps
 import pandas as pd
 data = pd.read_table("../data/titanic.csv")
-target = ps.NominalTarget('Survived', 1)
+target = ps.NominalTarget('Survived', True)
 
 searchspace = ps.create_selectors(data, ignore=['Survived'])
 task = ps.SubgroupDiscoveryTask(
@@ -14,5 +14,5 @@ task = ps.SubgroupDiscoveryTask(
 result = ps.BeamSearch().execute(task)
 
 for (q, sg) in result:
-    print (str(q) + ":\t" + str(sg.subgroup_description))
+    print(str(q) + ":\t" + str(sg.subgroup_description))
 
