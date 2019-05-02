@@ -30,7 +30,7 @@ class FITarget(object):
         else:
             raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
         
-    def calculate_statistics (self, subgroup, data, weighting_attribute=None):
+    def calculate_statistics(self, subgroup, data, weighting_attribute=None):
         if weighting_attribute is not None:
             raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
         sg_instances = subgroup.subgroup_description.covers(data)
@@ -49,11 +49,11 @@ class CountQF (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasu
     def optimistic_estimate_from_dataset(self, data, subgroup):
         return subgroup.subgroup_description.covers(data).sum()
         
-    def evaluate_from_statistics(self, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup):
-        return instancesSubgroup
+    def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+        return instances_subgroup
     
-    def optimistic_estimate_from_statistics(self, instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup):
-        return instancesSubgroup
+    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+        return instances_subgroup
 
     def is_applicable(self, subgroup):
         return isinstance(subgroup.target, FITarget)

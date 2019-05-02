@@ -51,7 +51,7 @@ class Apriori(object):
                     ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)
                     optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
                 
-                # optimistic_estimate = task.qf.optimisticEstimateFromDataset(task.data, sg) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf") 
+                # optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
                 # quality = task.qf.evaluate_from_dataset(task.data, sg)
                 # ut.add_if_required (result, sg, quality, task)
                 if optimistic_estimate >= ps.minimum_required_quality(result, task):
@@ -83,7 +83,7 @@ class BestFirstSearch (object):
         measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
 
         # init the first level
-        for sel in task.searchSpace:
+        for sel in task.search_space:
             queue.append ((float("-inf"), [sel]))
         
         while queue:
@@ -96,19 +96,19 @@ class BestFirstSearch (object):
             
             if measure_statistics_based:
                 statistics = sg.get_base_statistics(task.data)
-                ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(*statistics), task)
+                ps.add_if_required(result, sg, task.qf.evaluate_from_statistics(*statistics), task)
                 optimistic_estimate = task.qf.optimistic_estimate_from_statistics(*statistics) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
             else:
                 ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)
-                optimistic_estimate = task.qf.optimisticEstimateFromDataset(task.data, sg) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
+                optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
             
             # compute refinements and fill the queue
             if len (candidate_description) < task.depth and optimistic_estimate >= ps.minimum_required_quality(result, task):
                 # iterate over all selectors that are behind the last selector contained in the evaluated candidate
                 # according to the initial order
-                index_of_last_selector = min(task.searchSpace.index(candidate_description[-1]), len(task.searchSpace) - 1)
+                index_of_last_selector = min(task.search_space.index(candidate_description[-1]), len(task.search_space) - 1)
                 
-                for sel in islice(task.searchSpace, index_of_last_selector + 1, None):
+                for sel in islice(task.search_space, index_of_last_selector + 1, None):
                     new_description = candidate_description + [sel]
                     heappush(queue, (-optimistic_estimate, new_description))
         result.sort(key=lambda x: x[0], reverse=True) 
@@ -196,10 +196,10 @@ class BSD (object):
         self.target_bitset = task.target.covers(task.data)
         self.pop_positives = self.target_bitset.sum()
         self.bitsets = {}
-        for sel in task.searchSpace:
+        for sel in task.search_space:
             self.bitsets[sel] = sel.covers(task.data).values
 
-        result = self.search_internal(task, [], task.searchSpace, [], np.ones(self.pop_size, dtype=bool))
+        result = self.search_internal(task, [], task.search_space, [], np.ones(self.pop_size, dtype=bool))
         result.sort(key=lambda x: x[0], reverse=True)
         return result
 
@@ -251,7 +251,7 @@ class TID_SD (object):
 
         # generate selector bitsets
         self.bitsets = {}
-        for sel in task.searchSpace:
+        for sel in task.search_space:
             # generate data structure
             x = task.target.covers(task.data)
             if use_sets:
@@ -260,9 +260,9 @@ class TID_SD (object):
                 selBitset = list(x.nonzero()[0])
             self.bitsets[sel] = selBitset
         if use_sets:
-            result = self.searchInternal(task, [], task.searchSpace, [], set(range(self.popSize)), use_sets)
+            result = self.searchInternal(task, [], task.search_space, [], set(range(self.popSize)), use_sets)
         else:
-            result = self.searchInternal(task, [], task.searchSpace, [], list(range(self.popSize)), use_sets)
+            result = self.searchInternal(task, [], task.search_space, [], list(range(self.popSize)), use_sets)
         result.sort(key=lambda x: x[0], reverse=True)
         return result
 
@@ -301,23 +301,23 @@ class TID_SD (object):
 
 class DFS_numeric (object):
     def execute(self, task):
-        if not isinstance (task.qf, ps.StandardQF_numeric):
-            NotImplemented("BSD_numeric so far is only implemented for StandardQF_numeric")
+        if not isinstance (task.qf, ps.StandardQFNumeric):
+            NotImplemented("BSD_numeric so far is only implemented for StandardQFNumeric")
         self.popSize = len(task.data)
-        sorted_data =  task.data.sort_values(task.target.getAttributes(), ascending=False)
+        sorted_data =  task.data.sort_values(task.target.get_attributes(), ascending=False)
 
         # generate target bitset
-        self.target_values = sorted_data[task.target.getAttributes()[0]].values
+        self.target_values = sorted_data[task.target.get_attributes()[0]].values
 
         f = functools.partial(task.qf.evaluate_from_statistics, len(sorted_data), self.target_values.mean())
         self.f = np.vectorize(f)
 
         # generate selector bitsets
         self.bitsets = {}
-        for sel in task.searchSpace:
+        for sel in task.search_space:
             # generate bitset
             self.bitsets[sel] = sel.covers(sorted_data).values
-        result = self.searchInternal(task, [], task.searchSpace, [], np.ones(len(sorted_data), dtype=bool))
+        result = self.searchInternal(task, [], task.search_space, [], np.ones(len(sorted_data), dtype=bool))
         result.sort(key=lambda x: x[0], reverse=True)
 
         return result

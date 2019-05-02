@@ -27,19 +27,19 @@ class SubgroupDescription(object):
     def __len__(self):
         return len(self.selectors)
 
-    def count (self, data):
+    def count(self, data):
         return sum(1 for x in data if self.covers(x))
     
     def get_attributes(self):
         return set([x.get_attribute_name() for x in self.selectors])
    
-    def to_string(self, open_brackets="", closing_brackets="", sel_open_bracket="", sel_closing_bracket="", and_term=" AND "):
+    def to_string(self, open_brackets="", closing_brackets="", and_term=" AND "):
         if not self.selectors:
             return "Dataset"
         result = open_brackets
         for sel in self.selectors:
             result += str(sel) + and_term
-        result = result [:-len(and_term)]
+        result = result[:-len(and_term)]
         return result + closing_brackets
     
     def __repr__(self):
@@ -50,7 +50,8 @@ class SubgroupDescription(object):
     
     def __lt__(self, other): 
         return str(self) < str(other)
-    
+
+
 @total_ordering
 class NominalSelector:
     def __init__(self, attribute_name, attribute_value, name=None):
@@ -70,7 +71,7 @@ class NominalSelector:
         return self.to_string()
     
     def __eq__(self, other): 
-        if None == other:
+        if None is other:
             return False
         return self.__dict__ == other.__dict__
     
@@ -83,12 +84,13 @@ class NominalSelector:
     def get_attribute_name(self):
         return self.attribute_name
 
+
 @total_ordering
 class NegatedSelector:
     def __init__(self, selector):
         self.selector = selector
 
-    def covers (self, data_instance):
+    def covers(self, data_instance):
         return not self.selector.covers(data_instance)
     
     def __repr__(self):
@@ -119,7 +121,7 @@ class NumericSelector:
         self.upper_bound = upper_bound
         self.selector_name = name
 
-    def covers (self, data_instance):
+    def covers(self, data_instance):
         val = data_instance[self.attribute_name]
         return np.logical_and(val >= self.lower_bound, val < self.upper_bound)
     
@@ -198,14 +200,14 @@ class Subgroup(object):
     def __lt__(self, other): 
         return str(self) < str(other)
     
-    def get_base_statistics (self, data, weighting_attribute=None):
+    def get_base_statistics(self, data, weighting_attribute=None):
         return self.target.get_base_statistics(data, self, weighting_attribute)
     
-    def calculate_statistics (self, data, weighting_attribute=None):
+    def calculate_statistics(self, data, weighting_attribute=None):
         self.target.calculate_statistics(self, data, weighting_attribute)
         
 
-def create_selectors (data, nbins=5, intervals_only=True, ignore=None):
+def create_selectors(data, nbins=5, intervals_only=True, ignore=None):
     if ignore is None:
         ignore = []
     sels = create_nominal_selectors(data, ignore)
@@ -225,7 +227,7 @@ def create_nominal_selectors(data, ignore=None):
 def create_nominal_selectors_for_attribute(data, attribute_name):
     nominal_selectors = []
     for val in pd.unique(data[attribute_name]):
-        nominal_selectors.append (NominalSelector(attribute_name, val))
+        nominal_selectors.append(NominalSelector(attribute_name, val))
     return nominal_selectors        
 
 
@@ -234,36 +236,36 @@ def create_numeric_selectors(data, nbins=5, intervals_only=True, weighting_attri
         ignore = []
     numeric_selectors = []
     for attr_name in [x for x in data.select_dtypes(include=['number']).columns.values if x not in ignore]:
-        numeric_selectors.extend(create_numeric_selector_for_attribute(data, attr_name, nbins, intervals_only, weighting_attribute))
+        numeric_selectors.extend(create_numeric_selector_for_attribute(
+                                                        data, attr_name, nbins, intervals_only, weighting_attribute))
     return numeric_selectors
 
 
 def create_numeric_selector_for_attribute(data, attr_name, nbins=5, intervals_only=True, weighting_attribute=None):
-        numeric_selectors = []
-        unique_values = np.unique(data[attr_name])
-        if len(unique_values) <= nbins:
-            for val in unique_values:
-                numeric_selectors.append(NominalSelector(attr_name, val))
+    numeric_selectors = []
+    unique_values = np.unique(data[attr_name])
+    if len(unique_values) <= nbins:
+        for val in unique_values:
+            numeric_selectors.append(NominalSelector(attr_name, val))
+    else:
+        cutpoints = ps.equal_frequency_discretization(data, attr_name, nbins, weighting_attribute)
+        if intervals_only:
+            old_cutpoint = float("-inf")
+            for c in cutpoints:
+                numeric_selectors.append(NumericSelector(attr_name, old_cutpoint, c))
+                old_cutpoint = c
+            numeric_selectors.append(NumericSelector(attr_name, old_cutpoint, float("inf")))
         else:
-            cutpoints = ps.equal_frequency_discretization(data, attr_name, nbins, weighting_attribute)
-            if intervals_only:
-                old_cutpoint = float("-inf")
-                for c in cutpoints:
-                    numeric_selectors.append(NumericSelector(attr_name, old_cutpoint, c))
-                    old_cutpoint = c
-                numeric_selectors.append(NumericSelector(attr_name, old_cutpoint, float("inf")))
-            else:
-                for c in cutpoints:
-                    numeric_selectors.append(NumericSelector(attr_name, c, float("inf")))
-                    numeric_selectors.append(NumericSelector(attr_name, float("-inf"), c))
+            for c in cutpoints:
+                numeric_selectors.append(NumericSelector(attr_name, c, float("inf")))
+                numeric_selectors.append(NumericSelector(attr_name, float("-inf"), c))
 
-        return numeric_selectors
+    return numeric_selectors
 
 
-def remove_target_attributes (selectors, target):
+def remove_target_attributes(selectors, target):
     result = []
     for sel in selectors:
-        if not sel.get_attribute_name() in target.getAttributes():
+        if not sel.get_attribute_name() in target.get_attributes():
             result.append(sel)
     return result
-

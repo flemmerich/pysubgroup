@@ -20,13 +20,13 @@ class BSD_Bitarray(object):
 
         # generate selector bitsets
         self.bitsets = {}
-        for sel in task.searchSpace:
+        for sel in task.search_space:
             # generate bitset
             selBitset = bitarray(self.popSize)
             for index, row in task.data.iterrows():
                 selBitset[index] = sel.covers(row)
             self.bitsets [sel] = selBitset
-        result = self.searchInternal(task, [], task.searchSpace, [], self.popSize * bitarray('1'))
+        result = self.searchInternal(task, [], task.search_space, [], self.popSize * bitarray('1'))
         result.sort(key=lambda x: x[0], reverse=True)
         return result
     

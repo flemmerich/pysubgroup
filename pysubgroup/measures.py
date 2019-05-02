@@ -12,7 +12,7 @@ class AbstractInterestingnessMeasure(object):
         return float("inf")
 
     def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
-                                         positives_subgroup):
+                                            positives_subgroup):
         return float("inf")
 
     def supports_weights(self):
@@ -41,18 +41,18 @@ class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInte
     def optimistic_estimate_from_dataset(self, data, subgroup):
         if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
-        return np.dot([m.optimisticEstimateFromDataset(data, subgroup) for m in self.measures], self.weights)
+        return np.dot([m.optimistic_estimate_from_dataset(data, subgroup) for m in self.measures], self.weights)
 
     def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         return np.dot(
-            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in
-             self.measures], self.weights)
+            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
+                for m in self.measures], self.weights)
 
     def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
                                          positives_subgroup):
         return np.dot(
-            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in
-             self.measures], self.weights)
+            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
+             for m in self.measures], self.weights)
 
     def is_applicable(self, subgroup):
         return all([x.is_applicable(subgroup) for x in self.measures])
@@ -68,8 +68,8 @@ def unique_attributes(result_set, data):
     result = []
     used_attributes = []
     for (q, sg) in result_set:
-        atts = sg.subgroup_description.getAttributes()
-        if atts not in used_attributes or all([ps.isCategoricalAttribute(data, x) for x in atts]):
+        atts = sg.subgroup_description.get_attributes()
+        if atts not in used_attributes or all([ps.is_categorical_attribute(data, x) for x in atts]):
             result.append((q, sg))
             used_attributes.append(atts)
     return result
@@ -103,10 +103,10 @@ def maximum_statistic_filter(result_set, statistic, maximum):
 
 def overlap_filter(result_set, data, similarity_level=0.9):
     result = []
-    resultSGs = []
+    result_sgs = []
     for (q, sg) in result_set:
-        if not overlapsList(sg, resultSGs, data, similarity_level):
-            resultSGs.append(sg)
+        if not overlaps_list(sg, result_sgs, data, similarity_level):
+            result_sgs.append(sg)
             result.append((q, sg))
     return result
 

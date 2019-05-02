@@ -11,6 +11,7 @@ import pysubgroup as ps
 
 from .subgroup import SubgroupDescription, Subgroup, NominalSelector
 
+
 @total_ordering
 class NominalTarget(object):
     
@@ -42,7 +43,9 @@ class NominalTarget(object):
     def get_attributes(self):
         return [self.target_selector.get_attribute_name()]
 
-    def get_base_statistics (self, data, subgroup, weighting_attribute=None): 
+    @staticmethod
+    def get_base_statistics(data, subgroup, weighting_attribute=None):
+
         if weighting_attribute is None:
             sg_instances = subgroup.subgroup_description.covers(data)
             positives = subgroup.target.covers(data)
@@ -61,9 +64,11 @@ class NominalTarget(object):
             positives_dataset = np.sum(np.dot(positives, weights))
             positives_subgroup = np.sum(np.dot(np.logical_and(sg_instances, positives), weights))
             return instances_dataset, positives_dataset, instances_subgroup, positives_subgroup
-    
-    def calculate_statistics (self, subgroup, data, weighting_attribute=None):
-        (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = self.get_base_statistics (data, subgroup, weighting_attribute)
+
+    @staticmethod
+    def calculate_statistics(subgroup, data, weighting_attribute=None):
+        (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = \
+                                                NominalTarget.get_base_statistics(data, subgroup, weighting_attribute)
         subgroup.statistics['size_sg'] = instances_subgroup
         subgroup.statistics['size_dataset'] = instances_dataset
         subgroup.statistics['positives_sg'] = positives_subgroup
@@ -79,8 +84,9 @@ class NominalTarget(object):
         subgroup.statistics['target_share_dataset'] = positives_dataset / instances_dataset
         subgroup.statistics['lift'] = (positives_subgroup / instances_subgroup) / (positives_dataset / instances_dataset)
         
-        if (weighting_attribute is not None):
-            (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = subgroup.get_base_statistics(data, self, weighting_attribute)
+        if weighting_attribute is not None:
+            (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = \
+                                                NominalTarget.get_base_statistics(subgroup, data, weighting_attribute)
         subgroup.statistics['size_sg_weighted'] = instances_subgroup
         subgroup.statistics['size_dataset_weighted'] = instances_dataset
         subgroup.statistics['positives_sg_weighted'] = positives_subgroup
@@ -88,7 +94,8 @@ class NominalTarget(object):
         
         subgroup.statistics['size_complement_weighted'] = instances_dataset - instances_subgroup
         subgroup.statistics['relative_size_sg_weighted'] = instances_subgroup / instances_dataset
-        subgroup.statistics['relative_size_complement_weighted'] = (instances_dataset - instances_subgroup) / instances_dataset
+        subgroup.statistics['relative_size_complement_weighted'] = \
+                        (instances_dataset - instances_subgroup) / instances_dataset
         subgroup.statistics['coverage_sg_weighted'] = positives_subgroup / positives_dataset
         subgroup.statistics['coverage_complement_weighted'] = (positives_dataset - positives_subgroup) / positives_dataset
         subgroup.statistics['target_share_sg_weighted'] = positives_subgroup / instances_subgroup
@@ -99,7 +106,7 @@ class NominalTarget(object):
     
 class ChiSquaredQF (ps.AbstractInterestingnessMeasure):
     @staticmethod     
-    def chi_squared_qf (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup, min_instances=5, bidirect=True, direction_positive=True):
+    def chi_squared_qf(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup, min_instances=5, bidirect=True, direction_positive=True):
         if (instances_subgroup < min_instances) or ((instances_dataset - instances_subgroup) < min_instances):
             return float("-inf")
         p_subgroup = positives_subgroup / instances_subgroup
@@ -113,7 +120,10 @@ class ChiSquaredQF (ps.AbstractInterestingnessMeasure):
         
         # observed = [positivesSubgroup, positives_complement,negatives_subgroup, negatives_complement]
         #
-        # if round(positivesSubgroup) < 0 or round(positives_complement) < 0 or round(negatives_subgroup) <0 or round (negatives_complement) < 0:
+        # if round(positivesSubgroup) < 0 or
+        #    round(positives_complement) < 0 or
+        #    round(negatives_subgroup) <0 or
+        #    round (negatives_complement) < 0:
         #    print ("XXXXX")
         val = scipy.stats.chi2_contingency([[round(positives_subgroup), round(positives_complement)],
                                             [round(negatives_subgroup), round(negatives_complement)]], correction=False)[0]
@@ -156,7 +166,6 @@ class ChiSquaredQF (ps.AbstractInterestingnessMeasure):
         self.min_instances = min_instances
 
     def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-
         if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
         if weighting_attribute is None:
@@ -261,11 +270,7 @@ def get_max_generalization_target_share(data, subgroup, weighting_attribute=None
     for sels in generalizations:
         sgd = SubgroupDescription(list(sels))
         sg = Subgroup(subgroup.target, sgd)
-        (_, _, instancesSubgroup, positivesSubgroup) = sg.get_base_statistics(data, weighting_attribute)
-        target_share = positivesSubgroup / instancesSubgroup
+        (_, _, instances_subgroup, positives_subgroup) = sg.get_base_statistics(data, weighting_attribute)
+        target_share = positives_subgroup / instances_subgroup
         max_target_share = max(max_target_share, target_share)
     return max_target_share
-
-
-
-

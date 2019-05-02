@@ -30,7 +30,8 @@ def minimum_required_quality(result, task):
         return task.min_quality
     else:
         return result [0][0]
-    
+
+
 # Returns the cutpoints for discretization
 def equal_frequency_discretization (data, attribute_name, nbins=5, weighting_attribute=None):
     cutpoints = []
@@ -62,8 +63,8 @@ def equal_frequency_discretization (data, attribute_name, nbins=5, weighting_att
         sum_of_weights = 0
         for row in cleaned_data:
             sum_of_weights += row[weighting_attribute]
-            if (sum_of_weights > bin_size):
-                if (not row[attribute_name] in cutpoints):
+            if sum_of_weights > bin_size:
+                if not row[attribute_name] in cutpoints:
                     cutpoints.append(row[attribute_name])
                     remaining_weights = remaining_weights - sum_of_weights
                     if remaining_weights < 1.5 * (bin_size):

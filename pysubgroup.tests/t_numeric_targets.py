@@ -11,5 +11,5 @@ print(target.get_base_statistics(data, sg))
 sg.calculate_statistics(data)
 # pp.pprint (sg.statistics)
 
-qf = ps.StandardQF_numeric (1.0)
+qf = ps.StandardQFNumeric (1.0)
 print (qf.evaluate_from_dataset(data, sg))

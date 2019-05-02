@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='pysubgroup',
-    version='0.6.0',
+    version='0.6.1',
     packages=['pysubgroup', 'pysubgroup.tests'],
     package_dir={'pysubgroup': 'pysubgroup', 'pysubgroup.tests': "pysubgroup.tests"},
     url='http://florian.lemmerich.net/pysubgroup',

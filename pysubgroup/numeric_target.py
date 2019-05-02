@@ -23,7 +23,7 @@ class NumericTarget(object):
     def __lt__(self, other): 
         return str(self) < str(other)
     
-    def getAttributes(self):
+    def get_attributes(self):
         return [self.target_variable]
     
     def get_base_statistics (self, data, subgroup, weighting_attribute=None):
@@ -61,7 +61,7 @@ class NumericTarget(object):
         subgroup.statistics['median_lift'] = subgroup.statistics['median_sg'] / subgroup.statistics['median_dataset']
 
 
-class StandardQF_numeric (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
+class StandardQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
     
     @staticmethod     
     def standard_qf_numeric (a, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
@@ -88,8 +88,8 @@ class StandardQF_numeric (ps.AbstractInterestingnessMeasure, ps.BoundedInteresti
         target_values_larger_than_mean = sg_target_values [sg_target_values > mean_dataset]
         return ps.conditional_invert(np.sum(target_values_larger_than_mean) - (len (target_values_larger_than_mean) * mean_dataset), self.invert)
 
-    def evaluate_from_statistics (self, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
-        return StandardQF_numeric.standard_qf_numeric (self.a, instances_dataset, mean_dataset, instances_subgroup, mean_sg)
+    def evaluate_from_statistics(self, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
+        return StandardQFNumeric.standard_qf_numeric (self.a, instances_dataset, mean_dataset, instances_subgroup, mean_sg)
     
     def optimistic_estimate_from_statistics (self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         return float("inf")
@@ -100,7 +100,8 @@ class StandardQF_numeric (ps.AbstractInterestingnessMeasure, ps.BoundedInteresti
     def supports_weights(self):
         return False
 
-class GAStandardQF_numeric (ps.AbstractInterestingnessMeasure):
+
+class GAStandardQFNumeric(ps.AbstractInterestingnessMeasure):
     def __init__(self, a, invert=False):
         self.a = a
         self.invert = invert
