@@ -242,6 +242,14 @@ def powerset(iterable):
     return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)))
 
 
+def all_set_combination(iterable):
+    all_comb = []
+    for l in range(0, len(iterable)):
+        for subset in itertools.combinations(list(iterable), l):
+            all_comb.append(list(subset))
+    return all_comb
+
+
 def overlap(sg, another_sg, data):
     cover_sg = sg.covers(data)
     cover_another_sg = another_sg.covers(data)

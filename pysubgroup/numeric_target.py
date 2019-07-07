@@ -8,45 +8,44 @@ import pysubgroup as ps
 from functools import total_ordering
 
 
-
 @total_ordering
 class NumericTarget(object):
     def __init__(self, target_variable):
         self.target_variable = target_variable
-        
+
     def __repr__(self):
         return "T: " + str(self.target_variable)
-    
-    def __eq__(self, other): 
+
+    def __eq__(self, other):
         return self.__dict__ == other.__dict__
-    
-    def __lt__(self, other): 
+
+    def __lt__(self, other):
         return str(self) < str(other)
-    
+
     def get_attributes(self):
         return [self.target_variable]
-    
-    def get_base_statistics (self, data, subgroup, weighting_attribute=None):
+
+    def get_base_statistics(self, data, subgroup, weighting_attribute=None):
         if weighting_attribute is None:
             sg_instances = subgroup.subgroup_description.covers(data)
             all_target_values = data[self.target_variable]
             sg_target_values = all_target_values[sg_instances]
             instances_dataset = len(data)
             instances_subgroup = np.sum(sg_instances)
-            mean_sg = np.mean (sg_target_values)
-            mean_dataset = np.mean (all_target_values)
-            return (instances_dataset, mean_dataset, instances_subgroup, mean_sg)  
+            mean_sg = np.mean(sg_target_values)
+            mean_dataset = np.mean(all_target_values)
+            return (instances_dataset, mean_dataset, instances_subgroup, mean_sg)
         else:
             raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
-        
-    def calculate_statistics (self, subgroup, data, weighting_attribute=None):
+
+    def calculate_statistics(self, subgroup, data, weighting_attribute=None):
         if weighting_attribute is not None:
             raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
         sg_instances = subgroup.subgroup_description.covers(data)
         all_target_values = data[self.target_variable]
         sg_target_values = all_target_values[sg_instances]
         subgroup.statistics['size_sg'] = len(sg_target_values)
-        subgroup.statistics['size_dataset'] = len (data)
+        subgroup.statistics['size_dataset'] = len(data)
         subgroup.statistics['mean_sg'] = np.mean(sg_target_values)
         subgroup.statistics['mean_dataset'] = np.mean(all_target_values)
         subgroup.statistics['std_sg'] = np.std(sg_target_values)
@@ -62,21 +61,22 @@ class NumericTarget(object):
 
 
 class StandardQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
-    
-    @staticmethod     
-    def standard_qf_numeric (a, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
+
+    @staticmethod
+    def standard_qf_numeric(a, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
         if instances_subgroup == 0:
             return 0
         return instances_subgroup ** a * (mean_sg - mean_dataset)
-        
+
     def __init__(self, a, invert=False):
         self.a = a
         self.invert = invert
-        
+
     def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None, cache=None):
         if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
-        return ps.conditional_invert(self.evaluate_from_statistics (*subgroup.get_base_statistics(data, weighting_attribute)), self.invert)
+        return ps.conditional_invert(
+            self.evaluate_from_statistics(*subgroup.get_base_statistics(data, weighting_attribute)), self.invert)
 
     def optimistic_estimate_from_dataset(self, data, subgroup):
         if not self.is_applicable(subgroup):
@@ -85,13 +85,16 @@ class StandardQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInteresting
         sg_instances = subgroup.subgroup_description.covers(data)
         mean_dataset = np.mean(all_target_values)
         sg_target_values = all_target_values[sg_instances]
-        target_values_larger_than_mean = sg_target_values [sg_target_values > mean_dataset]
-        return ps.conditional_invert(np.sum(target_values_larger_than_mean) - (len (target_values_larger_than_mean) * mean_dataset), self.invert)
+        target_values_larger_than_mean = sg_target_values[sg_target_values > mean_dataset]
+        return ps.conditional_invert(
+            np.sum(target_values_larger_than_mean) - (len(target_values_larger_than_mean) * mean_dataset), self.invert)
 
     def evaluate_from_statistics(self, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
-        return StandardQFNumeric.standard_qf_numeric (self.a, instances_dataset, mean_dataset, instances_subgroup, mean_sg)
-    
-    def optimistic_estimate_from_statistics (self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+        return StandardQFNumeric.standard_qf_numeric(self.a, instances_dataset, mean_dataset, instances_subgroup,
+                                                     mean_sg)
+
+    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
+                                            positives_subgroup):
         return float("inf")
 
     def is_applicable(self, subgroup):
@@ -105,7 +108,7 @@ class GAStandardQFNumeric(ps.AbstractInterestingnessMeasure):
     def __init__(self, a, invert=False):
         self.a = a
         self.invert = invert
-        
+
     def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
         (instances_dataset, _, instances_subgroup, mean_sg) = subgroup.get_base_statistics(data, weighting_attribute)
         if (instances_subgroup == 0) or (instances_dataset == instances_subgroup):
@@ -130,3 +133,49 @@ def get_max_generalization_mean(data, subgroup, weighting_attribute=None):
         mean_sg = sg.get_base_statistics(data, weighting_attribute)[3]
         max_mean = max(max_mean, mean_sg)
     return max_mean
+
+
+class IncrementalQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
+
+    @staticmethod
+    def standard_qf_numeric(a, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
+        if instances_subgroup == 0:
+            return 0
+        return instances_subgroup ** a * (mean_sg - mean_dataset)
+
+    def __init__(self, a, invert=False):
+        self.a = a
+        self.invert = invert
+
+    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None, cache=None):
+        if not self.is_applicable(subgroup):
+            raise BaseException("Quality measure cannot be used for this target class")
+        return self.get_mim_generalization_quality(data, subgroup, weighting_attribute)
+
+    def evaluate_from_statistics(self, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
+        return StandardQFNumeric.standard_qf_numeric(self.a, instances_dataset, mean_dataset, instances_subgroup,
+                                                     mean_sg)
+
+    def get_mim_generalization_quality(self, data, subgroup, weighting_attribute=None):
+
+        selectors = subgroup.subgroup_description.selectors
+        generalizations = ps.all_set_combination(selectors)
+        min_quality = self.evaluate_from_statistics(*subgroup.get_base_statistics(data, weighting_attribute))
+        for sels in generalizations:
+            if len(sels) > 1:
+                # create new subgroup datasets
+                sg = ps.Subgroup(subgroup.target, ps.SubgroupDescription(sels))
+                sg_instances = sg.subgroup_description.covers(data)
+                new_data = data.iloc[sg_instances]
+                # get the minimum quality with respect to datasets described by its selectors
+                # e.g min(q(DB[male], subgroup), q(DB[>50], subgroup))
+                sg_quality = self.evaluate_from_statistics(*subgroup.get_base_statistics(new_data, weighting_attribute))
+                min_quality = min(min_quality, sg_quality)
+
+        return min_quality
+
+    def is_applicable(self, subgroup):
+        return isinstance(subgroup.target, NumericTarget)
+
+    def supports_weights(self):
+        return False
