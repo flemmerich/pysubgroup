@@ -198,7 +198,7 @@ class NumericSelector:
     upper_bound = property( get_upper_bound, set_upper_bound )
 
     def covers(self, data_instance):
-        val = data_instance[self.attribute_name]
+        val = data_instance[self.attribute_name].to_numpy()
         return np.logical_and(val >= self.lower_bound, val < self.upper_bound)
     
     def __repr__(self):

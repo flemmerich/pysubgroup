@@ -323,7 +323,7 @@ class DFSNumeric(object):
         self.bitsets = {}
         for sel in task.search_space:
             # generate bitset
-            self.bitsets[sel] = sel.covers(sorted_data).values
+            self.bitsets[sel] = sel.covers(sorted_data)
         result = self.search_internal(task, [], task.search_space, [], np.ones(len(sorted_data), dtype=bool))
         result.sort(key=lambda x: x[0], reverse=True)
 
