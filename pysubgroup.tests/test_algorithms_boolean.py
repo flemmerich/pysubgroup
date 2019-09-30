@@ -41,8 +41,8 @@ class TestStringMethods(TestAlgorithmsBase,unittest.TestCase):
             0.044399999999999995]
         data=getCreditData()
         target = ps.NominalTarget ('class', b'bad')
-        searchSpace = ps.createNominalSelectors(data, ignore=['class'])
-        self.task = ps.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=10, depth=5, qf=ps.StandardQF(1.0))
+        searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
+        self.task = ps.SubgroupDiscoveryTask (data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0))
     
     def test_Apriori(self):
         self.runAlgorithm(ps.Apriori(),"Apriori")
