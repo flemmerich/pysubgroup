@@ -26,7 +26,7 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase,unittest.TestCase):
         NS_other_parties=ps.NominalSelector("other_parties",b"none")
         NS_personal=ps.NominalSelector("personal_status",b'male single')
         NS_job =ps.NominalSelector("job",b'high qualif/self emp/mgmt')
-        Ns_class=ps.NominalSelector("class",b"bad")
+        NS_class=ps.NominalSelector("class",b"bad")
 
 
         o=  [[NS_telephone],
@@ -36,7 +36,7 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase,unittest.TestCase):
              [NS_telephone,NS_personal],
              [NS_foreign_worker,NS_other_parties,NS_telephone],
              [NS_job],
-             [Ns_class,NS_telephone],
+             [NS_class,NS_telephone],
              [NS_foreign_worker,NS_job],
              [NS_foreign_worker,NS_other_parties,NS_telephone,NS_personal]
              ]
@@ -55,15 +55,17 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase,unittest.TestCase):
 
         data = getCreditData()
         target = ps.NumericTarget ('credit_amount')
-        searchSpace = ps.createNominalSelectors(data, ignore=['credit_amount'])
+        searchSpace = ps.create_nominal_selectors(data, ignore=['credit_amount'])
 
-        self.task = ps.SubgroupDiscoveryTask (data, target, searchSpace, resultSetSize=10, depth=5, qf=ps.StandardQF_numeric(1, False))
+        self.task = ps.SubgroupDiscoveryTask (data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQFNumeric(1, False))
        
     def test_SimpleDFS(self):
         self.runAlgorithm(ps.SimpleDFS(),"SimpleDFS")
 
-    def test_DFS_numeric(self):
-        self.runAlgorithm(ps.DFS_numeric(),"DFS_numeric")
+    def test_DFSNumeric(self):
+        self.runAlgorithm(ps.DFSNumeric(),"DFS_numeric")
+
+
 
 if __name__ == '__main__':
     unittest.main()
