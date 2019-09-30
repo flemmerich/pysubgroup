@@ -4,6 +4,3 @@ doc/_build
 .ipynb_checkpoints
 build
 .vscode
-/.vs/pysubgroup/v16
-/env_pysubgroup_new
-/pysubgroup.egg-info
