@@ -7,7 +7,7 @@ class TestAlgorithmsBase():
         self.assertEqual(len(algorithm_result),len(self.result))
         self.assertEqual(len(algorithm_result),len(self.qualities))
         for (algorithm_q,algorithm_SG),expected_q, expected_SGD in zip(algorithm_result,self.qualities,self.result):
-            self.assertEqual(algorithm_SG.subgroupDescription.to_query(),expected_SGD.to_query())
+            self.assertEqual(repr(algorithm_SG.subgroup_description),repr(expected_SGD))
             self.assertEqual(algorithm_q,expected_q)
 
 

@@ -56,7 +56,7 @@ class TestStringMethods(TestAlgorithmsBase,unittest.TestCase):
         self.runAlgorithm(ps.BestFirstSearch(),"BestFirstSearch")
     
     def test_BeamSearch(self):
-        self.runAlgorithm(ps.BeamSearch(beamWidth=10),"BeamSearch")
+        self.runAlgorithm(ps.BeamSearch(beam_width=10),"BeamSearch")
 
     def test_BSD(self):
         self.runAlgorithm(ps.BSD(),"BSD")
