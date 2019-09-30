@@ -28,7 +28,7 @@ class SubgroupDescription(object):
         return len(self.selectors)
 
     def count(self, data):
-        return sum(1 for x in data if self.covers(x))
+        return np.sum(self.covers(x))
     
     def get_attributes(self):
         return set([x.get_attribute_name() for x in self.selectors])
@@ -39,7 +39,7 @@ class SubgroupDescription(object):
         attrs=sorted(str(sel) for sel in self.selectors)
         return "".join((open_brackets, and_term.join(attrs), closing_brackets))
 
-    def __repr__():
+    def __repr__(self):
         if not self.selectors:
             return "True"
         reprs=sorted(repr(sel) for sel in self.selectors)
@@ -50,7 +50,7 @@ class SubgroupDescription(object):
         return set(self.selectors) == set(other.selectors)
     
     def __lt__(self, other): 
-        return repr(self) < repr(self)
+        return repr(self) < repr(other)
 
     def __hash__(self):
         return hash(frozenset(self.selectors))
@@ -64,7 +64,7 @@ class NominalSelector:
             raise TypeError()
         self._attribute_name = attribute_name
         self._attribute_value = attribute_value
-        self.selector_name = name
+        self.selector_name = selector_name
         self._is_bool = False
         self.recompute_representations()
         
@@ -87,18 +87,18 @@ class NominalSelector:
         self.recompute_representations()
 
     attribute_name = property( get_attribute_name, set_attribute_name )
-    attributeValue = property( get_attributeValue, set_attributeValue )
+    attribute_value = property( get_attribute_value, set_attribute_value )
     is_bool = property( get_is_bool, set_is_bool )
 
     def recompute_representations(self):
-        if self._is_bool and (str(self.attributeValue)=="True"):
+        if self._is_bool and (str(self.attribute_value)=="True"):
             self._query = self.attribute_name
-        elif isinstance(self.attributeValue, str) or isinstance(self.attributeValue,bytes):
-            self._query = str(self.attribute_name) + "==" + "'"+str(self.attributeValue)+"'"
-        elif np.isnan(self.attributeValue):
+        elif isinstance(self.attribute_value, str) or isinstance(self.attribute_value,bytes):
+            self._query = str(self.attribute_name) + "==" + "'"+str(self.attribute_value)+"'"
+        elif np.isnan(self.attribute_value):
             self._query = self.attribute_name+".isnull()"
         else:
-            self._query = str(self.attribute_name) + "==" + str(self.attributeValue)
+            self._query = str(self.attribute_name) + "==" + str(self.attribute_value)
         if not (self.selector_name is None):
             self._string=self._query
         else:
@@ -112,6 +112,8 @@ class NominalSelector:
         return self._query
 
     def covers(self, data):
+        if (not isinstance(self.attribute_value, str)) and np.isnan(self.attribute_value):
+            return np.isnan(data[self.attribute_name])
         return data[self.attribute_name] == self.attribute_value
     
     def __str__(self, open_brackets="", closing_brackets=""):
@@ -167,7 +169,7 @@ class NumericSelector:
         self._attribute_name = attribute_name
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
-        self.selector_name = name
+        self.selector_name = selector_name
         self.recompute_representations()
         
     def get_attribute_name( self ):
@@ -199,18 +201,18 @@ class NumericSelector:
         return np.logical_and(val >= self.lower_bound, val < self.upper_bound)
     
     def __repr__(self):
-        return self.to_string()
+        return self._query
     
     def __eq__(self, other): 
         if other is None:
             return False
-        return self.__dict__ == other.__dict__
+        return repr(self)==repr(other)
     
     def __lt__(self, other): 
-        return str(self) < str(other)
+        return repr(self) < repr(other)
     
     def __hash__(self): 
-        return str(self).__hash__()
+        return repr(self).__hash__()
 
     def __str__(self):
         return self._string
@@ -221,14 +223,14 @@ class NumericSelector:
 
     def recompute_representations(self):
         if self.selector_name is None:
-            self._string=get_string(rounding_digits=2)
+            self._string=self.get_string(rounding_digits=2)
         else:
             self._string=self.selector_name
-        self._query=get_string(rounding_digits=None)
+        self._query=self.get_string(rounding_digits=None)
 
     def get_string(self, open_brackets="", closing_brackets="", rounding_digits=2):
         if rounding_digits is None:
-            formatter="{f}"
+            formatter="{}"
         else:
             formatter = "{0:." + str(rounding_digits) + "f}"
         ub = self.upper_bound

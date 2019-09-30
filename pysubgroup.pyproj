@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId />
+    <InterpreterId>MSBuild|env_pysubgroup_new|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -21,6 +21,9 @@
   <ItemGroup>
     <Compile Include="doc\conf.py" />
     <Compile Include="pysubgroup.archive\bsd_bitarray.py" />
+    <Compile Include="pysubgroup.tests\test_subgroup.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pysubgroup.tests\t_apriori.py" />
     <Compile Include="pysubgroup.tests\t_basic_objects.py" />
     <Compile Include="pysubgroup.tests\t_beam_search.py" />
@@ -56,6 +59,17 @@
     <Folder Include="pysubgroup" />
     <Folder Include="pysubgroup.archive" />
     <Folder Include="pysubgroup.tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="env_pysubgroup_new\">
+      <Id>env_pysubgroup_new</Id>
+      <Version>3.7</Version>
+      <Description>env_pysubgroup_new (Python 3.7 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>
