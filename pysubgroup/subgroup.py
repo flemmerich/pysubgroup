@@ -33,101 +33,53 @@ class SubgroupDescription(object):
     def get_attributes(self):
         return set([x.get_attribute_name() for x in self.selectors])
    
-    def __str__(self, open_brackets="", closing_brackets="", and_term=" AND "):
+    def to_string(self, open_brackets="", closing_brackets="", and_term=" AND "):
         if not self.selectors:
             return "Dataset"
-        attrs=sorted(str(sel) for sel in self.selectors)
-        return "".join((open_brackets, and_term.join(attrs), closing_brackets))
-
-    def __repr__():
-        if not self.selectors:
-            return "True"
-        reprs=sorted(repr(sel) for sel in self.selectors)
-        return "".join(("(", " and ".join(reprs), ")"))
-
+        result = open_brackets
+        for sel in self.selectors:
+            result += str(sel) + and_term
+        result = result[:-len(and_term)]
+        return result + closing_brackets
+    
+    def __repr__(self):
+        return self.to_string()
    
     def __eq__(self, other): 
         return set(self.selectors) == set(other.selectors)
     
     def __lt__(self, other): 
-        return repr(self) < repr(self)
+        return str(self) < str(other)
 
-    def __hash__(self):
-        return hash(frozenset(self.selectors))
-    
+
 @total_ordering
 class NominalSelector:
-    def __init__(self, attribute_name, attribute_value, selector_name=None):
-        if attribute_name is None:
-            raise TypeError()
-        if attribute_value is None:
-            raise TypeError()
-        self._attribute_name = attribute_name
-        self._attribute_value = attribute_value
+    def __init__(self, attribute_name, attribute_value, name=None):
+        self.attribute_name = attribute_name
+        self.attribute_value = attribute_value
         self.selector_name = name
-        self._is_bool = False
-        self.recompute_representations()
-        
-    def get_attribute_name( self ):
-        return self._attribute_name
-    def set_attribute_name( self, value ):
-        self._attribute_name = value
-        self.recompute_representations()
-
-    def get_attribute_value( self ):
-        return self._attribute_value
-    def set_attribute_value( self, value ):
-        self._attribute_value = value
-        self.recompute_representations()
-
-    def get_is_bool( self ):
-        return self._is_bool
-    def set_is_bool( self, value ):
-        self._is_bool = value
-        self.recompute_representations()
-
-    attribute_name = property( get_attribute_name, set_attribute_name )
-    attributeValue = property( get_attributeValue, set_attributeValue )
-    is_bool = property( get_is_bool, set_is_bool )
-
-    def recompute_representations(self):
-        if self._is_bool and (str(self.attributeValue)=="True"):
-            self._query = self.attribute_name
-        elif isinstance(self.attributeValue, str) or isinstance(self.attributeValue,bytes):
-            self._query = str(self.attribute_name) + "==" + "'"+str(self.attributeValue)+"'"
-        elif np.isnan(self.attributeValue):
-            self._query = self.attribute_name+".isnull()"
-        else:
-            self._query = str(self.attribute_name) + "==" + str(self.attributeValue)
-        if not (self.selector_name is None):
-            self._string=self._query
-        else:
-            self._string=self.selector_name
-        self._hash_value=self._query.__hash__()
-
-
-        #return data[self.attributeName] == self.attributeValue
-    
-    def __repr__(self):
-        return self._query
 
     def covers(self, data):
         return data[self.attribute_name] == self.attribute_value
     
-    def __str__(self, open_brackets="", closing_brackets=""):
-        return open_brackets + self._string + closing_brackets
+    def to_string(self, open_brackets="", closing_brackets=""):
+        if self.selector_name is None:
+            return open_brackets + str(self.attribute_name) + "=" + str(self.attribute_value) + closing_brackets
+        return open_brackets + self.selector_name + closing_brackets
     
+    def __repr__(self):
+        return self.to_string()
     
     def __eq__(self, other): 
-        if other is None:
+        if None is other:
             return False
-        return repr(self) == repr(other)
+        return self.__dict__ == other.__dict__
     
     def __lt__(self, other): 
-        return repr(self) < repr(other)
+        return str(self) < str(other)
     
     def __hash__(self): 
-        return getattr(self,"_hash_value",super().__hash__())
+        return str(self).__hash__()
     
     def get_attribute_name(self):
         return self.attribute_name
@@ -140,59 +92,34 @@ class NegatedSelector:
 
     def covers(self, data_instance):
         return not self.selector.covers(data_instance)
-
+    
     def __repr__(self):
-        return "(not " + repr(self.selector)+")"  
+        return self.to_string()
     
     def __eq__(self, other): 
-        return repr(self) == repr(other)
+        return self.__dict__ == other.__dict__
     
     def __lt__(self, other): 
-        return repr(self) < repr(other)
+        return str(self) < str(other)
     
     def __hash__(self): 
-        return repr(self).__hash__()
+        return str(self).__hash__()
     
-    def __str__(self, open_brackets="", closing_brackets=""):
+    def to_string(self, open_brackets="", closing_brackets=""):
         return "NOT " + str(self.selector, open_brackets, closing_brackets)
-
+    
     def get_attribute_name(self):
         return self.selector.attribute_name
 
 
-# Including the lower bound, excluding the upper_bound
+# Including the lower bound, excluding the upperBound
 @total_ordering
 class NumericSelector:
-    def __init__(self, attribute_name, lower_bound, upper_bound, selector_name=None):
-        self._attribute_name = attribute_name
-        self._lower_bound = lower_bound
-        self._upper_bound = upper_bound
+    def __init__(self, attribute_name, lower_bound, upper_bound, name=None):
+        self.attribute_name = attribute_name
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
         self.selector_name = name
-        self.recompute_representations()
-        
-    def get_attribute_name( self ):
-        return self._attribute_name
-    def set_attribute_name( self, value ):
-        self._attribute_name = value
-        self.recompute_representations()
-
-    def get_lower_bound( self ):
-        return self._lower_bound
-    def set_lower_bound( self, value ):
-        self._lower_bound = value
-        self.recompute_representations()
-
-    def get_upper_bound( self ):
-        return self._upper_bound
-    def set_upper_bound( self, value ):
-        self._upper_bound = value
-        self.recompute_representations()
-
-
-
-    attribute_name = property( get_attribute_name, set_attribute_name )
-    lower_bound = property( get_lower_bound, set_lower_bound )
-    upper_bound = property( get_upper_bound, set_upper_bound )
 
     def covers(self, data_instance):
         val = data_instance[self.attribute_name]
@@ -212,25 +139,8 @@ class NumericSelector:
     def __hash__(self): 
         return str(self).__hash__()
 
-    def __str__(self):
-        return self._string
-
-
-    def __repr__(self):
-        return self._query
-
-    def recompute_representations(self):
-        if self.selector_name is None:
-            self._string=get_string(rounding_digits=2)
-        else:
-            self._string=self.selector_name
-        self._query=get_string(rounding_digits=None)
-
-    def get_string(self, open_brackets="", closing_brackets="", rounding_digits=2):
-        if rounding_digits is None:
-            formatter="{f}"
-        else:
-            formatter = "{0:." + str(rounding_digits) + "f}"
+    def to_string(self, open_brackets="", closing_brackets="", rounding_digits=2):
+        formatter = "{0:." + str(rounding_digits) + "f}"
         ub = self.upper_bound
         lb = self.lower_bound
         if ub % 1:
@@ -249,7 +159,7 @@ class NumericSelector:
         else:
             repre = self.attribute_name + ": [" + str(lb) + ":" + str(ub) + "["
         return open_brackets + repre + closing_brackets
- 
+    
     def get_attribute_name(self):
         return self.attribute_name
 
@@ -311,23 +221,13 @@ def create_nominal_selectors(data, ignore=None):
     nominal_selectors = []
     for attr_name in [x for x in data.select_dtypes(exclude=['number']).columns.values if x not in ignore]:
         nominal_selectors.extend(create_nominal_selectors_for_attribute(data, attr_name))
-    numeric_dtypes=data.select_dtypes(exclude=['number'])
-    dtypes=data.dtypes
-    for attr_name in [x for x in numeric_dtypes.columns.values if x not in ignore]:
-        nominal_selectors.extend(create_nominal_selectors_for_attribute(data, attr_name,dtypes))
-        return nominal_selectors
+    return nominal_selectors
 
 
-def create_nominal_selectors_for_attribute(data, attribute_name,dtypes=None):
+def create_nominal_selectors_for_attribute(data, attribute_name):
     nominal_selectors = []
     for val in pd.unique(data[attribute_name]):
         nominal_selectors.append(NominalSelector(attribute_name, val))
-    #setting the is_bool flag for selector
-    if dtypes is None:
-        dtypes=data.dtypes
-    if dtypes[attribute_name] == 'bool':
-        for s in nominal_selectors:
-            s.is_bool=True
     return nominal_selectors        
 
 
@@ -343,15 +243,9 @@ def create_numeric_selectors(data, nbins=5, intervals_only=True, weighting_attri
 
 def create_numeric_selector_for_attribute(data, attr_name, nbins=5, intervals_only=True, weighting_attribute=None):
     numeric_selectors = []
-    data_not_null=data[data[attr_name].notnull()]
-   
-
-    uniqueValues = np.unique(data_not_null[attr_name])
-    if len(data_not_null.index) < len(data.index):
-        numeric_selectors.append(NominalSelector(attr_name,np.nan))
-
-    if (len(uniqueValues) <= nbins):
-        for val in uniqueValues: 
+    unique_values = np.unique(data[attr_name])
+    if len(unique_values) <= nbins:
+        for val in unique_values:
             numeric_selectors.append(NominalSelector(attr_name, val))
     else:
         cutpoints = ps.equal_frequency_discretization(data, attr_name, nbins, weighting_attribute)
