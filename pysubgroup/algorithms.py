@@ -255,7 +255,7 @@ class TID_SD (object):
         self.bitsets = {}
         for sel in task.search_space:
             # generate data structure
-            x = task.target.covers(task.data)
+            x = sel.covers(task.data)
             if use_sets:
                 sel_bitset = set (x.nonzero()[0])
             else:
