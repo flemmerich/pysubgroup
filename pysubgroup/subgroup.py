@@ -112,9 +112,10 @@ class NominalSelector:
         return self._query
 
     def covers(self, data):
+        row=data[self.attribute_name].to_numpy()
         if pd.isnull(self.attribute_value):
-            return data[self.attribute_name].isnull()
-        return data[self.attribute_name] == self.attribute_value
+            return row.isnull()
+        return row == self.attribute_value
     
     def __str__(self, open_brackets="", closing_brackets=""):
         return open_brackets + self._string + closing_brackets

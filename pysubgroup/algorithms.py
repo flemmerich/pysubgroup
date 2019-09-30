@@ -199,7 +199,7 @@ class BSD (object):
         self.pop_positives = self.target_bitset.sum()
         self.bitsets = {}
         for sel in task.search_space:
-            self.bitsets[sel] = sel.covers(task.data).values
+            self.bitsets[sel] = sel.covers(task.data)
 
         result = self.search_internal(task, [], task.search_space, [], np.ones(self.pop_size, dtype=bool))
         result.sort(key=lambda x: x[0], reverse=True)

@@ -21,9 +21,14 @@
   <ItemGroup>
     <Compile Include="doc\conf.py" />
     <Compile Include="pysubgroup.archive\bsd_bitarray.py" />
+    <Compile Include="pysubgroup.tests\test_algorithms.py" />
+    <Compile Include="pysubgroup.tests\test_algorithms_boolean.py" />
+    <Compile Include="pysubgroup.tests\test_algorithms_numeric.py" />
+    <Compile Include="pysubgroup.tests\test_DataSets.py" />
     <Compile Include="pysubgroup.tests\test_subgroup.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="pysubgroup.tests\test_tid.py" />
     <Compile Include="pysubgroup.tests\t_apriori.py" />
     <Compile Include="pysubgroup.tests\t_basic_objects.py" />
     <Compile Include="pysubgroup.tests\t_beam_search.py" />
