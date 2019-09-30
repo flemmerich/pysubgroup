@@ -7,6 +7,7 @@ class TestRelationsMethods(unittest.TestCase):
         A1=ps.NominalSelector("A",1)
         A2=ps.NominalSelector("A",2,"AA")
         B1=ps.NominalSelector("B",1)
+        
         B1_clone=ps.NominalSelector("B",1)
         self.assertTrue(A1 < B1)
         self.assertTrue(A1 < A2)
@@ -18,6 +19,16 @@ class TestRelationsMethods(unittest.TestCase):
         A2.attribute_name="B"
         self.assertTrue(A1 < A2)
 
+        C1=ps.NominalSelector("checking_status",b"<0")
+        C2=ps.NominalSelector("checking_status",b"<0")
+
+        self.assertTrue(C1==C2)
+        self.assertTrue(hash(C1)==hash(C2))
+
+        l=[A1,A2,B1]
+        self.assertEqual(l.index(A1),0)
+        self.assertEqual(l.index(A2),1)
+        self.assertEqual(l.index(B1),2)
 
     def test_NumericSelector_ordering(self):
         S1=ps.NumericSelector("A",1.2345,2.0)
