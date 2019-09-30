@@ -5,3 +5,5 @@ doc/_build
 build
 .vscode
 /.vs/pysubgroup/v16
+/env_pysubgroup_new
+/pysubgroup.egg-info

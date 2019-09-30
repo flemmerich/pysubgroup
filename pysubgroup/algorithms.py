@@ -238,7 +238,11 @@ class TID_SD (object):
     Implementation of a depth-first-search with look-ahead using vertical ID lists as data structure.
     """
 
-    def execute(self, task, use_sets=False):
+    def __init__(self,use_sets=False):
+        self.use_sets=use_sets
+
+    def execute(self, task ):
+        use_sets=self.use_sets
         self.popSize = len(task.data)
 
         # generate target bitset
