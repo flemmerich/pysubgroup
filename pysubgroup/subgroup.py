@@ -100,9 +100,9 @@ class NominalSelector:
         else:
             self._query = str(self.attribute_name) + "==" + str(self.attribute_value)
         if not (self.selector_name is None):
-            self._string=self._query
-        else:
             self._string=self.selector_name
+        else:
+            self._string=self._query
         self._hash_value=self._query.__hash__()
 
 
@@ -112,8 +112,8 @@ class NominalSelector:
         return self._query
 
     def covers(self, data):
-        if (not isinstance(self.attribute_value, str)) and np.isnan(self.attribute_value):
-            return np.isnan(data[self.attribute_name])
+        if pd.isnull(self.attribute_value):
+            return data[self.attribute_name].isnull()
         return data[self.attribute_name] == self.attribute_value
     
     def __str__(self, open_brackets="", closing_brackets=""):
@@ -276,7 +276,7 @@ class Subgroup(object):
         self.statistics = {} 
     
     def __repr__(self):
-        return "<<" + str(self.target) + "; D: " + str(self.subgroup_description) + ">>"
+        return "<<" + repr(self.target) + "; D: " + repr(self.subgroup_description) + ">>"
     
     def covers(self, instance):
         return self.subgroup_description.covers(instance)
@@ -290,7 +290,7 @@ class Subgroup(object):
         return self.__dict__ == other.__dict__
     
     def __lt__(self, other): 
-        return str(self) < str(other)
+        return repr(self) < repr(other)
     
     def get_base_statistics(self, data, weighting_attribute=None):
         return self.target.get_base_statistics(data, self, weighting_attribute)
@@ -311,13 +311,14 @@ def create_nominal_selectors(data, ignore=None):
     if ignore is None:
         ignore = []
     nominal_selectors = []
-    for attr_name in [x for x in data.select_dtypes(exclude=['number']).columns.values if x not in ignore]:
-        nominal_selectors.extend(create_nominal_selectors_for_attribute(data, attr_name))
-    numeric_dtypes=data.select_dtypes(exclude=['number'])
+    #for attr_name in [x for x in data.select_dtypes(exclude=['number']).columns.values if x not in ignore]:
+    #    nominal_selectors.extend(create_nominal_selectors_for_attribute(data, attr_name))
+    nominal_dtypes=data.select_dtypes(exclude=['number'])
     dtypes=data.dtypes
-    for attr_name in [x for x in numeric_dtypes.columns.values if x not in ignore]:
+    #print(dtypes)
+    for attr_name in [x for x in nominal_dtypes.columns.values if x not in ignore]:
         nominal_selectors.extend(create_nominal_selectors_for_attribute(data, attr_name,dtypes))
-        return nominal_selectors
+    return nominal_selectors
 
 
 def create_nominal_selectors_for_attribute(data, attribute_name,dtypes=None):
