@@ -50,9 +50,10 @@ import pandas as pd
 
 data = pd.read_csv("C:/data/titanic.csv")
 target = ps.NominalTarget ('survived', True)
-searchspace = ps.createSelectors(data, ignore=['survived'])
+
+searchspace = ps.create_selectors(data, ignore=['survived'])
 task = ps.SubgroupDiscoveryTask (data, target, searchspace, 
-            resultSetSize=5, depth=2, qf=ps.ChiSquaredQF())
+            result_set_size=5, depth=2, qf=ps.ChiSquaredQF())
 result = ps.BeamSearch().execute(task)
 ```
 he first two lines import the _pandas_ data analysis environment and the _pysubgroup_ package.
@@ -69,16 +70,16 @@ To just print the result, we could for example do:
 
 ```python
 for (q, sg) in result:
-    print (str(q) + ":\t" + str(sg.subgroupDescription)
+    print (str(q) + ":\t" + str(sg.subgroup_description)
 ```
 
 to get:
 ```python
-0.12299581962099379:	sex=female
-0.08104087527086673:	sex=female AND parch: [0:1[
-0.07404400749118316:	sex=female AND sibsp: [0:1[
-0.06634564375093743:	sex=female AND embarked=S
-0.06416820495821081:	sex=female AND pclass=1
+52.30879551820728:	Sex=female
+52.30879551820728:	Sex=male
+36.528775497473646:	Sex=female AND Parch=0
+32.07982038616973:	Sex=female AND SibSp: [0:1[
+31.587048503611975:	Sex=male AND Parch=0
 ```
 However, there are also utility functions that allow you to export results to a pandas dataframe, to csv, or directly to latex.
 
@@ -96,7 +97,7 @@ Anyways, here is an outline on the most important classes:
 I am happy about anyone using this software. Thus, this work is put under an Apache license. However, if this constitutes
 any hindrance to your application, please feel free to contact me, I am sure that we can work something out.
 
-    Copyright 2016-2018 Florian Lemmerich
+    Copyright 2016-2019 Florian Lemmerich
         
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
