@@ -6,6 +6,15 @@ Created on 28.04.2016
 import numpy as np
 import pysubgroup as ps
 
+class CorrelationModelMeasure(object):
+    def evaluate_from_dataset(self, data, subgroup):
+        raise Exception('Absolute difference of corr not implemented yet')
+
+    def evaluate_from_statistics(self, **statistics):
+        raise Exception('Absolute difference of corr not implemented yet')
+
+    def is_applicable(self, subgroup):
+        raise Exception('Subgroup is not supported by correlation model')
 
 class AbstractInterestingnessMeasure(object):
     def optimistic_estimate_from_dataset(self, data, subgroup):
@@ -26,17 +35,6 @@ class BoundedInterestingnessMeasure:
     pass
 
 
-class CorrelationModelMeasure(object):
-    def evaluate_from_dataset(self, data, subgroup):
-        raise Exception('Absolute difference of corr not implemented yet')
-
-    def evaluate_from_statistics(self, **statistics):
-        raise Exception('Absolute difference of corr not implemented yet')
-
-    def is_applicable(self, subgroup):
-        raise Exception('Subgroup is not supported by correlation model')
-
-
 class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInterestingnessMeasure):
     def __init__(self, measures, weights=None):
         self.measures = measures
@@ -47,8 +45,7 @@ class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInte
     def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
         if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
-        return np.dot([m.evaluate_from_dataset(data, subgroup, weighting_attribute) for m in self.measures],
-                      self.weights)
+        return np.dot([m.evaluate_from_dataset(data, subgroup, weighting_attribute) for m in self.measures], self.weights)
 
     def optimistic_estimate_from_dataset(self, data, subgroup):
         if not self.is_applicable(subgroup):
@@ -58,10 +55,10 @@ class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInte
     def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         return np.dot(
             [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
-             for m in self.measures], self.weights)
+                for m in self.measures], self.weights)
 
     def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
-                                            positives_subgroup):
+                                         positives_subgroup):
         return np.dot(
             [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
              for m in self.measures], self.weights)
