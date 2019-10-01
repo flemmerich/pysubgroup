@@ -14,18 +14,13 @@ all_statistics = ('size_sg', 'size_dataset', 'positives_sg', 'positives_dataset'
                   'relative_size_complement', 'coverage_sg', 'coverage_complement', 'target_share_sg',
                   'target_share_complement', 'target_share_dataset', 'lift')
 all_statistics_weighted = all_statistics + (
-    'size_sg_weighted', 'size_dataset_weighted', 'positives_sg_weighted', 'positives_dataset_weighted',
-    'size_complement_weighted', 'relative_size_sg_weighted', 'relative_size_complement_weighted',
-    'coverage_sg_weighted',
-    'coverage_complement_weighted', 'target_share_sg_weighted', 'target_share_complement_weighted',
-    'target_share_dataset_weighted', 'lift_weighted')
+'size_sg_weighted', 'size_dataset_weighted', 'positives_sg_weighted', 'positives_dataset_weighted',
+'size_complement_weighted', 'relative_size_sg_weighted', 'relative_size_complement_weighted', 'coverage_sg_weighted',
+'coverage_complement_weighted', 'target_share_sg_weighted', 'target_share_complement_weighted',
+'target_share_dataset_weighted', 'lift_weighted')
 all_statistics_numeric = (
-    'size_sg', 'size_dataset', 'mean_sg', 'mean_dataset', 'std_sg', 'std_dataset', 'median_sg', 'median_dataset',
-    'max_sg',
-    'max_dataset', 'min_sg', 'min_dataset', 'mean_lift', 'median_lift')
-
-complex_statistics = ('sg_size', 'dataset_size', 'complement_sg_size', 'sg_corr',
-                      'dataset_corr', 'complement_sg_corr', 'corr_lift',)
+'size_sg', 'size_dataset', 'mean_sg', 'mean_dataset', 'std_sg', 'std_dataset', 'median_sg', 'median_dataset', 'max_sg',
+'max_dataset', 'min_sg', 'min_dataset', 'mean_lift', 'median_lift')
 
 
 def add_if_required(result, sg, quality, task, check_for_duplicates=False):
@@ -105,7 +100,7 @@ def print_result_set(data, result, statistics_to_show, weighting_attribute=None,
 
 
 def result_as_table(data, result, statistics_to_show, weighting_attribute=None, print_header=True,
-                    include_target=False, complex_target=False):
+                    include_target=False):
     table = []
     if print_header:
         row = ["quality", "subgroup"]
@@ -113,10 +108,7 @@ def result_as_table(data, result, statistics_to_show, weighting_attribute=None, 
             row.append(stat)
         table.append(row)
     for (q, sg) in result:
-        if complex_target:
-            sg.calculate_corr_statistics(data)
-        else:
-            sg.calculate_statistics(data, weighting_attribute)
+        sg.calculate_statistics(data, weighting_attribute)
         row = [str(q), str(sg.subgroup_description)]
         if include_target:
             row.append(str(sg.target))
@@ -127,8 +119,8 @@ def result_as_table(data, result, statistics_to_show, weighting_attribute=None, 
 
 
 def results_as_df(data, result, statistics_to_show=all_statistics, autoround=False, weighting_attribute=None,
-                  include_target=False, complex_target=False):
-    res = result_as_table(data, result, statistics_to_show, weighting_attribute, True, include_target, complex_target)
+                  include_target=False):
+    res = result_as_table(data, result, statistics_to_show, weighting_attribute, True, include_target)
     headers = res.pop(0)
     df = pd.DataFrame(res, columns=headers, dtype=np.float64)
     if autoround:
@@ -240,14 +232,6 @@ def powerset(iterable):
     "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
     s = list(iterable)
     return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)))
-
-
-def all_set_combination(iterable):
-    all_comb = []
-    for l in range(0, len(iterable)):
-        for subset in itertools.combinations(list(iterable), l):
-            all_comb.append(list(subset))
-    return all_comb
 
 
 def overlap(sg, another_sg, data):

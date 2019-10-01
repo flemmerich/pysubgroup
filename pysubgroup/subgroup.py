@@ -16,7 +16,7 @@ class SubgroupDescription(object):
             self.selectors = selectors
         else:
             self.selectors = [selectors]
-
+    
     def covers(self, instance):
         # empty description ==> return a list of all '1's
         if not self.selectors:
@@ -29,10 +29,10 @@ class SubgroupDescription(object):
 
     def count(self, data):
         return sum(1 for x in data if self.covers(x))
-
+    
     def get_attributes(self):
         return set([x.get_attribute_name() for x in self.selectors])
-
+   
     def to_string(self, open_brackets="", closing_brackets="", and_term=" AND "):
         if not self.selectors:
             return "Dataset"
@@ -41,14 +41,14 @@ class SubgroupDescription(object):
             result += str(sel) + and_term
         result = result[:-len(and_term)]
         return result + closing_brackets
-
+    
     def __repr__(self):
         return self.to_string()
-
-    def __eq__(self, other):
+   
+    def __eq__(self, other): 
         return set(self.selectors) == set(other.selectors)
-
-    def __lt__(self, other):
+    
+    def __lt__(self, other): 
         return str(self) < str(other)
 
 
@@ -61,26 +61,26 @@ class NominalSelector:
 
     def covers(self, data):
         return data[self.attribute_name] == self.attribute_value
-
+    
     def to_string(self, open_brackets="", closing_brackets=""):
         if self.selector_name is None:
             return open_brackets + str(self.attribute_name) + "=" + str(self.attribute_value) + closing_brackets
         return open_brackets + self.selector_name + closing_brackets
-
+    
     def __repr__(self):
         return self.to_string()
-
-    def __eq__(self, other):
+    
+    def __eq__(self, other): 
         if None is other:
             return False
         return self.__dict__ == other.__dict__
-
-    def __lt__(self, other):
+    
+    def __lt__(self, other): 
         return str(self) < str(other)
-
-    def __hash__(self):
+    
+    def __hash__(self): 
         return str(self).__hash__()
-
+    
     def get_attribute_name(self):
         return self.attribute_name
 
@@ -92,22 +92,22 @@ class NegatedSelector:
 
     def covers(self, data_instance):
         return not self.selector.covers(data_instance)
-
+    
     def __repr__(self):
         return self.to_string()
-
-    def __eq__(self, other):
+    
+    def __eq__(self, other): 
         return self.__dict__ == other.__dict__
-
-    def __lt__(self, other):
+    
+    def __lt__(self, other): 
         return str(self) < str(other)
-
-    def __hash__(self):
+    
+    def __hash__(self): 
         return str(self).__hash__()
-
+    
     def to_string(self, open_brackets="", closing_brackets=""):
         return "NOT " + str(self.selector, open_brackets, closing_brackets)
-
+    
     def get_attribute_name(self):
         return self.selector.attribute_name
 
@@ -124,19 +124,19 @@ class NumericSelector:
     def covers(self, data_instance):
         val = data_instance[self.attribute_name]
         return np.logical_and(val >= self.lower_bound, val < self.upper_bound)
-
+    
     def __repr__(self):
         return self.to_string()
-
-    def __eq__(self, other):
+    
+    def __eq__(self, other): 
         if other is None:
             return False
         return self.__dict__ == other.__dict__
-
-    def __lt__(self, other):
+    
+    def __lt__(self, other): 
         return str(self) < str(other)
-
-    def __hash__(self):
+    
+    def __hash__(self): 
         return str(self).__hash__()
 
     def to_string(self, open_brackets="", closing_brackets="", rounding_digits=2):
@@ -147,7 +147,7 @@ class NumericSelector:
             ub = formatter.format(ub)
         if lb % 1:
             lb = formatter.format(lb)
-
+        
         if self.selector_name is not None:
             repre = self.selector_name
         elif self.lower_bound == float("-inf") and self.upper_bound == float("inf"):
@@ -159,7 +159,7 @@ class NumericSelector:
         else:
             repre = self.attribute_name + ": [" + str(lb) + ":" + str(ub) + "["
         return open_brackets + repre + closing_brackets
-
+    
     def get_attribute_name(self):
         return self.attribute_name
 
@@ -172,23 +172,23 @@ class Subgroup(object):
         #    self.target = target
         # else:
         #    self.target = NominalTarget(target)
-
+        
         # If its already a SubgroupDescription object, we are fine, otherwise we create a new one
         self.target = target
         if isinstance(subgroup_description, SubgroupDescription):
             self.subgroup_description = subgroup_description
         else:
             self.subgroup_description = SubgroupDescription(subgroup_description)
-
+            
         # initialize empty cache for statistics
-        self.statistics = {}
-
+        self.statistics = {} 
+    
     def __repr__(self):
         return "<<" + str(self.target) + "; D: " + str(self.subgroup_description) + ">>"
-
+    
     def covers(self, instance):
         return self.subgroup_description.covers(instance)
-
+    
     def count(self, data):
         return np.sum(self.subgroup_description.covers(data))
 
@@ -196,22 +196,16 @@ class Subgroup(object):
         if other is None:
             return False
         return self.__dict__ == other.__dict__
-
-    def __lt__(self, other):
+    
+    def __lt__(self, other): 
         return str(self) < str(other)
-
+    
     def get_base_statistics(self, data, weighting_attribute=None):
         return self.target.get_base_statistics(data, self, weighting_attribute)
-
+    
     def calculate_statistics(self, data, weighting_attribute=None):
         self.target.calculate_statistics(self, data, weighting_attribute)
-
-    def get_corr_statistics(self, data):
-        return self.target.get_corr_statistics(data, self)
-
-    def calculate_corr_statistics(self, data):
-        return self.target.calculate_corr_statistics(data, self)
-
+        
 
 def create_selectors(data, nbins=5, intervals_only=True, ignore=None):
     if ignore is None:
@@ -234,7 +228,7 @@ def create_nominal_selectors_for_attribute(data, attribute_name):
     nominal_selectors = []
     for val in pd.unique(data[attribute_name]):
         nominal_selectors.append(NominalSelector(attribute_name, val))
-    return nominal_selectors
+    return nominal_selectors        
 
 
 def create_numeric_selectors(data, nbins=5, intervals_only=True, weighting_attribute=None, ignore=None):
@@ -243,7 +237,7 @@ def create_numeric_selectors(data, nbins=5, intervals_only=True, weighting_attri
     numeric_selectors = []
     for attr_name in [x for x in data.select_dtypes(include=['number']).columns.values if x not in ignore]:
         numeric_selectors.extend(create_numeric_selector_for_attribute(
-            data, attr_name, nbins, intervals_only, weighting_attribute))
+                                                        data, attr_name, nbins, intervals_only, weighting_attribute))
     return numeric_selectors
 
 
