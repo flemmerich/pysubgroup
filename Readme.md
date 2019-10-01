@@ -35,6 +35,12 @@ pysubgroup consists of pure Python code. Thus, you can simply download the code 
 pysubgroup is also on PyPI and should be installable using:  
 `pip install pysubgroup`
 
+**Note**: Some users complained about the **pip installation not working**.
+If, after the installation, it still doesn't find the package, then do the following steps:
+ 1. Find where the directory `site-packages` is.
+ 2. Copy the folder `pysubgroup`, which contains the source code, into the `site-packages` directory. (WARNING: This is not the main repository folder. The `pysubgroup` folder is inside the main repository folder, at the same level as `pysubgroup.archive` and `pysubgroup.tests`)
+ 3. Now you can import the module with `import pysubgroup`.
+
 ### How to use:
 A simple use case (here using the well known _titanic_ data) can be created in just a few lines of code:
 
@@ -44,6 +50,7 @@ import pandas as pd
 
 data = pd.read_csv("C:/data/titanic.csv")
 target = ps.NominalTarget ('survived', True)
+
 searchspace = ps.create_selectors(data, ignore=['survived'])
 task = ps.SubgroupDiscoveryTask (data, target, searchspace, 
             result_set_size=5, depth=2, qf=ps.ChiSquaredQF())
