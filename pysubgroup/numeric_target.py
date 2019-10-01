@@ -156,7 +156,7 @@ class IncrementalQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInterest
     def get_mim_generalization_quality(self, data, subgroup, weighting_attribute=None):
 
         selectors = subgroup.subgroup_description.selectors
-        generalizations = ps.all_set_combination(selectors)
+        generalizations = ps.powerset(selectors)
         min_quality = self.evaluate_from_statistics(*subgroup.get_base_statistics(data, weighting_attribute))
         for sels in generalizations:
             if len(sels) > 1:
