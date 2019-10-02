@@ -20,7 +20,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="doc\conf.py" />
-    <Compile Include="pysubgroup.archive\bsd_bitarray.py" />
     <Compile Include="pysubgroup\algorithms.py" />
     <Compile Include="pysubgroup\boolean_target.py" />
     <Compile Include="pysubgroup\fi_target.py" />
@@ -38,7 +37,6 @@
     <Compile Include="pysubgroup\tests\t_numeric_targets.py" />
     <Compile Include="pysubgroup\tests\t_numeric_targets2.py" />
     <Compile Include="pysubgroup\tests\t_simple_dfs.py" />
-    <Compile Include="pysubgroup\tests\t_tid.py" />
     <Compile Include="pysubgroup\tests\t_titanic.py" />
     <Compile Include="pysubgroup\tests\t_visualization.py" />
     <Compile Include="pysubgroup\tests\__init__.py" />
@@ -48,6 +46,7 @@
     <Compile Include="setup.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="doc\requirements.txt" />
     <Content Include="pysubgroup.egg-info\dependency_links.txt" />
     <Content Include="pysubgroup.egg-info\requires.txt" />
@@ -57,7 +56,6 @@
   <ItemGroup>
     <Folder Include="doc" />
     <Folder Include="pysubgroup" />
-    <Folder Include="pysubgroup.archive" />
     <Folder Include="pysubgroup.egg-info" />
     <Folder Include="pysubgroup\tests" />
   </ItemGroup>

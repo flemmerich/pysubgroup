@@ -51,7 +51,7 @@ def plot_roc(result_df, data, qf=ps.StandardQF(0.5), levels=40, annotate=False):
     max_val = np.max([np.max(Z), -np.min(Z)])
 
     fig, ax = plt.subplots()
-    cm = plt.cm.bwr
+    cm = plt.cm.get_cmap("bwr")
 
     plt.contourf(X, Y, Z, levels, cmap=cm, vmin=-max_val, vmax=max_val)
 
