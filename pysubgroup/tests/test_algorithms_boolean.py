@@ -35,7 +35,7 @@ class TestAlgorithms(TestAlgorithmsBase,unittest.TestCase):
             0.04550000000000001,
             0.0452,
             0.044399999999999995]
-        data=getCreditData()
+        data=getCreditData2()
         target = ps.NominalTarget ('class', b'bad')
         searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
         self.task = ps.SubgroupDiscoveryTask (data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0))

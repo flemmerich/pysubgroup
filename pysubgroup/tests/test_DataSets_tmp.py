@@ -1,6 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from scipy.io import arff
+import pkg_resources
 
 def getCreditData():
     root = Path.cwd()
@@ -10,6 +11,9 @@ def getCreditData():
     print("Reading      Path:", creditPath)
     data = pd.DataFrame(arff.loadarff(creditPath) [0])
     return data
+
+def getCreditData2():
+    return  pd.DataFrame(arff.loadarff(pkg_resources.resource_string('pysubgroup_tests', 'data/credit-g.arff'))[0])
 
 def getTitanicData():
     root = Path.cwd()

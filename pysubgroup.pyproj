@@ -21,35 +21,36 @@
   <ItemGroup>
     <Compile Include="doc\conf.py" />
     <Compile Include="pysubgroup.archive\bsd_bitarray.py" />
-    <Compile Include="pysubgroup.tests\test_algorithms.py" />
-    <Compile Include="pysubgroup.tests\test_algorithms_boolean.py" />
-    <Compile Include="pysubgroup.tests\test_algorithms_numeric.py" />
-    <Compile Include="pysubgroup.tests\test_DataSets.py" />
-    <Compile Include="pysubgroup.tests\test_subgroup.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="pysubgroup.tests\test_tid.py" />
-    <Compile Include="pysubgroup.tests\t_apriori.py" />
-    <Compile Include="pysubgroup.tests\t_basic_objects.py" />
-    <Compile Include="pysubgroup.tests\t_beam_search.py" />
-    <Compile Include="pysubgroup.tests\t_best_first_search.py" />
-    <Compile Include="pysubgroup.tests\t_bsd.py" />
-    <Compile Include="pysubgroup.tests\t_combined_im.py" />
-    <Compile Include="pysubgroup.tests\t_fi.py" />
-    <Compile Include="pysubgroup.tests\t_numeric_targets.py" />
-    <Compile Include="pysubgroup.tests\t_numeric_targets2.py" />
-    <Compile Include="pysubgroup.tests\t_simple_dfs.py" />
-    <Compile Include="pysubgroup.tests\t_simple_dfs_numeric.py" />
-    <Compile Include="pysubgroup.tests\t_tid.py" />
-    <Compile Include="pysubgroup.tests\t_titanic.py" />
-    <Compile Include="pysubgroup.tests\t_visualization.py" />
-    <Compile Include="pysubgroup.tests\__init__.py" />
+    <Compile Include="pysubgroup\tests\test_algorithms.py" />
+    <Compile Include="pysubgroup\tests\test_algorithms_boolean.py" />
+    <Compile Include="pysubgroup\tests\test_algorithms_numeric.py" />
+    <Compile Include="pysubgroup\tests\test_DataSets.py" />
+    <Compile Include="pysubgroup\tests\test_DataSets_tmp.py" />
+    <Compile Include="pysubgroup\tests\test_subgroup.py" />
+    <Compile Include="pysubgroup\tests\test_tid.py" />
+    <Compile Include="pysubgroup\tests\t_apriori.py" />
+    <Compile Include="pysubgroup\tests\t_basic_objects.py" />
+    <Compile Include="pysubgroup\tests\t_beam_search.py" />
+    <Compile Include="pysubgroup\tests\t_best_first_search.py" />
+    <Compile Include="pysubgroup\tests\t_bsd.py" />
+    <Compile Include="pysubgroup\tests\t_combined_im.py" />
+    <Compile Include="pysubgroup\tests\t_fi.py" />
+    <Compile Include="pysubgroup\tests\t_numeric_targets.py" />
+    <Compile Include="pysubgroup\tests\t_numeric_targets2.py" />
+    <Compile Include="pysubgroup\tests\t_simple_dfs.py" />
+    <Compile Include="pysubgroup\tests\t_simple_dfs_numeric.py" />
+    <Compile Include="pysubgroup\tests\t_tid.py" />
+    <Compile Include="pysubgroup\tests\t_titanic.py" />
+    <Compile Include="pysubgroup\tests\t_visualization.py" />
     <Compile Include="pysubgroup\algorithms.py" />
     <Compile Include="pysubgroup\boolean_target.py" />
     <Compile Include="pysubgroup\fi_target.py" />
     <Compile Include="pysubgroup\measures.py" />
     <Compile Include="pysubgroup\numeric_target.py" />
     <Compile Include="pysubgroup\subgroup.py" />
+    <Compile Include="pysubgroup\tests\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pysubgroup\utils.py" />
     <Compile Include="pysubgroup\visualization.py" />
     <Compile Include="pysubgroup\__init__.py" />
@@ -57,13 +58,16 @@
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="pysubgroup\data\credit-g.arff" />
+    <Content Include="pysubgroup\data\titanic.csv" />
     <Content Include="doc\requirements.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="pysubgroup\data\" />
+    <Folder Include="pysubgroup\tests\" />
     <Folder Include="doc" />
     <Folder Include="pysubgroup" />
     <Folder Include="pysubgroup.archive" />
-    <Folder Include="pysubgroup.tests" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env_pysubgroup_new\">
