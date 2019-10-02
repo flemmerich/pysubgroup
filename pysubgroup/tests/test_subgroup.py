@@ -85,7 +85,7 @@ class TestRelationsMethods(unittest.TestCase):
         np.testing.assert_array_equal(BA.covers(df), [1, 0, 0, 0, 0, 1, 0, 1, 1, 1])
         np.testing.assert_array_equal(BC.covers(df), [0, 0, 1, 1, 0, 0, 0, 0, 0, 0])
 
-        np.testing.assert_array_equal(CA.covers(df),   [0, 0, 1, 1, 0, 0, 0, 0, 0, 0])
+        np.testing.assert_array_equal(CA.covers(df), [0, 0, 1, 1, 0, 0, 0, 0, 0, 0])
         np.testing.assert_array_equal(CNan.covers(df), [1, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 
 
