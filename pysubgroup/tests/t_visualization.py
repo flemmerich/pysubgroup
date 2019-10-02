@@ -1,5 +1,5 @@
-import pysubgroup as ps
 import matplotlib.pyplot as plt
+import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_titanic_data
 plt.interactive(False)
 

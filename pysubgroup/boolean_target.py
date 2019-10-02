@@ -187,7 +187,7 @@ class ChiSquaredQF(ps.AbstractInterestingnessMeasure):
         return isinstance(subgroup.target, NominalTarget)
 
 
-class StandardQF (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
+class StandardQF(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
     @staticmethod
     def standard_qf(a, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         if instances_subgroup == 0:
@@ -222,13 +222,13 @@ class StandardQF (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMe
         return isinstance(subgroup.target, NominalTarget)
 
 
-class WRAccQF (StandardQF):
+class WRAccQF(StandardQF):
     def __init__(self, a):
         super().__init__(a)
         self.a = 1.0
 
 
-class LiftQF (StandardQF):
+class LiftQF(StandardQF):
     def __init__(self, a):
         super().__init__(a)
         self.a = 0.0
@@ -243,13 +243,13 @@ class SimpleBinomial(StandardQF):
 #####
 # GeneralizationAware Interestingness Measures
 #####
-class GAStandardQF (ps.AbstractInterestingnessMeasure):
+class GAStandardQF(ps.AbstractInterestingnessMeasure):
     def __init__(self, a):
         self.a = a
 
     def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
         (instances_dataset, _, instances_subgroup, positives_subgroup) = subgroup.get_base_statistics(data, weighting_attribute)
-        if (instances_subgroup == 0) or (instances_dataset == instances_subgroup):
+        if instances_subgroup in (0, instances_dataset):
             return 0
         p_subgroup = positives_subgroup / instances_subgroup
         max_target_share = get_max_generalization_target_share(data, subgroup, weighting_attribute)

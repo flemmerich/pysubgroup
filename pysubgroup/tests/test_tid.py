@@ -1,8 +1,9 @@
-from scipy.io import arff
-
-import pysubgroup as ps
-import pandas as pd
 from timeit import default_timer as timer
+from scipy.io import arff
+import pandas as pd
+import pysubgroup as ps
+
+
 
 
 data = pd.DataFrame(arff.loadarff("../data/credit-g.arff")[0])

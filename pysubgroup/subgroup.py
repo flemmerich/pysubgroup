@@ -97,7 +97,7 @@ class NominalSelector:
     def recompute_representations(self):
         if self._is_bool and (str(self.attribute_value) == "True"):
             self._query = self.attribute_name
-        elif isinstance(self.attribute_value, str) or isinstance(self.attribute_value, bytes):
+        elif isinstance(self.attribute_value, (str, bytes)):
             self._query = str(self.attribute_name) + "==" + "'" + str(self.attribute_value) + "'"
         elif np.isnan(self.attribute_value):
             self._query = self.attribute_name + ".isnull()"

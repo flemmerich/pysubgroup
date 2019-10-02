@@ -1,5 +1,5 @@
-import pysubgroup as ps
 import pandas as pd
+import pysubgroup as ps
 
 
 data = pd.read_table("../data/titanic.csv")

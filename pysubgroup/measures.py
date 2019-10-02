@@ -43,9 +43,7 @@ class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInte
         return np.dot([m.optimistic_estimate_from_dataset(data, subgroup) for m in self.measures], self.weights)
 
     def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        return np.dot(
-            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
-                for m in self.measures], self.weights)
+        return np.dot([m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures], self.weights)
 
     def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
                                             positives_subgroup):

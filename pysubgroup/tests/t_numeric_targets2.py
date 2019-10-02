@@ -1,8 +1,9 @@
-import pysubgroup as ps
-import pandas as pd
-import numpy as np
-
 import pprint
+import numpy as np
+import pandas as pd
+import pysubgroup as ps
+
+
 pp = pprint.PrettyPrinter(indent=4)
 
 data = np.array([[1, 2, 3, 4, 5], ["F", "F", "F", "Tr", "Tr"]]).T

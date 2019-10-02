@@ -83,7 +83,7 @@ class BestFirstSearch:
         result = []
         queue = []
         measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
-        qf_is_bounded=isinstance(task.qf, ps.BoundedInterestingnessMeasure)
+        qf_is_bounded = isinstance(task.qf, ps.BoundedInterestingnessMeasure)
         # init the first level
         for sel in task.search_space:
             queue.append((float("-inf"), [sel]))
@@ -350,7 +350,7 @@ class DFSNumeric():
     def search_internal(self, task, prefix, modification_set, result, bitset):
         sg_size = bitset.sum()
         if sg_size == 0:
-            return
+            return result
         target_values_sg = self.target_values[bitset]
 
         target_values_cs = np.cumsum(target_values_sg)
