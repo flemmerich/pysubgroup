@@ -8,3 +8,5 @@ build
 /env_pysubgroup_new
 /pysubgroup.egg-info
 .vs
+/.pytest_cache/v/cache
+/TestResults
