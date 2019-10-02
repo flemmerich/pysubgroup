@@ -14,7 +14,7 @@ import pysubgroup as ps
 
 import unittest
 
-from pysubgroup.tests.DataSets import getCreditData
+from pysubgroup.tests.DataSets import get_credit_data
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
 
@@ -51,7 +51,7 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
             299447.332,
             297422.98200000013]
 
-        data = getCreditData()
+        data = get_credit_data()
         target = ps.NumericTarget('credit_amount')
         searchSpace = ps.create_nominal_selectors(data, ignore=['credit_amount'])
 

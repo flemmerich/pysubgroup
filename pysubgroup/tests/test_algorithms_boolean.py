@@ -2,7 +2,7 @@ import pysubgroup as ps
 
 import unittest
 
-from pysubgroup.tests.DataSets import getCreditData
+from pysubgroup.tests.DataSets import get_credit_data
 
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
@@ -35,7 +35,7 @@ class TestAlgorithms(TestAlgorithmsBase, unittest.TestCase):
                           0.04550000000000001,
                           0.0452,
                           0.044399999999999995]
-        data = getCreditData()
+        data = get_credit_data()
         target = ps.NominalTarget('class', b'bad')
         searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0))

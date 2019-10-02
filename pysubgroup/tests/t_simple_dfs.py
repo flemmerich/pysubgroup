@@ -1,7 +1,7 @@
 import pysubgroup as ps
 from timeit import default_timer as timer
-from pysubgroup.tests.DataSets import getCreditData
-data = getCreditData()
+from pysubgroup.tests.DataSets import get_credit_data
+data = get_credit_data()
 
 print("running")
 target = ps.NominalTarget('class', b'bad')

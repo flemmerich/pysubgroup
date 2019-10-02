@@ -1,10 +1,10 @@
 import pysubgroup as ps
 import matplotlib.pyplot as plt
-from pysubgroup.tests.DataSets import getTitanicData
+from pysubgroup.tests.DataSets import get_titanic_data
 plt.interactive(False)
 
 
-data = getTitanicData()
+data = get_titanic_data()
 target = ps.NominalTarget('Survived', 0)
 search_space = ps.create_selectors(data, ignore=['Survived'])
 task = ps.SubgroupDiscoveryTask(data, target, search_space,
