@@ -28,7 +28,7 @@ class SubgroupDescription(object):
         return len(self.selectors)
 
     def count(self, data):
-        return np.sum(self.covers(x))
+        return np.sum(self.covers(data))
     
     def get_attributes(self):
         return set([x.get_attribute_name() for x in self.selectors])
@@ -131,9 +131,7 @@ class NominalSelector:
     
     def __hash__(self): 
         return getattr(self,"_hash_value",super().__hash__())
-    
-    def get_attribute_name(self):
-        return self.attribute_name
+
 
 
 @total_ordering
@@ -219,9 +217,6 @@ class NumericSelector:
         return self._string
 
 
-    def __repr__(self):
-        return self._query
-
     def recompute_representations(self):
         if self.selector_name is None:
             self._string=self.get_string(rounding_digits=2)
@@ -252,9 +247,6 @@ class NumericSelector:
         else:
             repre = self.attribute_name + ": [" + str(lb) + ":" + str(ub) + "["
         return open_brackets + repre + closing_brackets
- 
-    def get_attribute_name(self):
-        return self.attribute_name
 
 
 @total_ordering
