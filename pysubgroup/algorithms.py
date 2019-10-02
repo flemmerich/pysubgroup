@@ -309,7 +309,7 @@ class TID_SD (object):
 class DFSNumeric(object):
     def execute(self, task):
         if not isinstance (task.qf, ps.StandardQFNumeric):
-            NotImplemented("BSD_numeric so far is only implemented for StandardQFNumeric")
+            raise NotImplementedError("BSD_numeric so far is only implemented for StandardQFNumeric")
         self.pop_size = len(task.data)
         sorted_data = task.data.sort_values(task.target.get_attributes(), ascending=False)
 

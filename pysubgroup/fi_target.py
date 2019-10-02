@@ -28,11 +28,11 @@ class FITarget(object):
             sg_instances = subgroup.subgroup_description.covers(data)
             return sg_instances.sum()  
         else:
-            raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
+            raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
         
     def calculate_statistics(self, subgroup, data, weighting_attribute=None):
         if weighting_attribute is not None:
-            raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
+            raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
         sg_instances = subgroup.subgroup_description.covers(data)
         
         subgroup.statistics['size_sg'] = len(sg_instances)

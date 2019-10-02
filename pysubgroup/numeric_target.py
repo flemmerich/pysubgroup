@@ -37,11 +37,11 @@ class NumericTarget(object):
             mean_dataset = np.mean (all_target_values)
             return (instances_dataset, mean_dataset, instances_subgroup, mean_sg)  
         else:
-            raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
+            raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
         
     def calculate_statistics (self, subgroup, data, weighting_attribute=None):
         if weighting_attribute is not None:
-            raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
+            raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
         sg_instances = subgroup.subgroup_description.covers(data)
         all_target_values = data[self.target_variable]
         sg_target_values = all_target_values[sg_instances]
