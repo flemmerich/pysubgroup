@@ -14,13 +14,13 @@ all_statistics = ('size_sg', 'size_dataset', 'positives_sg', 'positives_dataset'
                   'relative_size_complement', 'coverage_sg', 'coverage_complement', 'target_share_sg',
                   'target_share_complement', 'target_share_dataset', 'lift')
 all_statistics_weighted = all_statistics + (
-'size_sg_weighted', 'size_dataset_weighted', 'positives_sg_weighted', 'positives_dataset_weighted',
-'size_complement_weighted', 'relative_size_sg_weighted', 'relative_size_complement_weighted', 'coverage_sg_weighted',
-'coverage_complement_weighted', 'target_share_sg_weighted', 'target_share_complement_weighted',
-'target_share_dataset_weighted', 'lift_weighted')
+    'size_sg_weighted', 'size_dataset_weighted', 'positives_sg_weighted', 'positives_dataset_weighted',
+    'size_complement_weighted', 'relative_size_sg_weighted', 'relative_size_complement_weighted', 'coverage_sg_weighted',
+    'coverage_complement_weighted', 'target_share_sg_weighted', 'target_share_complement_weighted',
+    'target_share_dataset_weighted', 'lift_weighted')
 all_statistics_numeric = (
-'size_sg', 'size_dataset', 'mean_sg', 'mean_dataset', 'std_sg', 'std_dataset', 'median_sg', 'median_dataset', 'max_sg',
-'max_dataset', 'min_sg', 'min_dataset', 'mean_lift', 'median_lift')
+    'size_sg', 'size_dataset', 'mean_sg', 'mean_dataset', 'std_sg', 'std_dataset', 'median_sg', 'median_dataset', 'max_sg',
+    'max_dataset', 'min_sg', 'min_dataset', 'mean_lift', 'median_lift')
 
 
 def add_if_required(result, sg, quality, task, check_for_duplicates=False):
@@ -206,7 +206,7 @@ def to_latex(data, result, statistics_to_show):
         'target_share_complement_weighted': perc_formatter,
         'target_share_dataset_weighted': perc_formatter,
         'lift_weighted': perc_formatter}
-                        )
+    )
     latex = latex.replace(' AND ', r' $\wedge$ ')
     return latex
 
