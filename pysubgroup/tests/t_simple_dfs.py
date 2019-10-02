@@ -12,7 +12,7 @@ start = timer()
 result = ps.SimpleDFS().execute(task)
 end = timer()
 
-print("Time elapsed: ", (end - start)) 
+print("Time elapsed: ", (end - start))
 
 for (q, sg) in result:
     print(str(q) + ":\t" + str(sg.subgroup_description))

@@ -15,4 +15,3 @@ result = ps.BeamSearch().execute(task)
 
 for (q, sg) in result:
     print(str(q) + ":\t" + str(sg.subgroup_description))
-

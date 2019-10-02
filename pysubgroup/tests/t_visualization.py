@@ -14,6 +14,6 @@ task = ps.SubgroupDiscoveryTask(data, target, search_space,
 result = ps.SimpleDFS().execute(task)
 
 dfs = ps.results_as_df(data, result)
-fig = ps.plot_roc( dfs, data, ps.ChiSquaredQF())
+fig = ps.plot_roc(dfs, data, ps.ChiSquaredQF())
 fig.show()
 plt.show()
