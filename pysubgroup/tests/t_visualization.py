@@ -1,7 +1,6 @@
 import pysubgroup as ps
-import pandas as pd
 import matplotlib.pyplot as plt
-from DataSets import *
+from pysubgroup.tests.DataSets import getTitanicData
 plt.interactive(False)
 
 

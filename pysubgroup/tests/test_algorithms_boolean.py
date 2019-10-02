@@ -1,11 +1,10 @@
 import pysubgroup as ps
-import pandas as pd
 
 import unittest
 
-from pysubgroup.tests.DataSets import *
+from pysubgroup.tests.DataSets import getCreditData
 
-from pysubgroup.tests.algorithms_testing import *
+from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
 class TestAlgorithms(TestAlgorithmsBase,unittest.TestCase):
     def setUp(self):
@@ -67,18 +66,17 @@ class TestAlgorithms(TestAlgorithmsBase,unittest.TestCase):
     
 
 if __name__ == '__main__':
-    if True:
-        unittest.main()
-    else:
-        import cProfile
-        p=cProfile.Profile()
-        p.enable()
-        t=TestAlgorithms()
-        t.setUp()
-        t.test_BSD()
+
+    unittest.main()
+    #import cProfile
+    #p=cProfile.Profile()
+    #p.enable()
+    #t=TestAlgorithms()
+    #t.setUp()
+    #t.test_BSD()
     
-        p.disable()
-        p.dump_stats(r"E:\SGD\profile2.prof")
+    #p.disable()
+    #p.dump_stats(r"E:\SGD\profile2.prof")
 
 #0.055299999999999995:   checking_status=b'<0' AND foreign_worker=b'yes'
 #0.05280000000000001:    checking_status=b'<0'

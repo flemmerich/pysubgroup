@@ -193,6 +193,14 @@ class BSD (object):
     Lemmerich, Florian, Mathias Rohlfs, and Martin Atzmueller. "Fast Discovery of Relevant Subgroup Patterns.",
     FLAIRS Conference. 2010.
     """
+
+    def __init__(self):
+        self.pop_positives = 0
+        self.pop_size = 0
+        self.bitsets = {}
+        self.target_bitset = None
+
+
     def execute(self, task):
         self.pop_size = len(task.data)
         self.target_bitset = task.target.covers(task.data)
@@ -240,6 +248,10 @@ class TID_SD (object):
 
     def __init__(self,use_sets=False):
         self.use_sets=use_sets
+        self.popSize=0
+        self.popPositives=0
+        self.targetBitset=None
+        self.bitsets = {}
 
     def execute(self, task ):
         use_sets=self.use_sets
@@ -307,6 +319,12 @@ class TID_SD (object):
 
 
 class DFSNumeric(object):
+    def __init__(self):
+        self.pop_size=0
+        self.f=None
+        self.target_values=None
+        self.bitsets={}
+
     def execute(self, task):
         if not isinstance (task.qf, ps.StandardQFNumeric):
             raise NotImplementedError("BSD_numeric so far is only implemented for StandardQFNumeric")

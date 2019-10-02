@@ -207,7 +207,7 @@ def to_latex(data, result, statistics_to_show):
         'target_share_dataset_weighted': perc_formatter,
         'lift_weighted': perc_formatter}
                         )
-    latex = latex.replace(' AND ', ' $\wedge$ ')
+    latex = latex.replace(' AND ', r' $\wedge$ ')
     return latex
 
 

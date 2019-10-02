@@ -5,25 +5,24 @@ Created on 28.04.2016
 '''
 import numpy as np
 import pysubgroup as ps
+from abc import ABC
 
+class AbstractInterestingnessMeasure(ABC):
 
-class AbstractInterestingnessMeasure(object):
-    def optimistic_estimate_from_dataset(self, data, subgroup):
-        return float("inf")
-
-    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
-                                            positives_subgroup):
-        return float("inf")
 
     def supports_weights(self):
-        return False
+        pass
 
     def is_applicable(self, subgroup):
-        return False
+        pass
 
 
-class BoundedInterestingnessMeasure:
-    pass
+class BoundedInterestingnessMeasure(ABC):
+    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
+        pass
+
+    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+        pass
 
 
 class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInterestingnessMeasure):
@@ -38,7 +37,7 @@ class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInte
             raise BaseException("Quality measure cannot be used for this target class")
         return np.dot([m.evaluate_from_dataset(data, subgroup, weighting_attribute) for m in self.measures], self.weights)
 
-    def optimistic_estimate_from_dataset(self, data, subgroup):
+    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
         if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
         return np.dot([m.optimistic_estimate_from_dataset(data, subgroup) for m in self.measures], self.weights)

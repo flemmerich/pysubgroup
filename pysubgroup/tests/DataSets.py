@@ -1,5 +1,4 @@
 import pandas as pd
-from pathlib import Path
 from scipy.io import arff
 import pkg_resources
 from io import StringIO

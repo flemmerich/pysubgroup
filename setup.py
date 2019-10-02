@@ -1,5 +1,5 @@
 from setuptools import setup
-import setuptools
+#import setuptools
 
 setup(
     name='pysubgroup',

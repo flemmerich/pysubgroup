@@ -15,8 +15,8 @@ import pysubgroup as ps
 
 import unittest
 
-from DataSets import *
-from algorithms_testing import *
+from pysubgroup.tests.DataSets import getCreditData
+from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
 class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase,unittest.TestCase):
     def setUp(self):

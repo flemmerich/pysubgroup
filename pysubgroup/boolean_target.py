@@ -86,7 +86,7 @@ class NominalTarget(object):
         
         if weighting_attribute is not None:
             (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = \
-                                                NominalTarget.get_base_statistics(subgroup, data, weighting_attribute)
+                                                NominalTarget.get_base_statistics(data, subgroup, weighting_attribute)
         subgroup.statistics['size_sg_weighted'] = instances_subgroup
         subgroup.statistics['size_dataset_weighted'] = instances_dataset
         subgroup.statistics['positives_sg_weighted'] = positives_subgroup
@@ -212,7 +212,7 @@ class StandardQF (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMe
     def evaluate_from_statistics (self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         return StandardQF.standard_qf(self.a, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
     
-    def optimistic_estimate_from_statistics (self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+    def optimistic_estimate_from_statistics (self, instances_dataset, positives_dataset, _, positives_subgroup):
         return StandardQF.standard_qf(self.a, instances_dataset, positives_dataset, positives_subgroup, positives_subgroup)
 
     def supports_weights(self):

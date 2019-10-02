@@ -43,16 +43,16 @@ class CountQF (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasu
     def __init__(self):
         pass
     
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
+    def evaluate_from_dataset(self, data, subgroup, _weighting_attribute=None):
         return subgroup.subgroup_description.covers(data).sum()
     
     def optimistic_estimate_from_dataset(self, data, subgroup):
         return subgroup.subgroup_description.covers(data).sum()
         
-    def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        return instances_subgroup
+    def evaluate_from_statistics(self, _instances_dataset, _positives_dataset, instances_subgroup, _positives_subgroup):
+        return instances_subgroup 
     
-    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+    def optimistic_estimate_from_statistics(self, _instances_dataset, _postives_dataset, instances_subgroup, _postives_subgroup):
         return instances_subgroup
 
     def is_applicable(self, subgroup):
@@ -66,7 +66,7 @@ class AreaQF(ps.AbstractInterestingnessMeasure):
     def __init__(self):
         pass
 
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
+    def evaluate_from_dataset(self, data, subgroup, _):
         return len(subgroup.subgroup_description) * subgroup.subgroup_description.covers(data).sum()
 
     def is_applicable(self, subgroup):

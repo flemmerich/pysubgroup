@@ -6,7 +6,11 @@ Created on 29.09.2017
 import numpy as np
 import pysubgroup as ps
 from functools import total_ordering
+from abc import ABC
 
+class QualityFunction(ABC):
+    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None, cache=None):
+        pass
 
 
 @total_ordering
@@ -61,10 +65,10 @@ class NumericTarget(object):
         subgroup.statistics['median_lift'] = subgroup.statistics['median_sg'] / subgroup.statistics['median_dataset']
 
 
-class StandardQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
+class StandardQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure, QualityFunction):
     
     @staticmethod     
-    def standard_qf_numeric (a, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
+    def standard_qf_numeric (a, _, mean_dataset, instances_subgroup, mean_sg):
         if instances_subgroup == 0:
             return 0
         return instances_subgroup ** a * (mean_sg - mean_dataset)
@@ -91,7 +95,7 @@ class StandardQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInteresting
     def evaluate_from_statistics(self, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
         return StandardQFNumeric.standard_qf_numeric (self.a, instances_dataset, mean_dataset, instances_subgroup, mean_sg)
     
-    def optimistic_estimate_from_statistics (self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+    def optimistic_estimate_from_statistics (self, _instances_dataset, _positives_dataset, _instances_subgroup, _positives_subgroup):
         return float("inf")
 
     def is_applicable(self, subgroup):

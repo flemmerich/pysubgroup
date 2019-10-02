@@ -1,8 +1,6 @@
 from timeit import default_timer as timer
-import unittest
-import pysubgroup as ps
-from abc import ABC
-class TestAlgorithmsBase(ABC):
+import abc
+class TestAlgorithmsBase(abc.ABC):
     def evaluate_result(self,algorithm_result):
         #compare length such that zip works correctly
         self.assertEqual(len(algorithm_result),len(self.result)) # pylint: disable=maybe-no-member

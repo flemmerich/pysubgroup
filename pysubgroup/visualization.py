@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 import pysubgroup as ps
 
 
-def plot_sgbars (result_df, data=None, ylabel="target share", title="Discovered Subgroups", dynamic_widths=False, suffix=""):
+def plot_sgbars (result_df, _, ylabel="target share", title="Discovered Subgroups", dynamic_widths=False, _suffix=""):
     shares_sg = result_df["target_share_sg"]
     shares_compl = result_df["target_share_complement"]
     sg_relative_sizes = result_df["relative_size_sg"]
@@ -94,7 +94,7 @@ def plot_npspace(result_df, data, annotate=True, fixed_limits=False):
 
 
 def plot_distribution_numeric(sg, data, bins):
-    fig, ax = plt.subplots()
+    fig, _ = plt.subplots()
     target_values_sg = data[sg.covers(data)][sg.target.get_attributes()].values
     target_values_data = data[sg.target.get_attributes()].values
     plt.hist(target_values_sg, bins, alpha=0.5, label=str(sg.subgroup_description), density=True)
@@ -104,7 +104,7 @@ def plot_distribution_numeric(sg, data, bins):
 
 
 def compare_distributions_numeric(sgs, data, bins):
-    fig, ax = plt.subplots()
+    fig, _ = plt.subplots()
     for sg in sgs:
         target_values_sg = data[sg.covers(data)][sg.target.get_attributes()].values
         plt.hist(target_values_sg, bins, alpha=0.3, label=str(sg.subgroup_description), density=True)
@@ -123,7 +123,7 @@ def similarity_sgs(sgd_results, data, color = True):
 
 
 def similarity_dendrogram(result, data):
-    fig, ax = plt.subplots()
+    fig, _ = plt.subplots()
     dist_df = similarity_sgs(result, data, color=False)
     mat = 1 - dist_df.values
     dists = squareform(mat)
