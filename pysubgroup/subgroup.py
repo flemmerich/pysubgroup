@@ -1,4 +1,4 @@
-''' 
+'''
 Created on 28.04.2016
 
 @author: lemmerfn
@@ -97,9 +97,9 @@ class NominalSelector:
         if self._is_bool and (str(self.attribute_value) == "True"):
             self._query = self.attribute_name
         elif isinstance(self.attribute_value, str) or isinstance(self.attribute_value, bytes):
-            self._query = str(self.attribute_name) + "==" + "'"+str(self.attribute_value)+"'"
+            self._query = str(self.attribute_name) + "==" + "'" + str(self.attribute_value) + "'"
         elif np.isnan(self.attribute_value):
-            self._query = self.attribute_name+".isnull()"
+            self._query = self.attribute_name + ".isnull()"
         else:
             self._query = str(self.attribute_name) + "==" + str(self.attribute_value)
         if not (self.selector_name is None):
@@ -143,7 +143,7 @@ class NegatedSelector:
         return not self.selector.covers(data_instance)
 
     def __repr__(self):
-        return "(not " + repr(self.selector)+")"
+        return "(not " + repr(self.selector) + ")"
 
     def __eq__(self, other):
         return repr(self) == repr(other)

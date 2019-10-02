@@ -17,7 +17,7 @@ class NominalTarget(object):
 
     def __init__(self, target_attribute=None, target_value=None, target_selector=None):
         """
-        Creates a new target for the boolean model class (classic subgroup discovery). 
+        Creates a new target for the boolean model class (classic subgroup discovery).
         If target_attribute and target_value are given, the target_selector is computed using attribute and value
         """
         if target_attribute is not None and target_value is not None:

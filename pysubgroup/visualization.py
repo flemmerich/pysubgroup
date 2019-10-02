@@ -80,7 +80,7 @@ def plot_npspace(result_df, data, annotate=True, fixed_limits=False):
         size_sg = sg['size_sg']
         ax.plot(size_sg, target_share_sg, 'ro', color='black')
         if annotate:
-            ax.annotate(str(i), (size_sg+5, target_share_sg+0.001))
+            ax.annotate(str(i), (size_sg + 5, target_share_sg + 0.001))
 
     if fixed_limits:
         plt.xlim((0, len(data)))

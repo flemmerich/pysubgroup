@@ -220,7 +220,7 @@ def is_numerical_attribute(data, attribute_name):
 
 
 def remove_selectors_with_attributes(selector_list, attribute_list):
-    return [x for x in selector_list if not x.attributeName in attribute_list]
+    return [x for x in selector_list if x.attributeName not in attribute_list]
 
 
 def effective_sample_size(weights):

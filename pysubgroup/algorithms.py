@@ -14,7 +14,7 @@ import pysubgroup as ps
 
 class SubgroupDiscoveryTask(object):
     '''
-    Capsulates all parameters required to perform standard subgroup discovery 
+    Capsulates all parameters required to perform standard subgroup discovery
     '''
 
     def __init__(self, data, target, search_space, qf, result_set_size=10, depth=3, min_quality=0, weighting_attribute=None):
@@ -146,7 +146,7 @@ class BeamSearch(object):
                 for sel in task.search_space:
                     # create a clone
                     new_selectors = list(last_sg.subgroup_description.selectors)
-                    if not sel in new_selectors:
+                    if sel not in new_selectors:
                         new_selectors.append(sel)
                         sg = ps.Subgroup(task.target, new_selectors)
                         quality = task.qf.evaluate_from_dataset(task.data, sg)
