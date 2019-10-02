@@ -1,19 +1,38 @@
 from setuptools import setup
 import setuptools
-print(setuptools.find_packages(exclude=['doc', 'data']))
+
 setup(
     name='pysubgroup',
-    version='0.6.1',
+    version='0.6.2',
     packages=['pysubgroup'],
     package_data={'pysubgroup':['data/credit-g.arff','data/titanic.csv']},
-    url='http://florian.lemmerich.net/pysubgroup',
+    url='https://github.com/flemmerich/pysubgroup',
     license='',
     author='Florian Lemmerich',
     author_email='florian@lemmerich.net',
     description='pysubgroup is a Python library for the data analysis task of subgroup discovery.',
     install_requires=[
-              'pandas', 'scipy', 'numpy', 'matplotlib'
-          ],
+                        'pandas>=0.24.0',
+                        'scipy',
+                        'numpy',
+                        'matplotlib'
+    ],
     tests_require=['pytest'],
-    python_requires='>=3.6'
+    python_requires='>=3.6',
+    classifiers=['Intended Audience :: Science/Research',
+                'Intended Audience :: Developers',
+                'Programming Language :: Python',
+                'Topic :: Software Development',
+                'Topic :: Scientific/Engineering',
+                'Operating System :: Microsoft :: Windows',
+                'Operating System :: POSIX',
+                'Operating System :: Unix',
+                'Operating System :: MacOS',
+                'Programming Language :: Python :: 3',
+                'Programming Language :: Python :: 3.5',
+                'Programming Language :: Python :: 3.6',
+                'Programming Language :: Python :: 3.7',
+                ('Programming Language :: Python :: '
+                'Implementation :: CPython')
+                ],
 )
