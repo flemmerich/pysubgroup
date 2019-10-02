@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{babf11e8-0cfa-40c3-82cb-4d0e9412188b}</ProjectGuid>
+    <ProjectGuid>{b516f102-74b1-490d-9d76-edcae37fbf73}</ProjectGuid>
     <ProjectHome />
     <StartupFile>setup.py</StartupFile>
     <SearchPath />
@@ -21,10 +21,16 @@
   <ItemGroup>
     <Compile Include="doc\conf.py" />
     <Compile Include="pysubgroup.archive\bsd_bitarray.py" />
+    <Compile Include="pysubgroup\algorithms.py" />
+    <Compile Include="pysubgroup\boolean_target.py" />
+    <Compile Include="pysubgroup\fi_target.py" />
+    <Compile Include="pysubgroup\measures.py" />
+    <Compile Include="pysubgroup\numeric_target.py" />
+    <Compile Include="pysubgroup\subgroup.py" />
     <Compile Include="pysubgroup\tests\algorithms_testing.py" />
+    <Compile Include="pysubgroup\tests\DataSets.py" />
     <Compile Include="pysubgroup\tests\test_algorithms_boolean.py" />
     <Compile Include="pysubgroup\tests\test_algorithms_numeric.py" />
-    <Compile Include="pysubgroup\tests\DataSets.py" />
     <Compile Include="pysubgroup\tests\test_subgroup.py" />
     <Compile Include="pysubgroup\tests\test_tid.py" />
     <Compile Include="pysubgroup\tests\t_combined_im.py" />
@@ -35,42 +41,35 @@
     <Compile Include="pysubgroup\tests\t_tid.py" />
     <Compile Include="pysubgroup\tests\t_titanic.py" />
     <Compile Include="pysubgroup\tests\t_visualization.py" />
-    <Compile Include="pysubgroup\algorithms.py" />
-    <Compile Include="pysubgroup\boolean_target.py" />
-    <Compile Include="pysubgroup\fi_target.py" />
-    <Compile Include="pysubgroup\measures.py" />
-    <Compile Include="pysubgroup\numeric_target.py" />
-    <Compile Include="pysubgroup\subgroup.py" />
-    <Compile Include="pysubgroup\tests\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="pysubgroup\tests\__init__.py" />
     <Compile Include="pysubgroup\utils.py" />
     <Compile Include="pysubgroup\visualization.py" />
     <Compile Include="pysubgroup\__init__.py" />
     <Compile Include="setup.py" />
-    <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="pysubgroup\data\credit-g.arff" />
-    <Content Include="pysubgroup\data\titanic.csv" />
     <Content Include="doc\requirements.txt" />
+    <Content Include="pysubgroup.egg-info\dependency_links.txt" />
+    <Content Include="pysubgroup.egg-info\requires.txt" />
+    <Content Include="pysubgroup.egg-info\SOURCES.txt" />
+    <Content Include="pysubgroup.egg-info\top_level.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="pysubgroup\data\" />
-    <Folder Include="pysubgroup\tests\" />
     <Folder Include="doc" />
     <Folder Include="pysubgroup" />
     <Folder Include="pysubgroup.archive" />
+    <Folder Include="pysubgroup.egg-info" />
+    <Folder Include="pysubgroup\tests" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env_pysubgroup_new\">
       <Id>env_pysubgroup_new</Id>
-      <Version>3.7</Version>
       <Description>env_pysubgroup_new (Python 3.7 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
-      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Version>3.7</Version>
       <Architecture>X64</Architecture>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
     </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
