@@ -8,7 +8,7 @@ import pysubgroup as ps
 
 
 @total_ordering
-class FITarget(object):
+class FITarget():
     def __init__(self):
         pass
 

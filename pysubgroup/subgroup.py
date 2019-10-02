@@ -10,7 +10,7 @@ from functools import total_ordering
 
 
 @total_ordering
-class SubgroupDescription(object):
+class SubgroupDescription():
     def __init__(self, selectors):
         if isinstance(selectors, list) or isinstance(selectors, tuple):
             self.selectors = selectors
@@ -102,7 +102,7 @@ class NominalSelector:
             self._query = self.attribute_name + ".isnull()"
         else:
             self._query = str(self.attribute_name) + "==" + str(self.attribute_value)
-        if not (self.selector_name is None):
+        if self.selector_name is not None:
             self._string = self.selector_name
         else:
             self._string = self._query
@@ -250,7 +250,7 @@ class NumericSelector:
 
 
 @total_ordering
-class Subgroup(object):
+class Subgroup():
     def __init__(self, target, subgroup_description):
         # If its already a NominalTarget object, we are fine, otherwise we create a new one
         # if (isinstance(target, NominalTarget) or isinstance(target, NumericTarget)):
@@ -345,7 +345,7 @@ def create_numeric_selector_for_attribute(data, attr_name, nbins=5, intervals_on
     if len(data_not_null.index) < len(data.index):
         numeric_selectors.append(NominalSelector(attr_name, np.nan))
 
-    if (len(uniqueValues) <= nbins):
+    if len(uniqueValues) <= nbins:
         for val in uniqueValues:
             numeric_selectors.append(NominalSelector(attr_name, val))
     else:

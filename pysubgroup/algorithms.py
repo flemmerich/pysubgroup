@@ -12,7 +12,7 @@ import numpy as np
 import pysubgroup as ps
 
 
-class SubgroupDiscoveryTask(object):
+class SubgroupDiscoveryTask():
     '''
     Capsulates all parameters required to perform standard subgroup discovery
     '''
@@ -28,7 +28,7 @@ class SubgroupDiscoveryTask(object):
         self.weighting_attribute = weighting_attribute
 
 
-class Apriori(object):
+class Apriori():
     def execute(self, task):
         measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
         result = []
@@ -78,7 +78,7 @@ class Apriori(object):
         return result
 
 
-class BestFirstSearch (object):
+class BestFirstSearch ():
     def execute(self, task):
         result = []
         queue = []
@@ -117,7 +117,7 @@ class BestFirstSearch (object):
         return result
 
 
-class BeamSearch(object):
+class BeamSearch():
     '''
     Implements the BeamSearch algorithm. Its a basic implementation without any optimization, i.e., refinements get tested multiple times.
     '''
@@ -158,7 +158,7 @@ class BeamSearch(object):
         return result
 
 
-class SimpleDFS(object):
+class SimpleDFS():
     def execute(self, task, use_optimistic_estimates=True):
         result = self.search_internal(task, [], task.search_space, [], use_optimistic_estimates)
         result.sort(key=lambda x: x[0], reverse=True)
@@ -189,7 +189,7 @@ class SimpleDFS(object):
         return result
 
 
-class BSD (object):
+class BSD ():
     """
     Implementation of the BSD algorithm for binary targets. See
     Lemmerich, Florian, Mathias Rohlfs, and Martin Atzmueller. "Fast Discovery of Relevant Subgroup Patterns.",
@@ -242,7 +242,7 @@ class BSD (object):
         return result
 
 
-class TID_SD (object):
+class TID_SD ():
     """
     Implementation of a depth-first-search with look-ahead using vertical ID lists as data structure.
     """
@@ -295,7 +295,7 @@ class TID_SD (object):
 
         optimisticEstimate = task.qf.optimistic_estimate_from_statistics(self.popSize, self.popPositives, sgSize,
                                                                          sgPositiveCount)
-        if (optimisticEstimate <= ps.minimum_required_quality(result, task)):
+        if optimisticEstimate <= ps.minimum_required_quality(result, task):
             return result
 
         sg = ps.Subgroup(task.target, copy.copy(prefix))
@@ -303,7 +303,7 @@ class TID_SD (object):
         quality = task.qf.evaluate_from_statistics(self.popSize, self.popPositives, sgSize, sgPositiveCount)
         ps.add_if_required(result, sg, quality, task)
 
-        if (len(prefix) < task.depth):
+        if len(prefix) < task.depth:
             newModificationSet = copy.copy(modificationSet)
             for sel in modificationSet:
                 prefix.append(sel)
@@ -318,7 +318,7 @@ class TID_SD (object):
         return result
 
 
-class DFSNumeric(object):
+class DFSNumeric():
     def __init__(self):
         self.pop_size = 0
         self.f = None

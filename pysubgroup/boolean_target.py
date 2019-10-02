@@ -13,7 +13,7 @@ from .subgroup import SubgroupDescription, Subgroup, NominalSelector
 
 
 @total_ordering
-class NominalTarget(object):
+class NominalTarget():
 
     def __init__(self, target_attribute=None, target_value=None, target_selector=None):
         """

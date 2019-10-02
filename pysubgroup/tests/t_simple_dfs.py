@@ -1,7 +1,4 @@
-from scipy.io import arff
-
 import pysubgroup as ps
-import pandas as pd
 from timeit import default_timer as timer
 from pysubgroup.tests.DataSets import getCreditData
 data = getCreditData()
