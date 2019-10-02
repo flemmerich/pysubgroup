@@ -3,9 +3,9 @@ import pandas as pd
 
 import unittest
 
-from DataSets import *
+from pysubgroup.tests.DataSets import *
 
-from algorithms_testing import *
+from pysubgroup.tests.algorithms_testing import *
 
 class TestAlgorithms(TestAlgorithmsBase,unittest.TestCase):
     def setUp(self):
