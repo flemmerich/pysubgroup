@@ -27,17 +27,11 @@
     <Compile Include="pysubgroup\tests\DataSets.py" />
     <Compile Include="pysubgroup\tests\test_subgroup.py" />
     <Compile Include="pysubgroup\tests\test_tid.py" />
-    <Compile Include="pysubgroup\tests\t_apriori.py" />
-    <Compile Include="pysubgroup\tests\t_basic_objects.py" />
-    <Compile Include="pysubgroup\tests\t_beam_search.py" />
-    <Compile Include="pysubgroup\tests\t_best_first_search.py" />
-    <Compile Include="pysubgroup\tests\t_bsd.py" />
     <Compile Include="pysubgroup\tests\t_combined_im.py" />
     <Compile Include="pysubgroup\tests\t_fi.py" />
     <Compile Include="pysubgroup\tests\t_numeric_targets.py" />
     <Compile Include="pysubgroup\tests\t_numeric_targets2.py" />
     <Compile Include="pysubgroup\tests\t_simple_dfs.py" />
-    <Compile Include="pysubgroup\tests\t_simple_dfs_numeric.py" />
     <Compile Include="pysubgroup\tests\t_tid.py" />
     <Compile Include="pysubgroup\tests\t_titanic.py" />
     <Compile Include="pysubgroup\tests\t_visualization.py" />
