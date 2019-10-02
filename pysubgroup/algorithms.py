@@ -12,7 +12,7 @@ import numpy as np
 import pysubgroup as ps
 
 
-class SubgroupDiscoveryTask():
+class SubgroupDiscoveryTask:
     '''
     Capsulates all parameters required to perform standard subgroup discovery
     '''
@@ -28,7 +28,7 @@ class SubgroupDiscoveryTask():
         self.weighting_attribute = weighting_attribute
 
 
-class Apriori():
+class Apriori:
     def execute(self, task):
         measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
         result = []
@@ -78,12 +78,12 @@ class Apriori():
         return result
 
 
-class BestFirstSearch ():
+class BestFirstSearch:
     def execute(self, task):
         result = []
         queue = []
         measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
-
+        qf_is_bounded=isinstance(task.qf, ps.BoundedInterestingnessMeasure)
         # init the first level
         for sel in task.search_space:
             queue.append((float("-inf"), [sel]))
@@ -99,10 +99,10 @@ class BestFirstSearch ():
             if measure_statistics_based:
                 statistics = sg.get_base_statistics(task.data)
                 ps.add_if_required(result, sg, task.qf.evaluate_from_statistics(*statistics), task)
-                optimistic_estimate = task.qf.optimistic_estimate_from_statistics(*statistics) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
+                optimistic_estimate = task.qf.optimistic_estimate_from_statistics(*statistics) if qf_is_bounded else float("inf")
             else:
                 ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)
-                optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
+                optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if qf_is_bounded else float("inf")
 
             # compute refinements and fill the queue
             if len(candidate_description) < task.depth and optimistic_estimate >= ps.minimum_required_quality(result, task):
@@ -117,7 +117,7 @@ class BestFirstSearch ():
         return result
 
 
-class BeamSearch():
+class BeamSearch:
     '''
     Implements the BeamSearch algorithm. Its a basic implementation without any optimization, i.e., refinements get tested multiple times.
     '''
@@ -158,7 +158,7 @@ class BeamSearch():
         return result
 
 
-class SimpleDFS():
+class SimpleDFS:
     def execute(self, task, use_optimistic_estimates=True):
         result = self.search_internal(task, [], task.search_space, [], use_optimistic_estimates)
         result.sort(key=lambda x: x[0], reverse=True)
@@ -189,7 +189,7 @@ class SimpleDFS():
         return result
 
 
-class BSD ():
+class BSD:
     """
     Implementation of the BSD algorithm for binary targets. See
     Lemmerich, Florian, Mathias Rohlfs, and Martin Atzmueller. "Fast Discovery of Relevant Subgroup Patterns.",
@@ -242,7 +242,7 @@ class BSD ():
         return result
 
 
-class TID_SD ():
+class TID_SD:
     """
     Implementation of a depth-first-search with look-ahead using vertical ID lists as data structure.
     """

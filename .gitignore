@@ -10,3 +10,4 @@ build
 .vs
 /.pytest_cache/v/cache
 /TestResults
+/env_pysubgroup

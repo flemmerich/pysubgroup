@@ -3,9 +3,9 @@ Created on 29.09.2017
 
 @author: lemmerfn
 '''
+from functools import total_ordering
 import numpy as np
 import scipy.stats
-from functools import total_ordering
 
 import pysubgroup as ps
 
@@ -104,7 +104,7 @@ class NominalTarget():
         subgroup.statistics['lift_weighted'] = (positives_subgroup / instances_subgroup) / (positives_dataset / instances_dataset)
 
 
-class ChiSquaredQF (ps.AbstractInterestingnessMeasure):
+class ChiSquaredQF(ps.AbstractInterestingnessMeasure):
     @staticmethod
     def chi_squared_qf(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup, min_instances=5, bidirect=True, direction_positive=True):
         if (instances_subgroup < min_instances) or ((instances_dataset - instances_subgroup) < min_instances):

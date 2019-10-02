@@ -40,7 +40,7 @@ class FITarget():
         subgroup.statistics['size_dataset'] = len(data)
 
 
-class CountQF (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
+class CountQF(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
     def __init__(self):
         pass
 

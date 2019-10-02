@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>MSBuild|env_pysubgroup_new|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|env_pysubgroup|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>Pytest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
+    <Content Include=".pylintrc" />
     <Content Include="doc\requirements.txt" />
     <Content Include="pysubgroup.egg-info\dependency_links.txt" />
     <Content Include="pysubgroup.egg-info\requires.txt" />
@@ -61,14 +62,14 @@
     <Folder Include="pysubgroup\tests" />
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="env_pysubgroup_new\">
-      <Id>env_pysubgroup_new</Id>
-      <Description>env_pysubgroup_new (Python 3.7 (64-bit))</Description>
+    <Interpreter Include="env_pysubgroup\">
+      <Id>env_pysubgroup</Id>
+      <Version>3.7</Version>
+      <Description>env_pysubgroup (Python 3.7 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
-      <Version>3.7</Version>
-      <Architecture>X64</Architecture>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
     </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

@@ -3,10 +3,12 @@ Created on 29.09.2017
 
 @author: lemmerfn
 '''
+from abc import ABC
+from functools import total_ordering
 import numpy as np
 import pysubgroup as ps
-from functools import total_ordering
-from abc import ABC
+
+
 
 
 class QualityFunction(ABC):
@@ -15,7 +17,7 @@ class QualityFunction(ABC):
 
 
 @total_ordering
-class NumericTarget(object):
+class NumericTarget:
     def __init__(self, target_variable):
         self.target_variable = target_variable
 
@@ -113,7 +115,7 @@ class GAStandardQFNumeric(ps.AbstractInterestingnessMeasure):
 
     def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
         (instances_dataset, _, instances_subgroup, mean_sg) = subgroup.get_base_statistics(data, weighting_attribute)
-        if (instances_subgroup == 0) or (instances_dataset == instances_subgroup):
+        if instances_subgroup in (0, instances_dataset):
             return 0
         max_mean = get_max_generalization_mean(data, subgroup, weighting_attribute)
         relative_size = (instances_subgroup / instances_dataset)

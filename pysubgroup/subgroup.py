@@ -3,16 +3,17 @@ Created on 28.04.2016
 
 @author: lemmerfn
 '''
+from functools import total_ordering
 import numpy as np
 import pandas as pd
 import pysubgroup as ps
-from functools import total_ordering
+
 
 
 @total_ordering
-class SubgroupDescription():
+class SubgroupDescription:
     def __init__(self, selectors):
-        if isinstance(selectors, list) or isinstance(selectors, tuple):
+        if isinstance(selectors, (list, tuple)):
             self.selectors = selectors
         else:
             self.selectors = [selectors]
@@ -31,7 +32,7 @@ class SubgroupDescription():
         return np.sum(self.covers(data))
 
     def get_attributes(self):
-        return set([x.get_attribute_name() for x in self.selectors])
+        return set(x.get_attribute_name() for x in self.selectors)
 
     def __str__(self, open_brackets="", closing_brackets="", and_term=" AND "):
         if not self.selectors:
