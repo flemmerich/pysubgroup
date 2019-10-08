@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{b516f102-74b1-490d-9d76-edcae37fbf73}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>setup.py</StartupFile>
+    <StartupFile>pysubgroup\tests\test_algorithms_boolean.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -26,6 +26,9 @@
     <Compile Include="pysubgroup\fi_target.py" />
     <Compile Include="pysubgroup\measures.py" />
     <Compile Include="pysubgroup\numeric_target.py" />
+    <Compile Include="pysubgroup\refinement_operator.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pysubgroup\subgroup.py" />
     <Compile Include="pysubgroup\tests\algorithms_testing.py" />
     <Compile Include="pysubgroup\tests\DataSets.py" />
@@ -54,11 +57,14 @@
     <Content Include="pysubgroup.egg-info\requires.txt" />
     <Content Include="pysubgroup.egg-info\SOURCES.txt" />
     <Content Include="pysubgroup.egg-info\top_level.txt" />
+    <Content Include="pysubgroup\data\credit-g.arff" />
+    <Content Include="pysubgroup\data\titanic.csv" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="doc" />
     <Folder Include="pysubgroup" />
     <Folder Include="pysubgroup.egg-info" />
+    <Folder Include="pysubgroup\data\" />
     <Folder Include="pysubgroup\tests" />
   </ItemGroup>
   <ItemGroup>

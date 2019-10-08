@@ -5,6 +5,7 @@ Created on 29.04.2016
 '''
 import copy
 import functools
+from itertools import combinations
 from heapq import heappush, heappop
 from itertools import islice
 
@@ -31,6 +32,8 @@ class SubgroupDiscoveryTask:
 class Apriori:
     def execute(self, task):
         measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
+        if not isinstance(task.qf, ps.BoundedInterestingnessMeasure):
+            raise RuntimeWarning("Quality function is unbounded, long runtime expected")
         result = []
 
         # init the first level
@@ -52,26 +55,22 @@ class Apriori:
                     ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)
                     optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
 
-                # optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg)
-                # if isinstance(task.qf, m.BoundedInterestingnessMeasure) else float("inf")
-                # quality = task.qf.evaluate_from_dataset(task.data, sg)
-                # ut.add_if_required (result, sg, quality, task)
                 if optimistic_estimate >= ps.minimum_required_quality(result, task):
-                    promising_candidates.append(sg.subgroup_description.selectors)
+                    promising_candidates.append(tuple(sg.subgroup_description.selectors))
 
             if depth == task.depth:
                 break
 
             # generate candidates next level
             next_level_candidates = []
-            for i, sg1 in enumerate(promising_candidates):
-                for j, sg2 in enumerate(promising_candidates):
-                    if i < j and sg1[:-1] == sg2[:-1]:
-                        candidate = list(sg1) + [sg2[-1]]
+            for sg1, sg2 in combinations(promising_candidates,2):
+                    if sg1[:-1] == sg2[:-1]:
+                        selectors = list(sg1) + [sg2[-1]]
+                        
                         # check if ALL generalizations are contained in promising_candidates
-                        generalization_descriptions = [[x for x in candidate if x != sel] for sel in candidate]
-                        if all(g in promising_candidates for g in generalization_descriptions):
-                            next_level_candidates.append(ps.Subgroup(task.target, candidate))
+                        generalization_descriptions = combinations(selectors, len(selectors)-1)
+                        if all( g in promising_candidates for g in generalization_descriptions):
+                            next_level_candidates.append(ps.Subgroup(task.target, selectors))
             depth = depth + 1
 
         result.sort(key=lambda x: x[0], reverse=True)
@@ -82,11 +81,12 @@ class BestFirstSearch:
     def execute(self, task):
         result = []
         queue = []
+        operator=ps.StaticSpecializationOperator(task.search_space)
         measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
         qf_is_bounded = isinstance(task.qf, ps.BoundedInterestingnessMeasure)
         # init the first level
         for sel in task.search_space:
-            queue.append((float("-inf"), [sel]))
+            queue.append((float("-inf"), ps.SubgroupDescription([sel])))
 
         while queue:
             q, candidate_description = heappop(queue)
@@ -106,12 +106,7 @@ class BestFirstSearch:
 
             # compute refinements and fill the queue
             if len(candidate_description) < task.depth and optimistic_estimate >= ps.minimum_required_quality(result, task):
-                # iterate over all selectors that are behind the last selector contained in the evaluated candidate
-                # according to the initial order
-                index_of_last_selector = min(task.search_space.index(candidate_description[-1]), len(task.search_space) - 1)
-
-                for sel in islice(task.search_space, index_of_last_selector + 1, None):
-                    new_description = candidate_description + [sel]
+                for new_description in operator.refinements(candidate_description):
                     heappush(queue, (-optimistic_estimate, new_description))
         result.sort(key=lambda x: x[0], reverse=True)
         return result
@@ -143,14 +138,16 @@ class BeamSearch:
         while beam != last_beam and depth < task.depth:
             last_beam = beam.copy()
             for (_, last_sg) in last_beam:
-                for sel in task.search_space:
-                    # create a clone
-                    new_selectors = list(last_sg.subgroup_description.selectors)
-                    if sel not in new_selectors:
-                        new_selectors.append(sel)
-                        sg = ps.Subgroup(task.target, new_selectors)
-                        quality = task.qf.evaluate_from_dataset(task.data, sg)
-                        ps.add_if_required(beam, sg, quality, task, check_for_duplicates=True)
+                if getattr(last_sg,'visited',False) == False:
+                    setattr(last_sg,'visited',True)
+                    for sel in task.search_space:
+                        # create a clone
+                        new_selectors = list(last_sg.subgroup_description.selectors)
+                        if sel not in new_selectors:
+                            new_selectors.append(sel)
+                            sg = ps.Subgroup(task.target, new_selectors)
+                            quality = task.qf.evaluate_from_dataset(task.data, sg)
+                            ps.add_if_required(beam, sg, quality, task, check_for_duplicates=True)
             depth += 1
 
         result = beam[:task.result_set_size]
