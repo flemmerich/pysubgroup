@@ -62,7 +62,7 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
         searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0))
 
-
+# also includes numeric attributes and has 12 targets
 class TestAlgorithms2(BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
@@ -104,7 +104,7 @@ class TestAlgorithms2(BooleanTargetBase, unittest.TestCase):
         searchSpace=searchSpace_Nominal + searchSpace_Numeric
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=12, depth=5, qf=ps.StandardQF(1.0))
 
-
+# uses an a=0.5 and result_set_size = 12, is much faster because of that
 class TestAlgorithms3(BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
@@ -117,7 +117,7 @@ class TestAlgorithms3(BooleanTargetBase, unittest.TestCase):
                        ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_savings_status]),# 0.113713540226172:    checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled'' AND savings_status=='b'<100''
                        ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job]),#checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled''
                        ps.SubgroupDescription([NS_checking, NS_job, NS_other_parties, NS_savings_status]),#checking_status=='b'<0'' AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100''
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_foreign_worker]),
+                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_other_parties]),
                        ps.SubgroupDescription([NS_checking, NS_job, NS_savings_status]),
                        ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_other_parties, NS_savings_status]),
                        ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_other_parties]),
