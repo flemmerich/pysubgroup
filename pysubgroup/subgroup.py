@@ -8,6 +8,15 @@ import numpy as np
 import pandas as pd
 import pysubgroup as ps
 
+@total_ordering
+class SelectorBase:
+    def __eq__(self, other):
+        if other is None:
+            return False
+        return repr(self) == repr(other)
+
+    def __lt__(self, other):
+        return repr(self) < repr(other)
 
 
 @total_ordering
@@ -47,7 +56,7 @@ class SubgroupDescription:
         return "".join(("(", " and ".join(reprs), ")"))
 
     def __eq__(self, other):
-        return set(self.selectors) == set(other.selectors)
+        return repr(self) == repr(other)
 
     def __lt__(self, other):
         return repr(self) < repr(other)
@@ -56,8 +65,7 @@ class SubgroupDescription:
         return hash(frozenset(self.selectors))
 
 
-@total_ordering
-class NominalSelector:
+class NominalSelector(SelectorBase):
     def __init__(self, attribute_name, attribute_value, selector_name=None):
         if attribute_name is None:
             raise TypeError()
@@ -123,20 +131,12 @@ class NominalSelector:
     def __str__(self, open_brackets="", closing_brackets=""):
         return open_brackets + self._string + closing_brackets
 
-    def __eq__(self, other):
-        if other is None:
-            return False
-        return repr(self) == repr(other)
-
-    def __lt__(self, other):
-        return repr(self) < repr(other)
-
     def __hash__(self):
-        return getattr(self, "_hash_value", super().__hash__())
+        return getattr(self, "_hash_value")
 
 
-@total_ordering
-class NegatedSelector:
+
+class NegatedSelector(SelectorBase):
     def __init__(self, selector):
         self.selector = selector
 
@@ -145,12 +145,6 @@ class NegatedSelector:
 
     def __repr__(self):
         return "(not " + repr(self.selector) + ")"
-
-    def __eq__(self, other):
-        return repr(self) == repr(other)
-
-    def __lt__(self, other):
-        return repr(self) < repr(other)
 
     def __hash__(self):
         return repr(self).__hash__()
@@ -163,8 +157,7 @@ class NegatedSelector:
 
 
 # Including the lower bound, excluding the upper_bound
-@total_ordering
-class NumericSelector:
+class NumericSelector(SelectorBase):
     def __init__(self, attribute_name, lower_bound, upper_bound, selector_name=None):
         self._attribute_name = attribute_name
         self._lower_bound = lower_bound
@@ -203,14 +196,6 @@ class NumericSelector:
 
     def __repr__(self):
         return self._query
-
-    def __eq__(self, other):
-        if other is None:
-            return False
-        return repr(self) == repr(other)
-
-    def __lt__(self, other):
-        return repr(self) < repr(other)
 
     def __hash__(self):
         return repr(self).__hash__()
