@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{b516f102-74b1-490d-9d76-edcae37fbf73}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>pysubgroup\tests\test_algorithms_boolean.py</StartupFile>
+    <StartupFile>pysubgroup\tests\test_boolean_expressions.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -25,6 +25,9 @@
     <Compile Include="pysubgroup\boolean_target.py" />
     <Compile Include="pysubgroup\fi_target.py" />
     <Compile Include="pysubgroup\measures.py" />
+    <Compile Include="pysubgroup\boolean_expressions.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pysubgroup\numeric_target.py" />
     <Compile Include="pysubgroup\refinement_operator.py">
       <SubType>Code</SubType>
@@ -34,6 +37,9 @@
     <Compile Include="pysubgroup\tests\DataSets.py" />
     <Compile Include="pysubgroup\tests\test_algorithms_boolean.py" />
     <Compile Include="pysubgroup\tests\test_algorithms_numeric.py" />
+    <Compile Include="pysubgroup\tests\test_boolean_expressions.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pysubgroup\tests\test_subgroup.py" />
     <Compile Include="pysubgroup\tests\test_tid.py" />
     <Compile Include="pysubgroup\tests\t_combined_im.py" />
