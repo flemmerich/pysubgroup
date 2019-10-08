@@ -58,10 +58,10 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQFNumeric(1, False))
 
     def test_SimpleDFS(self):
-        self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS")
+        self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
 
     def test_DFSNumeric(self):
-        self.runAlgorithm(ps.DFSNumeric(), "DFS_numeric")
+        self.runAlgorithm(ps.DFSNumeric(), "DFS_numeric", self.result, self.qualities, self.task)
 
 
 if __name__ == '__main__':
