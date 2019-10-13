@@ -9,4 +9,4 @@ from pysubgroup.fi_target import *
 
 from pysubgroup.visualization import *
 from pysubgroup.refinement_operator import *
-from pysubgroup.new_subgroup import *
+from pysubgroup.boolean_expressions import *
