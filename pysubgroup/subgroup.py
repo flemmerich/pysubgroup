@@ -4,9 +4,11 @@ Created on 28.04.2016
 @author: lemmerfn
 '''
 from functools import total_ordering
+from copy import copy
 import numpy as np
 import pandas as pd
 import pysubgroup as ps
+
 
 @total_ordering
 class SelectorBase:
@@ -63,6 +65,13 @@ class SubgroupDescription:
 
     def __hash__(self):
         return hash(frozenset(self.selectors))
+
+    def __copy__(self):
+        cls=self.__class__
+        result=cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result.selectors=copy(self.selectors)
+        return result
 
 
 class NominalSelector(SelectorBase):
