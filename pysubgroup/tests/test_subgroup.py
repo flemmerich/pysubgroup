@@ -7,8 +7,11 @@ import pandas as pd
 class TestRelationsMethods(unittest.TestCase):
     def test_NominalSelector_ordering(self):
         A1 = ps.NominalSelector("A", 1)
+        A1_clone = ps.NominalSelector("A", 1)
         A2 = ps.NominalSelector("A", 2, "AA")
         B1 = ps.NominalSelector("B", 1)
+
+        self.assertTrue(A1_clone is A1)
 
         B1_clone = ps.NominalSelector("B", 1)
         self.assertTrue(A1 < B1)
@@ -16,10 +19,6 @@ class TestRelationsMethods(unittest.TestCase):
         self.assertTrue(A2 < B1)
         self.assertTrue(B1 == B1_clone)
         self.assertTrue(hash(B1) == hash(B1_clone))
-        A1.attribute_value = 3
-        self.assertTrue(A2 < A1)
-        A2.attribute_name = "B"
-        self.assertTrue(A1 < A2)
 
         C1 = ps.NominalSelector("checking_status", b"<0")
         C2 = ps.NominalSelector("checking_status", b"<0")
@@ -35,6 +34,7 @@ class TestRelationsMethods(unittest.TestCase):
     def test_NumericSelector_ordering(self):
         S1 = ps.NumericSelector("A", 1.2345, 2.0)
         S1_clone = ps.NumericSelector("A", 1.2345, 2.0)
+        S1_clone = ps.NumericSelector("A", 1.2345, 2.0)
         S2 = ps.NumericSelector("A", 1.2345, 3.0)
         S3 = ps.NumericSelector("A", 1.2346, 3.0)
         S4 = ps.NumericSelector("B", 1.0, 2.0)
@@ -44,6 +44,7 @@ class TestRelationsMethods(unittest.TestCase):
         self.assertTrue(S3 < S4)
         self.assertTrue(S1 == S1_clone)
         self.assertTrue(hash(S1) == hash(S1_clone))
+        self.assertTrue(S1 is S1_clone)
 
     def test_SubgroupDescription_ordering(self):
         A1 = ps.NominalSelector("A", 1)
