@@ -15,7 +15,7 @@ class BooleanTargetBase(TestAlgorithmsBase):
 
     def test_BestFirstSearch(self):
         self.runAlgorithm(ps.BestFirstSearch(), "BestFirstSearch", self.result, self.qualities, self.task)
-
+     
     def test_BeamSearch(self):
         self.runAlgorithm(ps.BeamSearch(beam_width=12), "BeamSearch", self.result, self.qualities, self.task)
 
@@ -105,7 +105,7 @@ class TestAlgorithms2(BooleanTargetBase, unittest.TestCase):
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=12, depth=5, qf=ps.StandardQF(1.0))
 
 # uses an a=0.5 and result_set_size = 12, is much faster because of that
-class TestAlgorithms3(BooleanTargetBase, unittest.TestCase):
+class TestAlgorithms3(BooleanTargetBase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
         NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")
