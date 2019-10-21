@@ -8,10 +8,26 @@ from copy import copy
 import numpy as np
 import pandas as pd
 import pysubgroup as ps
-
+import weakref
 
 @total_ordering
 class SelectorBase:
+    __refs__ = weakref.WeakSet()
+    def __new__(cls,*args,**kwargs):
+
+        tmp = super().__new__(cls)
+
+        tmp.set_descriptions(*args,**kwargs)
+        if tmp in SelectorBase.__refs__:
+            for ref in SelectorBase. __refs__:
+                if ref == tmp:
+                    return ref
+        return tmp
+
+
+    def __init__(self):
+        SelectorBase.__refs__.add(self)
+
     def __eq__(self, other):
         if other is None:
             return False
@@ -19,6 +35,9 @@ class SelectorBase:
 
     def __lt__(self, other):
         return repr(self) < repr(other)
+
+    def __hash__(self, other):
+        return self._hash
 
 
 @total_ordering
@@ -75,6 +94,9 @@ class SubgroupDescription:
 
 
 class NominalSelector(SelectorBase):
+    def __new__(cls, attribute_name, attribute_value, selector_name=None):
+        return super().__new__(cls,attribute_name, attribute_value, selector_name=selector_name)
+
     def __init__(self, attribute_name, attribute_value, selector_name=None):
         if attribute_name is None:
             raise TypeError()
@@ -82,51 +104,35 @@ class NominalSelector(SelectorBase):
             raise TypeError()
         self._attribute_name = attribute_name
         self._attribute_value = attribute_value
-        self.selector_name = selector_name
-        self._is_bool = False
-        self.recompute_representations()
+        self._selector_name = selector_name
+        self.set_descriptions(self._attribute_name, self._attribute_value, self._selector_name)
+        super().__init__()
 
-    def get_attribute_name(self):
+    @property
+    def attribute_name(self):
         return self._attribute_name
 
-    def set_attribute_name(self, value):
-        self._attribute_name = value
-        self.recompute_representations()
-
-    def get_attribute_value(self):
+    @property
+    def attribute_value(self):
         return self._attribute_value
 
-    def set_attribute_value(self, value):
-        self._attribute_value = value
-        self.recompute_representations()
+    def set_descriptions(self,attribute_name, attribute_value, selector_name=None):
+        self._hash, self._query, self._string = NominalSelector.compute_descriptions(attribute_name, attribute_value, selector_name=selector_name)
 
-    def get_is_bool(self):
-        return self._is_bool
-
-    def set_is_bool(self, value):
-        self._is_bool = value
-        self.recompute_representations()
-
-    attribute_name = property(get_attribute_name, set_attribute_name)
-    attribute_value = property(get_attribute_value, set_attribute_value)
-    is_bool = property(get_is_bool, set_is_bool)
-
-    def recompute_representations(self):
-        if self._is_bool and (str(self.attribute_value) == "True"):
-            self._query = self.attribute_name
-        elif isinstance(self.attribute_value, (str, bytes)):
-            self._query = str(self.attribute_name) + "==" + "'" + str(self.attribute_value) + "'"
-        elif np.isnan(self.attribute_value):
-            self._query = self.attribute_name + ".isnull()"
+    @classmethod
+    def compute_descriptions(cls,attribute_name, attribute_value, selector_name):
+        if isinstance(attribute_value, (str, bytes)):
+            query = str(attribute_name) + "==" + "'" + str(attribute_value) + "'"
+        elif np.isnan(attribute_value):
+            query = attribute_name + ".isnull()"
         else:
-            self._query = str(self.attribute_name) + "==" + str(self.attribute_value)
-        if self.selector_name is not None:
-            self._string = self.selector_name
+            query = str(attribute_name) + "==" + str(attribute_value)
+        if selector_name is not None:
+            string_ = selector_name
         else:
-            self._string = self._query
-        self._hash_value = self._query.__hash__()
-
-        # return data[self.attributeName] == self.attributeValue
+            string_ = query
+        hash_value = hash(query)
+        return (hash_value,query,string_)
 
     def __repr__(self):
         return self._query
@@ -141,13 +147,14 @@ class NominalSelector(SelectorBase):
         return open_brackets + self._string + closing_brackets
 
     def __hash__(self):
-        return getattr(self, "_hash_value")
+        return self._hash
 
 
 
 class NegatedSelector(SelectorBase):
     def __init__(self, selector):
         self.selector = selector
+        super().__init__()
 
     def covers(self, data_instance):
         return not self.selector.covers(data_instance)
@@ -161,7 +168,8 @@ class NegatedSelector(SelectorBase):
     def __str__(self, open_brackets="", closing_brackets=""):
         return "NOT " + str(self.selector, open_brackets, closing_brackets)
 
-    def get_attribute_name(self):
+    @property
+    def attribute_name(self):
         return self.selector.attribute_name
 
 
@@ -172,32 +180,20 @@ class NumericSelector(SelectorBase):
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
         self.selector_name = selector_name
-        self.recompute_representations()
+        self.set_descriptions(attribute_name, lower_bound, upper_bound,selector_name)
+        super().__init__()
 
-    def get_attribute_name(self):
+    @property
+    def attribute_name(self):
         return self._attribute_name
 
-    def set_attribute_name(self, value):
-        self._attribute_name = value
-        self.recompute_representations()
-
-    def get_lower_bound(self):
+    @property
+    def lower_bound(self):
         return self._lower_bound
 
-    def set_lower_bound(self, value):
-        self._lower_bound = value
-        self.recompute_representations()
-
-    def get_upper_bound(self):
+    @property
+    def upper_bound(self):
         return self._upper_bound
-
-    def set_upper_bound(self, value):
-        self._upper_bound = value
-        self.recompute_representations()
-
-    attribute_name = property(get_attribute_name, set_attribute_name)
-    lower_bound = property(get_lower_bound, set_lower_bound)
-    upper_bound = property(get_upper_bound, set_upper_bound)
 
     def covers(self, data_instance):
         val = data_instance[self.attribute_name].to_numpy()
@@ -207,41 +203,48 @@ class NumericSelector(SelectorBase):
         return self._query
 
     def __hash__(self):
-        return repr(self).__hash__()
+        return self._hash
 
     def __str__(self):
         return self._string
 
-    def recompute_representations(self):
-        if self.selector_name is None:
-            self._string = self.get_string(rounding_digits=2)
+    @classmethod
+    def compute_descriptions(cls,attribute_name, lower_bound, upper_bound, selector_name=None):
+        if selector_name is None:
+            _string = cls.compute_string(attribute_name, lower_bound, upper_bound,rounding_digits=2)
         else:
-            self._string = self.selector_name
-        self._query = self.get_string(rounding_digits=None)
+            _string = selector_name
+        _query = cls.compute_string(attribute_name, lower_bound, upper_bound,rounding_digits=None)
+        _hash=_query.__hash__()
+        return (_hash,_query,_string)
 
-    def get_string(self, open_brackets="", closing_brackets="", rounding_digits=2):
+
+
+    def set_descriptions(self,attribute_name, lower_bound, upper_bound, selector_name=None):
+        self._hash, self._query, self._string = NumericSelector.compute_descriptions(attribute_name, lower_bound, upper_bound, selector_name=selector_name)
+
+    @classmethod
+    def compute_string(cls,attribute_name, lower_bound, upper_bound,rounding_digits):
         if rounding_digits is None:
             formatter = "{}"
         else:
             formatter = "{0:." + str(rounding_digits) + "f}"
-        ub = self.upper_bound
-        lb = self.lower_bound
+        ub = upper_bound
+        lb = lower_bound
         if ub % 1:
             ub = formatter.format(ub)
         if lb % 1:
             lb = formatter.format(lb)
 
-        if self.selector_name is not None:
-            repre = self.selector_name
-        elif self.lower_bound == float("-inf") and self.upper_bound == float("inf"):
-            repre = self.attribute_name + "= anything"
-        elif self.lower_bound == float("-inf"):
-            repre = self.attribute_name + "<" + str(ub)
-        elif self.upper_bound == float("inf"):
-            repre = self.attribute_name + ">=" + str(lb)
+        if lower_bound == float("-inf") and upper_bound == float("inf"):
+            repre = attribute_name + "= anything"
+        elif lower_bound == float("-inf"):
+            repre = attribute_name + "<" + str(ub)
+        elif upper_bound == float("inf"):
+            repre = attribute_name + ">=" + str(lb)
         else:
-            repre = self.attribute_name + ": [" + str(lb) + ":" + str(ub) + "["
-        return open_brackets + repre + closing_brackets
+            repre = attribute_name + ": [" + str(lb) + ":" + str(ub) + "["
+        return  repre
 
 
 @total_ordering
