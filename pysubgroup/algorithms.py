@@ -56,21 +56,17 @@ class Apriori:
                     optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
 
                 if optimistic_estimate >= ps.minimum_required_quality(result, task):
-                    promising_candidates.append(tuple(sg.subgroup_description.selectors))
+                    promising_candidates.append(list(sg.subgroup_description.selectors))
 
             if depth == task.depth:
                 break
-
+            print(len(promising_candidates))
+            set_promising_candidates=set(frozenset(p) for p in promising_candidates)
             # generate candidates next level
-            next_level_candidates = []
-            for sg1, sg2 in combinations(promising_candidates,2):
-                    if sg1[:-1] == sg2[:-1]:
-                        selectors = list(sg1) + [sg2[-1]]
-                        
-                        # check if ALL generalizations are contained in promising_candidates
-                        generalization_descriptions = combinations(selectors, len(selectors)-1)
-                        if all( g in promising_candidates for g in generalization_descriptions):
-                            next_level_candidates.append(ps.Subgroup(task.target, selectors))
+            
+            next_level_candidates_no_pruning=(sg1+[sg2[-1]] for sg1, sg2 in combinations(promising_candidates,2) if sg1[:-1] == sg2[:-1])
+            next_level_candidates = [ps.Subgroup(task.target, selectors) for selectors in next_level_candidates_no_pruning  
+                                     if all( (frozenset(g) in set_promising_candidates) for g in combinations(selectors, depth))]           
             depth = depth + 1
 
         result.sort(key=lambda x: x[0], reverse=True)
