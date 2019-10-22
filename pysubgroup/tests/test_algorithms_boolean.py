@@ -19,14 +19,14 @@ class BooleanTargetBase(TestAlgorithmsBase):
     def test_BeamSearch(self):
         self.runAlgorithm(ps.BeamSearch(beam_width=12), "BeamSearch", self.result, self.qualities, self.task)
 
-    def test_BSD(self):
-        self.runAlgorithm(ps.BSD(), "BSD", self.result, self.qualities, self.task)
+    def test_BFS_bitset(self):
+        self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "BFS bitset", self.result, self.qualities, self.task)
 
-    def test_TID_SD_True(self):
-        self.runAlgorithm(ps.TID_SD(True), "TID_SD True", self.result, self.qualities, self.task)
+    def test_BFS_set(self):
+        self.runAlgorithm(ps.DFS(ps.SetRepresentation), "BFS set", self.result, self.qualities, self.task)
 
-    def test_TID_SD_False(self):
-        self.runAlgorithm(ps.TID_SD(False), "TID_SD False", self.result, self.qualities, self.task)
+    def test_BFS_numpy_sets(self):
+        self.runAlgorithm(ps.DFS(ps.NumpySetRepresentation), "BFS numpyset", self.result, self.qualities, self.task)
 
 
 class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
@@ -63,7 +63,7 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0))
 
 # also includes numeric attributes and has 12 targets
-class TestAlgorithms2(BooleanTargetBase, unittest.TestCase):
+class TestAlgorithms2(BooleanTargetBase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
         NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")
