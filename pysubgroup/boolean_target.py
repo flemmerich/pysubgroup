@@ -215,6 +215,10 @@ class StandardQF(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMea
     def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, _, positives_subgroup):
         return StandardQF.standard_qf(self.a, instances_dataset, positives_dataset, positives_subgroup, positives_subgroup)
 
+    def optimistic_generalisation_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+        pos_remaining=positives_dataset - positives_subgroup
+        return StandardQF.standard_qf(self.a, instances_dataset, positives_dataset, instances_subgroup + pos_remaining, positives_subgroup + pos_remaining)
+
     def supports_weights(self):
         return True
 

@@ -112,6 +112,70 @@ class BestFirstSearch:
         return result
 
 
+class GeneralisingBFS:
+
+    def execute(self, task):
+        self.alpha=1.10
+        self.discarded=[0,0,0,0,0,0,0]
+        self.refined=[0,0,0,0,0,0,0]
+        result = []
+        queue = []
+        operator=ps.StaticGeneralizationOperator(task.search_space)
+        measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
+        qf_is_bounded = isinstance(task.qf, ps.BoundedInterestingnessMeasure)
+        # init the first level
+        for sel in task.search_space:
+            queue.append((float("-inf"), ps.Disjunction([sel])))
+
+        while queue:
+            q, candidate_description = heappop(queue)
+            q = -q
+            if q < ps.minimum_required_quality(result, task):
+                break
+
+            sg = ps.Subgroup(task.target, candidate_description)
+
+            #if measure_statistics_based:
+            statistics = sg.get_base_statistics(task.data)
+            quality=task.qf.evaluate_from_statistics(*statistics)
+            ps.add_if_required(result, sg, quality, task)
+
+            
+            qual=ps.minimum_required_quality(result, task)
+
+            
+            if (quality, sg) in result:
+                print(qual)
+                #print(queue)
+                new_queue=[]
+                for q_tmp, c_tmp in queue:
+                    if (-q_tmp) > qual:
+                        heappush(new_queue,(q_tmp,c_tmp))
+                queue=new_queue
+                #print(queue)
+            optimistic_estimate = task.qf.optimistic_generalisation_from_statistics(*statistics)# if qf_is_bounded else float("inf")
+            #else:
+            #    ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)
+            #    optimistic_estimate = task.qf.optimistic_generalisation_from_dataset(task.data, sg) if qf_is_bounded else float("inf")
+
+            # compute refinements and fill the queue
+            if len(candidate_description) < task.depth and (optimistic_estimate / self.alpha ** (len(candidate_description)+1)) >= ps.minimum_required_quality(result, task):
+                #print(qual)
+                #print(optimistic_estimate)
+                self.refined[len(candidate_description)]+=1
+                #print(str(candidate_description))
+                for new_description in operator.refinements(candidate_description):
+                    heappush(queue, (-optimistic_estimate, new_description))
+            else:
+                self.discarded[len(candidate_description)]+=1
+        
+        result.sort(key=lambda x: x[0], reverse=True)
+        for qual,sg in result:
+            print("{} {}".format(qual,sg.subgroup_description))
+        print("discarded "+str(self.discarded))
+        return result
+
+
 class BeamSearch:
     '''
     Implements the BeamSearch algorithm. Its a basic implementation without any optimization, i.e., refinements get tested multiple times.

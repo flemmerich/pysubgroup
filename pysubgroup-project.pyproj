@@ -40,6 +40,9 @@
     <Compile Include="pysubgroup\tests\test_boolean_expressions.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="pysubgroup\tests\test_generalisations.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pysubgroup\tests\test_subgroup.py" />
     <Compile Include="pysubgroup\tests\test_tid.py" />
     <Compile Include="pysubgroup\tests\t_combined_im.py" />
