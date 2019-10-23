@@ -9,10 +9,10 @@
 # 299447.332:     foreign_worker=='b'yes'' and job=='b'high qualif/self emp/mgmt''
 # 297422.98200000013:     foreign_worker=='b'yes'' and other_parties=='b'none'' and own_telephone=='b'yes'' and personal_status=='b'male single''
 
-
+import unittest
 import pysubgroup as ps
 
-import unittest
+
 
 from pysubgroup.tests.DataSets import get_credit_data
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
