@@ -9,8 +9,6 @@ import numpy as np
 import pysubgroup as ps
 
 
-
-
 class QualityFunction(ABC):
     def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None, cache=None):
         pass

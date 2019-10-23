@@ -4,14 +4,11 @@ from pysubgroup import SelectorBase
 import numpy as np
 
 
-
-
-
 @total_ordering
 class Conjunction:
     def __init__(self, selectors):
         try:
-            it=iter(selectors)
+            it = iter(selectors)
             self._selectors = list(it)
         except TypeError:
             self._selectors = [selectors]
@@ -58,7 +55,7 @@ class Conjunction:
 
     def append_or(self, selector):
         raise RuntimeError("Or operations are not supported by a pure Conjunction. Consider using DNF.")
-    
+
     def pop_and(self):
         return self._selectors.pop()
 
@@ -118,47 +115,43 @@ class Disjunction:
 class DNF(Disjunction):
     def __init__(self, selectors=None):
         if selectors is None:
-            selectors=[]
+            selectors = []
         super().__init__([])
         self.append_or(selectors)
 
-
-    @staticmethod            
+    @staticmethod
     def _ensure_pure_conjunction(to_append):
         if isinstance(to_append, Conjunction):
             return to_append
         elif isinstance(to_append, SelectorBase):
             return Conjunction(to_append)
         else:
-            it=iter(to_append)
+            it = iter(to_append)
             if all(isinstance(sel, SelectorBase) for sel in to_append):
                 return Conjunction(it)
             else:
                 raise ValueError("DNFs only accept an iterable of pure Selectors")
 
-
-    def append_or(self,to_append):
+    def append_or(self, to_append):
         try:
-            it=iter(to_append)
-            conjunctions=[DNF._ensure_pure_conjunction(part) for part in it]
+            it = iter(to_append)
+            conjunctions = [DNF._ensure_pure_conjunction(part) for part in it]
         except TypeError:
-            conjunctions=DNF._ensure_pure_conjunction(to_append)
+            conjunctions = DNF._ensure_pure_conjunction(to_append)
         super().append_or(conjunctions)
 
-
-    def append_and(self,to_append):
-        conj=DNF._ensure_pure_conjunction(to_append)
+    def append_and(self, to_append):
+        conj = DNF._ensure_pure_conjunction(to_append)
         if len(self._selectors) > 0:
             for conjunction in self._selectors:
                 conjunction.append_and(conj)
         else:
             self._selectors.append(conj)
 
-
     def pop_and(self):
-        out_list=[s.pop_and() for s in self._selectors]
-        return_val=out_list[0]
-        if all(x==return_val for x in out_list):
+        out_list = [s.pop_and() for s in self._selectors]
+        return_val = out_list[0]
+        if all(x == return_val for x in out_list):
             return return_val
         else:
             raise RuntimeError("pop_and failed as the result was inconsistent")

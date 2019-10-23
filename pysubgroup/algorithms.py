@@ -60,12 +60,12 @@ class Apriori:
             if depth == task.depth:
                 break
             print(len(promising_candidates))
-            set_promising_candidates=set(frozenset(p) for p in promising_candidates)
+            set_promising_candidates = set(frozenset(p) for p in promising_candidates)
             # generate candidates next level
-            
-            next_level_candidates_no_pruning=(sg1+[sg2[-1]] for sg1, sg2 in combinations(promising_candidates,2) if sg1[:-1] == sg2[:-1])
-            next_level_candidates = [ps.Subgroup(task.target, selectors) for selectors in next_level_candidates_no_pruning  
-                                     if all( (frozenset(g) in set_promising_candidates) for g in combinations(selectors, depth))]           
+
+            next_level_candidates_no_pruning = (sg1 + [sg2[-1]] for sg1, sg2 in combinations(promising_candidates, 2) if sg1[:-1] == sg2[:-1])
+            next_level_candidates = [ps.Subgroup(task.target, selectors) for selectors in next_level_candidates_no_pruning
+                                     if all((frozenset(g) in set_promising_candidates) for g in combinations(selectors, depth))]
             depth = depth + 1
 
         result.sort(key=lambda x: x[0], reverse=True)
@@ -76,7 +76,7 @@ class BestFirstSearch:
     def execute(self, task):
         result = []
         queue = []
-        operator=ps.StaticSpecializationOperator(task.search_space)
+        operator = ps.StaticSpecializationOperator(task.search_space)
         measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
         qf_is_bounded = isinstance(task.qf, ps.BoundedInterestingnessMeasure)
         # init the first level
@@ -109,14 +109,14 @@ class BestFirstSearch:
 
 class GeneralisingBFS:
     def __init__(self):
-        self.alpha=1.10
-        self.discarded=[0,0,0,0,0,0,0]
-        self.refined=[0,0,0,0,0,0,0]
+        self.alpha = 1.10
+        self.discarded = [0, 0, 0, 0, 0, 0, 0]
+        self.refined = [0, 0, 0, 0, 0, 0, 0]
 
     def execute(self, task):
         result = []
         queue = []
-        operator=ps.StaticGeneralizationOperator(task.search_space)
+        operator = ps.StaticGeneralizationOperator(task.search_space)
         # init the first level
         for sel in task.search_space:
             queue.append((float("-inf"), ps.Disjunction([sel])))
@@ -129,44 +129,42 @@ class GeneralisingBFS:
 
             sg = ps.Subgroup(task.target, candidate_description)
 
-            #if measure_statistics_based:
+            # if measure_statistics_based:
             statistics = sg.get_base_statistics(task.data)
-            quality=task.qf.evaluate_from_statistics(*statistics)
+            quality = task.qf.evaluate_from_statistics(*statistics)
             ps.add_if_required(result, sg, quality, task)
 
-            
-            qual=ps.minimum_required_quality(result, task)
+            qual = ps.minimum_required_quality(result, task)
 
-            
             if (quality, sg) in result:
                 print(qual)
-                #print(queue)
-                new_queue=[]
+                # print(queue)
+                new_queue = []
                 for q_tmp, c_tmp in queue:
                     if (-q_tmp) > qual:
-                        heappush(new_queue,(q_tmp,c_tmp))
-                queue=new_queue
-                #print(queue)
-            optimistic_estimate = task.qf.optimistic_generalisation_from_statistics(*statistics)# if qf_is_bounded else float("inf")
-            #else:
+                        heappush(new_queue, (q_tmp, c_tmp))
+                queue = new_queue
+                # print(queue)
+            optimistic_estimate = task.qf.optimistic_generalisation_from_statistics(*statistics)  # if qf_is_bounded else float("inf")
+            # else:
             #    ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)
             #    optimistic_estimate = task.qf.optimistic_generalisation_from_dataset(task.data, sg) if qf_is_bounded else float("inf")
 
             # compute refinements and fill the queue
-            if len(candidate_description) < task.depth and (optimistic_estimate / self.alpha ** (len(candidate_description)+1)) >= ps.minimum_required_quality(result, task):
-                #print(qual)
-                #print(optimistic_estimate)
-                self.refined[len(candidate_description)]+=1
-                #print(str(candidate_description))
+            if len(candidate_description) < task.depth and (optimistic_estimate / self.alpha ** (len(candidate_description) + 1)) >= ps.minimum_required_quality(result, task):
+                # print(qual)
+                # print(optimistic_estimate)
+                self.refined[len(candidate_description)] += 1
+                # print(str(candidate_description))
                 for new_description in operator.refinements(candidate_description):
                     heappush(queue, (-optimistic_estimate, new_description))
             else:
-                self.discarded[len(candidate_description)]+=1
-        
+                self.discarded[len(candidate_description)] += 1
+
         result.sort(key=lambda x: x[0], reverse=True)
-        for qual,sg in result:
-            print("{} {}".format(qual,sg.subgroup_description))
-        print("discarded "+str(self.discarded))
+        for qual, sg in result:
+            print("{} {}".format(qual, sg.subgroup_description))
+        print("discarded " + str(self.discarded))
         return result
 
 
@@ -196,8 +194,8 @@ class BeamSearch:
         while beam != last_beam and depth < task.depth:
             last_beam = beam.copy()
             for (_, last_sg) in last_beam:
-                if getattr(last_sg,'visited',False) == False:
-                    setattr(last_sg,'visited',True)
+                if getattr(last_sg, 'visited', False) == False:
+                    setattr(last_sg, 'visited', True)
                     for sel in task.search_space:
                         # create a clone
                         new_selectors = list(last_sg.subgroup_description.selectors)
@@ -253,7 +251,7 @@ class DFS:
         self.pop_positives = 0
         self.pop_size = 0
         self.target_bitset = None
-        self.structure=structure
+        self.structure = structure
 
     def execute(self, task):
         self.pop_size = len(task.data)
@@ -262,7 +260,7 @@ class DFS:
         with self.structure(task.data):
             result = self.search_internal(task, task.search_space, [], ps.SubgroupDescription([]))
         result.sort(key=lambda x: x[0], reverse=True)
-        result=[(quality,ps.Subgroup(task,ps.SubgroupDescription(sG.selectors))) for quality, sG in result]
+        result = [(quality, ps.Subgroup(task, ps.SubgroupDescription(sG.selectors))) for quality, sG in result]
         return result
 
     def search_internal(self, task, modification_set, result, sg):
@@ -280,7 +278,7 @@ class DFS:
         if len(sg) < task.depth:
             new_modification_set = copy.copy(modification_set)
             for sel in modification_set:
-                new_sg=copy.copy(sg)
+                new_sg = copy.copy(sg)
                 new_sg.append_and(sel)
                 new_modification_set.pop(0)
                 self.search_internal(task, new_modification_set, result, new_sg)

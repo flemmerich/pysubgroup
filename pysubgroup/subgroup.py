@@ -10,20 +10,20 @@ import pandas as pd
 import pysubgroup as ps
 import weakref
 
+
 @total_ordering
 class SelectorBase:
     __refs__ = weakref.WeakSet()
-    def __new__(cls,*args,**kwargs):
+    def __new__(cls, *args, **kwargs):
 
         tmp = super().__new__(cls)
 
-        tmp.set_descriptions(*args,**kwargs)
+        tmp.set_descriptions(*args, **kwargs)
         if tmp in SelectorBase.__refs__:
             for ref in SelectorBase. __refs__:
                 if ref == tmp:
                     return ref
         return tmp
-
 
     def __init__(self):
         SelectorBase.__refs__.add(self)
@@ -86,16 +86,16 @@ class SubgroupDescription:
         return hash(frozenset(self.selectors))
 
     def __copy__(self):
-        cls=self.__class__
-        result=cls.__new__(cls)
+        cls = self.__class__
+        result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
-        result.selectors=copy(self.selectors)
+        result.selectors = copy(self.selectors)
         return result
 
 
 class NominalSelector(SelectorBase):
     def __new__(cls, attribute_name, attribute_value, selector_name=None):
-        return super().__new__(cls,attribute_name, attribute_value, selector_name=selector_name)
+        return super().__new__(cls, attribute_name, attribute_value, selector_name=selector_name)
 
     def __init__(self, attribute_name, attribute_value, selector_name=None):
         if attribute_name is None:
@@ -116,11 +116,11 @@ class NominalSelector(SelectorBase):
     def attribute_value(self):
         return self._attribute_value
 
-    def set_descriptions(self,attribute_name, attribute_value, selector_name=None):
+    def set_descriptions(self, attribute_name, attribute_value, selector_name=None):
         self._hash, self._query, self._string = NominalSelector.compute_descriptions(attribute_name, attribute_value, selector_name=selector_name)
 
     @classmethod
-    def compute_descriptions(cls,attribute_name, attribute_value, selector_name):
+    def compute_descriptions(cls, attribute_name, attribute_value, selector_name):
         if isinstance(attribute_value, (str, bytes)):
             query = str(attribute_name) + "==" + "'" + str(attribute_value) + "'"
         elif np.isnan(attribute_value):
@@ -132,7 +132,7 @@ class NominalSelector(SelectorBase):
         else:
             string_ = query
         hash_value = hash(query)
-        return (hash_value,query,string_)
+        return (hash_value, query, string_)
 
     def __repr__(self):
         return self._query
@@ -148,7 +148,6 @@ class NominalSelector(SelectorBase):
 
     def __hash__(self):
         return self._hash
-
 
 
 class NegatedSelector(SelectorBase):
@@ -180,7 +179,7 @@ class NumericSelector(SelectorBase):
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
         self.selector_name = selector_name
-        self.set_descriptions(attribute_name, lower_bound, upper_bound,selector_name)
+        self.set_descriptions(attribute_name, lower_bound, upper_bound, selector_name)
         super().__init__()
 
     @property
@@ -209,22 +208,20 @@ class NumericSelector(SelectorBase):
         return self._string
 
     @classmethod
-    def compute_descriptions(cls,attribute_name, lower_bound, upper_bound, selector_name=None):
+    def compute_descriptions(cls, attribute_name, lower_bound, upper_bound, selector_name=None):
         if selector_name is None:
-            _string = cls.compute_string(attribute_name, lower_bound, upper_bound,rounding_digits=2)
+            _string = cls.compute_string(attribute_name, lower_bound, upper_bound, rounding_digits=2)
         else:
             _string = selector_name
-        _query = cls.compute_string(attribute_name, lower_bound, upper_bound,rounding_digits=None)
-        _hash=_query.__hash__()
-        return (_hash,_query,_string)
+        _query = cls.compute_string(attribute_name, lower_bound, upper_bound, rounding_digits=None)
+        _hash = _query.__hash__()
+        return (_hash, _query, _string)
 
-
-
-    def set_descriptions(self,attribute_name, lower_bound, upper_bound, selector_name=None):
+    def set_descriptions(self, attribute_name, lower_bound, upper_bound, selector_name=None):
         self._hash, self._query, self._string = NumericSelector.compute_descriptions(attribute_name, lower_bound, upper_bound, selector_name=selector_name)
 
     @classmethod
-    def compute_string(cls,attribute_name, lower_bound, upper_bound,rounding_digits):
+    def compute_string(cls, attribute_name, lower_bound, upper_bound, rounding_digits):
         if rounding_digits is None:
             formatter = "{}"
         else:
@@ -244,7 +241,7 @@ class NumericSelector(SelectorBase):
             repre = attribute_name + ">=" + str(lb)
         else:
             repre = attribute_name + ": [" + str(lb) + ":" + str(ub) + "["
-        return  repre
+        return repre
 
 
 @total_ordering
