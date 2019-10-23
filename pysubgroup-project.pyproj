@@ -48,9 +48,6 @@
     </Compile>
     <Compile Include="pysubgroup\tests\test_subgroup.py" />
     <Compile Include="pysubgroup\tests\test_ChiSquaredQF.py" />
-    <Compile Include="pysubgroup\tests\tmp.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="pysubgroup\tests\t_combined_im.py" />
     <Compile Include="pysubgroup\tests\t_fi.py" />
     <Compile Include="pysubgroup\tests\t_numeric_targets.py" />
