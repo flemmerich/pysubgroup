@@ -47,7 +47,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="pysubgroup\tests\test_subgroup.py" />
-    <Compile Include="pysubgroup\tests\test_tid.py" />
+    <Compile Include="pysubgroup\tests\test_ChiSquaredQF.py" />
     <Compile Include="pysubgroup\tests\tmp.py">
       <SubType>Code</SubType>
     </Compile>
@@ -57,7 +57,7 @@
     <Compile Include="pysubgroup\tests\t_numeric_targets2.py" />
     <Compile Include="pysubgroup\tests\t_simple_dfs.py" />
     <Compile Include="pysubgroup\tests\t_titanic.py" />
-    <Compile Include="pysubgroup\tests\t_visualization.py" />
+    <Compile Include="pysubgroup\tests\test_visualization.py" />
     <Compile Include="pysubgroup\tests\__init__.py" />
     <Compile Include="pysubgroup\utils.py" />
     <Compile Include="pysubgroup\visualization.py" />
