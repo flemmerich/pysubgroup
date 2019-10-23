@@ -1,11 +1,28 @@
+from abc import ABC
 from functools import total_ordering
-
+import copy
 from pysubgroup import SelectorBase
 import numpy as np
 
+class BooleanExpressionBase(ABC):
+    def __or__(self,other):
+        tmp = copy.copy(self)
+        tmp.append_or(other)
+        return tmp
+
+    def __and__(self,other):
+        tmp = copy.copy(self)
+        tmp.append_and(other)
+        return tmp
+
+    def append_and(self):
+        pass
+
+    def append_or(self):
+        pass
 
 @total_ordering
-class Conjunction:
+class Conjunction(BooleanExpressionBase):
     def __init__(self, selectors):
         try:
             it = iter(selectors)
@@ -66,12 +83,12 @@ class Conjunction:
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
-        result._selectors = copy(self._selectors)
+        result._selectors = copy.copy(self._selectors)
         return result
 
 
 @total_ordering
-class Disjunction:
+class Disjunction(BooleanExpressionBase):
     def __init__(self, selectors):
         if isinstance(selectors, (list, tuple)):
             self._selectors = selectors
@@ -81,7 +98,7 @@ class Disjunction:
     def covers(self, instance):
         # empty description ==> return a list of all '1's
         if not self._selectors:
-            return np.full(len(instance), True, dtype=bool)
+            return np.full(len(instance), False, dtype=bool)
         # non-empty description
         return np.any([sel.covers(instance) for sel in self._selectors], axis=0)
 
@@ -122,9 +139,8 @@ class Disjunction:
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
-        result._selectors = copy(self._selectors)
+        result._selectors = copy.copy(self._selectors)
         return result
-
 
 class DNF(Disjunction):
     def __init__(self, selectors=None):

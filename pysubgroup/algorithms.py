@@ -38,7 +38,7 @@ class Apriori:
         # init the first level
         next_level_candidates = []
         for sel in task.search_space:
-            next_level_candidates.append(ps.Subgroup(task.target, [sel]))
+            next_level_candidates.append(ps.Subgroup(task.target, ps.Conjunction([sel])))
 
         # level-wise search
         depth = 1
@@ -55,7 +55,7 @@ class Apriori:
                     optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg) if isinstance(task.qf, ps.BoundedInterestingnessMeasure) else float("inf")
 
                 if optimistic_estimate >= ps.minimum_required_quality(result, task):
-                    promising_candidates.append(list(sg.subgroup_description.selectors))
+                    promising_candidates.append(list(sg.subgroup_description._selectors))
 
             if depth == task.depth:
                 break
@@ -64,7 +64,7 @@ class Apriori:
             # generate candidates next level
 
             next_level_candidates_no_pruning = (sg1 + [sg2[-1]] for sg1, sg2 in combinations(promising_candidates, 2) if sg1[:-1] == sg2[:-1])
-            next_level_candidates = [ps.Subgroup(task.target, selectors) for selectors in next_level_candidates_no_pruning
+            next_level_candidates = [ps.Subgroup(task.target, ps.Conjunction(selectors)) for selectors in next_level_candidates_no_pruning
                                      if all((frozenset(g) in set_promising_candidates) for g in combinations(selectors, depth))]
             depth = depth + 1
 
@@ -187,7 +187,7 @@ class BeamSearch:
             raise RuntimeError('Beam width in the beam search algorithm is smaller than the result set size!')
 
         # init
-        beam = [(0, ps.Subgroup(task.target, []))]
+        beam = [(0, ps.Subgroup(task.target, ps.Conjunction([])))]
         last_beam = None
 
         depth = 0
@@ -198,10 +198,10 @@ class BeamSearch:
                     setattr(last_sg, 'visited', True)
                     for sel in task.search_space:
                         # create a clone
-                        new_selectors = list(last_sg.subgroup_description.selectors)
+                        new_selectors = list(last_sg.subgroup_description._selectors)
                         if sel not in new_selectors:
                             new_selectors.append(sel)
-                            sg = ps.Subgroup(task.target, new_selectors)
+                            sg = ps.Subgroup(task.target, ps.Conjunction(new_selectors))
                             quality = task.qf.evaluate_from_dataset(task.data, sg)
                             ps.add_if_required(beam, sg, quality, task, check_for_duplicates=True)
             depth += 1
@@ -260,7 +260,7 @@ class DFS:
         with self.structure(task.data):
             result = self.search_internal(task, task.search_space, [], ps.Conjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
-        result = [(quality, ps.Subgroup(task, ps.Conjunction(sG.selectors))) for quality, sG in result]
+        result = [(quality, ps.Subgroup(task, sG)) for quality, sG in result]
         return result
 
     def search_internal(self, task, modification_set, result, sg):
@@ -328,7 +328,7 @@ class DFSNumeric():
         if optimistic_estimate <= ps.minimum_required_quality(result, task):
             return result
 
-        sg = ps.Subgroup(task.target, copy.copy(prefix))
+        sg = ps.Subgroup(task.target, ps.Conjunction(copy.copy(prefix)))
 
         quality = qualities[-1]
         ps.add_if_required(result, sg, quality, task)

@@ -9,7 +9,8 @@ import scipy.stats
 
 import pysubgroup as ps
 
-from .subgroup import Conjunction, Subgroup, NominalSelector
+from .subgroup import Subgroup, NominalSelector
+from .boolean_expressions import Conjunction
 
 
 @total_ordering

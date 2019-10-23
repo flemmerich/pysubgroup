@@ -20,10 +20,10 @@ class BitSet_Conjunction(ps.Conjunction):
 
     def compute_representation(self):
                 # empty description ==> return a list of all '1's
-        if not self.selectors:
+        if not self._selectors:
             return np.full(BitSet_Conjunction.n_instances, True, dtype=bool)
         # non-empty description
-        return np.all([sel.representation for sel in self.selectors], axis=0)
+        return np.all([sel.representation for sel in self._selectors], axis=0)
 
     @property
     def size(self):
@@ -35,7 +35,7 @@ class BitSet_Conjunction(ps.Conjunction):
         return tmp
 
     def append_and(self, to_append):
-        self.selectors.append(to_append)
+        super().append_and(to_append)
         self.representation = np.logical_and(self.representation, to_append.representation)
 
     @property
@@ -73,10 +73,10 @@ class Set_Conjunction(ps.Conjunction):
 
     def compute_representation(self):
                 # empty description ==> return a list of all '1's
-        if not self.selectors:
+        if not self._selectors:
             return Set_Conjunction.all_set
         # non-empty description
-        return set.intersection(sel.representation for sel in self.selectors)
+        return set.intersection(sel.representation for sel in self_.selectors)
 
     @property
     def size(self):
@@ -88,7 +88,7 @@ class Set_Conjunction(ps.Conjunction):
         return tmp
 
     def append_and(self, selector):
-        self.selectors.append(selector)
+        super().append_and(selector)
         self.representation = self.representation.intersection(selector.representation)
 
     @property
@@ -131,10 +131,10 @@ class NumpySet_Conjunction(ps.Conjunction):
 
     def compute_representation(self):
                 # empty description ==> return a list of all '1's
-        if not self.selectors:
+        if not self._selectors:
             return NumpySet_Conjunction.all_set
-        start = self.selectors[0]
-        for sel in self.selectors[1:]:
+        start = self._selectors[0]
+        for sel in self._selectors[1:]:
             start = np.intersect1d(start, sel.representation, True)
         return start
 
@@ -148,7 +148,7 @@ class NumpySet_Conjunction(ps.Conjunction):
         return tmp
 
     def append_and(self, selectors):
-        self.selectors.append(selectors)
+        self._selectors.append(selectors)
         self.representation = np.intersect1d(self.representation, selectors.representation, True)
 
     @property

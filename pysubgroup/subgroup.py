@@ -203,7 +203,7 @@ class Subgroup():
 
         # If its already a SubgroupDescription object, we are fine, otherwise we create a new one
         self.target = target
-
+        self.subgroup_description=subgroup_description
 
         # initialize empty cache for statistics
         self.statistics = {}
