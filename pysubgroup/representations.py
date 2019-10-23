@@ -10,9 +10,6 @@ class RepresentationBase():
     def patch_selector(self,sel):
         raise NotImplementedError
 
-    def patch_selector_undo(self,sel):
-        raise NotImplementedError
-
 
 class BitSet_SubgroupDescription(ps.SubgroupDescription):
     n_instances=0
@@ -34,9 +31,9 @@ class BitSet_SubgroupDescription(ps.SubgroupDescription):
         tmp=super().__copy__()
         tmp.representation=self.representation.copy()
         return tmp
-    def append_and(self,input):
-        self.selectors.append(input)
-        self.representation=np.logical_and(self.representation, input.representation)
+    def append_and(self,to_append):
+        self.selectors.append(to_append)
+        self.representation=np.logical_and(self.representation, to_append.representation)
     @property
     def __array_interface__(self):
         return self.representation.__array_interface__
@@ -47,7 +44,7 @@ class BitSet_SubgroupDescription(ps.SubgroupDescription):
 class BitSetRepresentation(RepresentationBase):
     def __init__(self,df):
         self.df=df
-
+        self.SD=None
 
     def patch_selector(self,sel):
         sel.representation=sel.covers(self.df)
@@ -86,9 +83,9 @@ class Set_SubgroupDescription(ps.SubgroupDescription):
         tmp=super().__copy__()
         tmp.representation=self.representation.copy()
         return tmp
-    def append_and(self,input):
-        self.selectors.append(input)
-        self.representation=self.representation.intersection( input.representation)
+    def append_and(self,selector):
+        self.selectors.append(selector)
+        self.representation=self.representation.intersection( selector.representation)
     @property
     def __array_interface__(self):
         #print("AAAA")
@@ -102,7 +99,7 @@ class Set_SubgroupDescription(ps.SubgroupDescription):
 class SetRepresentation(RepresentationBase):
     def __init__(self,df):
         self.df=df
-
+        self.SD=None
 
     def patch_selector(self,sel):
         sel.representation=set(*np.nonzero(sel.covers(self.df)))
@@ -143,9 +140,9 @@ class NumpySet_SubgroupDescription(ps.SubgroupDescription):
         tmp=super().__copy__()
         tmp.representation=self.representation.copy()
         return tmp
-    def append_and(self,input):
-        self.selectors.append(input)
-        self.representation=np.intersect1d(self.representation, input.representation,True)
+    def append_and(self,selectors):
+        self.selectors.append(selectors)
+        self.representation=np.intersect1d(self.representation, selectors.representation,True)
     @property
     def __array_interface__(self):
         return self.representation.__array_interface__
@@ -154,7 +151,7 @@ class NumpySet_SubgroupDescription(ps.SubgroupDescription):
 class NumpySetRepresentation(RepresentationBase):
     def __init__(self,df):
         self.df=df
-
+        self.SD=None
 
     def patch_selector(self,sel):
         sel.representation=np.nonzero(sel.covers(self.df))

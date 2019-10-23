@@ -1,6 +1,4 @@
 from timeit import default_timer as timer
-from scipy.io import arff
-import pandas as pd
 import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_credit_data
 

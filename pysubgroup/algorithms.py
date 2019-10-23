@@ -7,7 +7,6 @@ import copy
 import functools
 from itertools import combinations
 from heapq import heappush, heappop
-from itertools import islice
 
 import numpy as np
 import pysubgroup as ps
@@ -109,16 +108,15 @@ class BestFirstSearch:
 
 
 class GeneralisingBFS:
-
-    def execute(self, task):
+    def __init__(self):
         self.alpha=1.10
         self.discarded=[0,0,0,0,0,0,0]
         self.refined=[0,0,0,0,0,0,0]
+
+    def execute(self, task):
         result = []
         queue = []
         operator=ps.StaticGeneralizationOperator(task.search_space)
-        measure_statistics_based = hasattr(task.qf, 'optimistic_estimate_from_statistics')
-        qf_is_bounded = isinstance(task.qf, ps.BoundedInterestingnessMeasure)
         # init the first level
         for sel in task.search_space:
             queue.append((float("-inf"), ps.Disjunction([sel])))

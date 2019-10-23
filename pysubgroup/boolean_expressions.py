@@ -10,9 +10,10 @@ import numpy as np
 @total_ordering
 class Conjunction:
     def __init__(self, selectors):
-        if isinstance(selectors, (list, tuple)):
-            self._selectors = selectors
-        else:
+        try:
+            it=iter(selectors)
+            self._selectors = list(it)
+        except TypeError:
             self._selectors = [selectors]
 
     def covers(self, instance):
@@ -47,10 +48,13 @@ class Conjunction:
         return hash(repr(self))
 
     def append_and(self, selector):
-        try:
-            self._selectors.extend(selector)
-        except TypeError:
-            self._selectors.append(selector)
+        if isinstance(selector, Conjunction):
+            self._selectors.extend(selector._selectors)
+        else:
+            try:
+                self._selectors.extend(selector)
+            except TypeError:
+                self._selectors.append(selector)
 
     def append_or(self, selector):
         raise RuntimeError("Or operations are not supported by a pure Conjunction. Consider using DNF.")
@@ -101,53 +105,54 @@ class Disjunction:
     def __hash__(self):
         return hash(repr(self))
 
-    def append_and(self, selector):
+    def append_and(self, to_append):
         raise RuntimeError("And operations are not supported by a pure Conjunction. Consider using DNF.")
 
-    def append_or(self, selector):
+    def append_or(self, to_append):
         try:
-            self._selectors.extend(selector)
+            self._selectors.extend(to_append)
         except TypeError:
-            self._selectors.append(selector)
+            self._selectors.append(to_append)
 
 
 class DNF(Disjunction):
-    def __init__(self, input=None):
-        if input is None:
-            input=[]
+    def __init__(self, selectors=None):
+        if selectors is None:
+            selectors=[]
         super().__init__([])
-        self.append_or(input)
+        self.append_or(selectors)
 
-    def append_or(self,input):
-        try:
-            conjunctions = [Conjunction(sel) if isinstance(sel,SelectorBase) else sel for sel in input]
-        except TypeError:
-            if isinstance(input, SelectorBase):
-                conjunctions = [Conjunction(input)]
-            else:
-                conjunctions = [input]
-        if all( isinstance(conj, Conjunction) for conj in conjunctions):
-            super().append_or(conjunctions)
+
+    @staticmethod            
+    def _ensure_pure_conjunction(to_append):
+        if isinstance(to_append, Conjunction):
+            return to_append
+        elif isinstance(to_append, SelectorBase):
+            return Conjunction(to_append)
         else:
-            raise ValueError("All inputs must be either conjunctions or selectors")
+            it=iter(to_append)
+            if all(isinstance(sel, SelectorBase) for sel in to_append):
+                return Conjunction(it)
+            else:
+                raise ValueError("DNFs only accept an iterable of pure Selectors")
 
-            
 
-    def append_and(self,input):
+    def append_or(self,to_append):
         try:
-            if not all(isinstance(sel,SelectorBase) for sel in input):
-                raise ValueError
-            selectors=input
+            it=iter(to_append)
+            conjunctions=[DNF._ensure_pure_conjunction(part) for part in it]
         except TypeError:
-            if isinstance(input, Conjunction):
-                selectors=input._selectors
-            elif isinstance(input, SelectorBase):
-                selectors=input
+            conjunctions=DNF._ensure_pure_conjunction(to_append)
+        super().append_or(conjunctions)
+
+
+    def append_and(self,to_append):
+        conj=DNF._ensure_pure_conjunction(to_append)
         if len(self._selectors) > 0:
             for conjunction in self._selectors:
-                conjunction.append_and(selectors)
+                conjunction.append_and(conj)
         else:
-            self._selectors.append(Conjunction(selectors))
+            self._selectors.append(conj)
 
 
     def pop_and(self):
