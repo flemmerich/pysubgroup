@@ -3,6 +3,7 @@ import abc
 
 
 class TestAlgorithmsBase(abc.ABC):
+    # pylint: disable=no-member
     def evaluate_result(self, algorithm_result, result, qualities):
         # compare length such that zip works correctly
         self.assertEqual(len(algorithm_result), len(result))
@@ -12,7 +13,7 @@ class TestAlgorithmsBase(abc.ABC):
         for (algorithm_q, algorithm_SG), expected_q, expected_SGD in zip(algorithm_result, qualities, result):
             self.assertEqual(repr(algorithm_SG.subgroup_description), repr(expected_SGD))
             self.assertEqual(algorithm_q, expected_q)
-
+    # pylint: enable=no-member
     def runAlgorithm(self, algorithm, name, result, qualities, task):
         print()
         print("Running " + name)

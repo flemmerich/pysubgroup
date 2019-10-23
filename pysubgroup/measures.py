@@ -3,9 +3,10 @@ Created on 28.04.2016
 
 @author: lemmerfn
 '''
+from abc import ABC
 import numpy as np
 import pysubgroup as ps
-from abc import ABC
+
 
 
 class AbstractInterestingnessMeasure(ABC):

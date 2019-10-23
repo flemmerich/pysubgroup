@@ -3,6 +3,7 @@ Created on 28.04.2016
 
 @author: lemmerfn
 '''
+from abc import ABC
 from functools import total_ordering
 from copy import copy
 import numpy as np
@@ -12,7 +13,7 @@ import weakref
 
 
 @total_ordering
-class SelectorBase:
+class SelectorBase(ABC):
     __refs__ = weakref.WeakSet()
     def __new__(cls, *args, **kwargs):
 
@@ -36,7 +37,7 @@ class SelectorBase:
     def __lt__(self, other):
         return repr(self) < repr(other)
 
-    def __hash__(self, other):
+    def __hash__(self):
         return self._hash
 
 

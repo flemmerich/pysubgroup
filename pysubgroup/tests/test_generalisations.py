@@ -9,9 +9,10 @@ from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
 
 class BooleanTargetBase(TestAlgorithmsBase):
+    # pylint: disable=no-member
     def test_Apriori(self):
         self.runAlgorithm(ps.GeneralisingBFS(), "GeneralisingBFS", self.result, self.qualities, self.task)
-
+    # pylint: enable=no-member
 
 class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
     def setUp(self):

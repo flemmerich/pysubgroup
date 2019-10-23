@@ -7,7 +7,8 @@ from pysubgroup.tests.DataSets import get_credit_data
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
 
-class BooleanTargetBase(TestAlgorithmsBase):
+class BooleanTargetBase():
+    # pylint: disable=no-member
     def test_Apriori(self):
         self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
 
@@ -28,9 +29,9 @@ class BooleanTargetBase(TestAlgorithmsBase):
 
     def test_BFS_numpy_sets(self):
         self.runAlgorithm(ps.DFS(ps.NumpySetRepresentation), "BFS numpyset", self.result, self.qualities, self.task)
+    # pylint: enable=no-member
 
-
-class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
+class TestAlgorithms(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
         NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")
@@ -66,7 +67,7 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
 # also includes numeric attributes and has 12 targets
 
 
-class TestAlgorithms2(BooleanTargetBase):
+class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
         NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")
@@ -110,7 +111,7 @@ class TestAlgorithms2(BooleanTargetBase):
 # uses an a=0.5 and result_set_size = 12, is much faster because of that
 
 
-class TestAlgorithms3(BooleanTargetBase):
+class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
         NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")

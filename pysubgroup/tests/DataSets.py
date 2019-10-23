@@ -1,7 +1,7 @@
-import pandas as pd
-from scipy.io import arff
 import pkg_resources
 from io import StringIO
+import pandas as pd
+from scipy.io import arff
 
 
 def get_credit_data():

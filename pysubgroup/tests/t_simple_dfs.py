@@ -1,5 +1,5 @@
-import pysubgroup as ps
 from timeit import default_timer as timer
+import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_credit_data
 data = get_credit_data()
 

@@ -1,7 +1,7 @@
-import pysubgroup as ps
-import numpy as np
 import unittest
+import numpy as np
 import pandas as pd
+import pysubgroup as ps
 
 
 class TestRelationsMethods(unittest.TestCase):
