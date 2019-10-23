@@ -3,7 +3,6 @@ import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_credit_data
 
 
-
 data = get_credit_data()
 
 target = ps.NominalTarget('class', b'bad')

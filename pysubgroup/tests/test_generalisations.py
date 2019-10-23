@@ -7,10 +7,10 @@ from pysubgroup.tests.DataSets import get_credit_data
 
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
+
 class BooleanTargetBase(TestAlgorithmsBase):
     def test_Apriori(self):
         self.runAlgorithm(ps.GeneralisingBFS(), "GeneralisingBFS", self.result, self.qualities, self.task)
-
 
 
 class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
@@ -45,6 +45,7 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
         target = ps.NominalTarget('class', b'bad')
         searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -6,6 +6,7 @@ from pysubgroup.tests.DataSets import get_credit_data
 
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
+
 class BooleanTargetBase(TestAlgorithmsBase):
     def test_Apriori(self):
         self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
@@ -15,7 +16,7 @@ class BooleanTargetBase(TestAlgorithmsBase):
 
     def test_BestFirstSearch(self):
         self.runAlgorithm(ps.BestFirstSearch(), "BestFirstSearch", self.result, self.qualities, self.task)
-     
+
     def test_BeamSearch(self):
         self.runAlgorithm(ps.BeamSearch(beam_width=12), "BeamSearch", self.result, self.qualities, self.task)
 
@@ -63,6 +64,8 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0))
 
 # also includes numeric attributes and has 12 targets
+
+
 class TestAlgorithms2(BooleanTargetBase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
@@ -70,7 +73,7 @@ class TestAlgorithms2(BooleanTargetBase):
         NS_other_parties = ps.NominalSelector("other_parties", b"none")
         NS_savings_status = ps.NominalSelector("savings_status", b"<100")
         NS_job = ps.NominalSelector("job", b"skilled")
-        NS_dependents = ps.NominalSelector("num_dependents",1.0)
+        NS_dependents = ps.NominalSelector("num_dependents", 1.0)
         self.result = [ps.SubgroupDescription([NS_checking, NS_foreign_worker]),
                        ps.SubgroupDescription([NS_checking]),
                        ps.SubgroupDescription([NS_checking, NS_other_parties, NS_foreign_worker]),
@@ -101,10 +104,12 @@ class TestAlgorithms2(BooleanTargetBase):
         target = ps.NominalTarget('class', b'bad')
         searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['class'])
         searchSpace_Numeric = ps.create_numeric_selectors(data, ignore=['class'])
-        searchSpace=searchSpace_Nominal + searchSpace_Numeric
+        searchSpace = searchSpace_Nominal + searchSpace_Numeric
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=12, depth=5, qf=ps.StandardQF(1.0))
 
 # uses an a=0.5 and result_set_size = 12, is much faster because of that
+
+
 class TestAlgorithms3(BooleanTargetBase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
@@ -112,11 +117,13 @@ class TestAlgorithms3(BooleanTargetBase):
         NS_other_parties = ps.NominalSelector("other_parties", b"none")
         NS_savings_status = ps.NominalSelector("savings_status", b"<100")
         NS_job = ps.NominalSelector("job", b"skilled")
-        NS_dependents = ps.NominalSelector("num_dependents",1.0)
-        self.result = [ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_other_parties, NS_savings_status]),#AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100'
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_savings_status]),# 0.113713540226172:    checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled'' AND savings_status=='b'<100''
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job]),#checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled''
-                       ps.SubgroupDescription([NS_checking, NS_job, NS_other_parties, NS_savings_status]),#checking_status=='b'<0'' AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100''
+        NS_dependents = ps.NominalSelector("num_dependents", 1.0)
+        self.result = [ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_other_parties, NS_savings_status]),  # AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100'
+                       # 0.113713540226172:    checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled'' AND savings_status=='b'<100''
+                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_savings_status]),
+                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job]),  # checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled''
+                       # checking_status=='b'<0'' AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100''
+                       ps.SubgroupDescription([NS_checking, NS_job, NS_other_parties, NS_savings_status]),
                        ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_other_parties]),
                        ps.SubgroupDescription([NS_checking, NS_job, NS_savings_status]),
                        ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_other_parties, NS_savings_status]),
@@ -128,7 +135,7 @@ class TestAlgorithms3(BooleanTargetBase):
                        ]
 
         self.qualities = [0.11457431093955019,
-                          0.113713540226172, 
+                          0.113713540226172,
                           0.11201325679119281,
                           0.1117538749727658,
                           0.11161046793076415,
@@ -144,8 +151,9 @@ class TestAlgorithms3(BooleanTargetBase):
         target = ps.NominalTarget('class', b'bad')
         searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['class'])
         searchSpace_Numeric = ps.create_numeric_selectors(data, ignore=['class'])
-        searchSpace=searchSpace_Nominal + searchSpace_Numeric
+        searchSpace = searchSpace_Nominal + searchSpace_Numeric
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=12, depth=5, qf=ps.StandardQF(0.5))
+
 
 if __name__ == '__main__':
 
