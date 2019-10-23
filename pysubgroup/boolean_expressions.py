@@ -62,6 +62,13 @@ class Conjunction:
     def pop_or(self):
         raise RuntimeError("Or operations are not supported by a pure Conjunction. Consider using DNF.")
 
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result._selectors = copy(self._selectors)
+        return result
+
 
 @total_ordering
 class Disjunction:
@@ -110,6 +117,13 @@ class Disjunction:
             self._selectors.extend(to_append)
         except TypeError:
             self._selectors.append(to_append)
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result._selectors = copy(self._selectors)
+        return result
 
 
 class DNF(Disjunction):

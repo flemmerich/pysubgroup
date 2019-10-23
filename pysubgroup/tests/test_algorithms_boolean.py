@@ -38,16 +38,16 @@ class TestAlgorithms(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
         NS_other_parties = ps.NominalSelector("other_parties", b"none")
         NS_savings_status = ps.NominalSelector("savings_status", b"<100")
         NS_job = ps.NominalSelector("job", b"skilled")
-        self.result = [ps.SubgroupDescription([NS_checking, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking]),
-                       ps.SubgroupDescription([NS_checking, NS_other_parties, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_other_parties]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_other_parties, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_job, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_other_parties]),
-                       ps.SubgroupDescription([NS_checking, NS_job]),
+        self.result = [ps.Conjunction([NS_checking, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking]),
+                       ps.Conjunction([NS_checking, NS_other_parties, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_savings_status, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_savings_status, NS_other_parties, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_job, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_savings_status, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_job]),
                        ]
         self.qualities = [0.055299999999999995,
                           0.05280000000000001,
@@ -75,18 +75,18 @@ class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
         NS_savings_status = ps.NominalSelector("savings_status", b"<100")
         NS_job = ps.NominalSelector("job", b"skilled")
         NS_dependents = ps.NominalSelector("num_dependents", 1.0)
-        self.result = [ps.SubgroupDescription([NS_checking, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking]),
-                       ps.SubgroupDescription([NS_checking, NS_other_parties, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_other_parties]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_dependents]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status]),
-                       ps.SubgroupDescription([NS_checking, NS_dependents]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_other_parties, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_job, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_other_parties]),
-                       ps.SubgroupDescription([NS_checking, NS_job]),
+        self.result = [ps.Conjunction([NS_checking, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking]),
+                       ps.Conjunction([NS_checking, NS_other_parties, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_savings_status, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_dependents]),
+                       ps.Conjunction([NS_checking, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_dependents]),
+                       ps.Conjunction([NS_checking, NS_savings_status, NS_other_parties, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_job, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_savings_status, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_job]),
                        ]
         self.qualities = [0.055299999999999995,
                           0.05280000000000001,
@@ -119,20 +119,20 @@ class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
         NS_savings_status = ps.NominalSelector("savings_status", b"<100")
         NS_job = ps.NominalSelector("job", b"skilled")
         NS_dependents = ps.NominalSelector("num_dependents", 1.0)
-        self.result = [ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_other_parties, NS_savings_status]),  # AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100'
+        self.result = [ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_other_parties, NS_savings_status]),  # AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100'
                        # 0.113713540226172:    checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled'' AND savings_status=='b'<100''
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_savings_status]),
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job]),  # checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled''
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_job]),  # checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled''
                        # checking_status=='b'<0'' AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100''
-                       ps.SubgroupDescription([NS_checking, NS_job, NS_other_parties, NS_savings_status]),
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_other_parties]),
-                       ps.SubgroupDescription([NS_checking, NS_job, NS_savings_status]),
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_other_parties, NS_savings_status]),
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_other_parties]),
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_savings_status]),
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_foreign_worker, NS_job, NS_dependents, NS_savings_status]),
-                       ps.SubgroupDescription([NS_checking, NS_job, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_job, NS_other_parties, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_job, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_other_parties, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_dependents, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_job, NS_other_parties]),
                        ]
 
         self.qualities = [0.11457431093955019,

@@ -21,16 +21,16 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
         NS_other_parties = ps.NominalSelector("other_parties", b"none")
         NS_savings_status = ps.NominalSelector("savings_status", b"<100")
         NS_job = ps.NominalSelector("job", b"skilled")
-        self.result = [ps.SubgroupDescription([NS_checking, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking]),
-                       ps.SubgroupDescription([NS_checking, NS_other_parties, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_other_parties]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_other_parties, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_job, NS_foreign_worker]),
-                       ps.SubgroupDescription([NS_checking, NS_savings_status, NS_other_parties]),
-                       ps.SubgroupDescription([NS_checking, NS_job]),
+        self.result = [ps.Conjunction([NS_checking, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking]),
+                       ps.Conjunction([NS_checking, NS_other_parties, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_savings_status, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_savings_status, NS_other_parties, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_job, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_savings_status, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_job]),
                        ]
         self.qualities = [0.055299999999999995,
                           0.05280000000000001,

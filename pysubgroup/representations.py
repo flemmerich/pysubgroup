@@ -11,7 +11,7 @@ class RepresentationBase():
         raise NotImplementedError
 
 
-class BitSet_SubgroupDescription(ps.SubgroupDescription):
+class BitSet_Conjunction(ps.Conjunction):
     n_instances = 0
 
     def __init__(self, *args, **kwargs):
@@ -21,7 +21,7 @@ class BitSet_SubgroupDescription(ps.SubgroupDescription):
     def compute_representation(self):
                 # empty description ==> return a list of all '1's
         if not self.selectors:
-            return np.full(BitSet_SubgroupDescription.n_instances, True, dtype=bool)
+            return np.full(BitSet_Conjunction.n_instances, True, dtype=bool)
         # non-empty description
         return np.all([sel.representation for sel in self.selectors], axis=0)
 
@@ -52,19 +52,19 @@ class BitSetRepresentation(RepresentationBase):
         sel.representation = sel.covers(self.df)
 
     def patch_classes(self):
-        BitSet_SubgroupDescription.n_instances = len(self.df)
-        self.SD = ps.SubgroupDescription
-        ps.SubgroupDescription = BitSet_SubgroupDescription
+        BitSet_Conjunction.n_instances = len(self.df)
+        self.SD = ps.Conjunction
+        ps.Conjunction = BitSet_Conjunction
 
     def __enter__(self):
         self.patch_all_selectors()
         self.patch_classes()
 
     def __exit__(self, *args):
-        ps.SubgroupDescription = self.SD
+        ps.Conjunction = self.SD
 
 
-class Set_SubgroupDescription(ps.SubgroupDescription):
+class Set_Conjunction(ps.Conjunction):
     all_set = set()
 
     def __init__(self, *args, **kwargs):
@@ -74,7 +74,7 @@ class Set_SubgroupDescription(ps.SubgroupDescription):
     def compute_representation(self):
                 # empty description ==> return a list of all '1's
         if not self.selectors:
-            return Set_SubgroupDescription.all_set
+            return Set_Conjunction.all_set
         # non-empty description
         return set.intersection(sel.representation for sel in self.selectors)
 
@@ -110,19 +110,19 @@ class SetRepresentation(RepresentationBase):
         sel.representation = set(*np.nonzero(sel.covers(self.df)))
 
     def patch_classes(self):
-        Set_SubgroupDescription.all_set = set(self.df.index)
-        self.SD = ps.SubgroupDescription
-        ps.SubgroupDescription = Set_SubgroupDescription
+        Set_Conjunction.all_set = set(self.df.index)
+        self.SD = ps.Conjunction
+        ps.Conjunction = Set_Conjunction
 
     def __enter__(self):
         self.patch_all_selectors()
         self.patch_classes()
 
     def __exit__(self, *args):
-        ps.SubgroupDescription = self.SD
+        ps.Conjunction = self.SD
 
 
-class NumpySet_SubgroupDescription(ps.SubgroupDescription):
+class NumpySet_Conjunction(ps.Conjunction):
     all_set = set()
 
     def __init__(self, *args, **kwargs):
@@ -132,7 +132,7 @@ class NumpySet_SubgroupDescription(ps.SubgroupDescription):
     def compute_representation(self):
                 # empty description ==> return a list of all '1's
         if not self.selectors:
-            return NumpySet_SubgroupDescription.all_set
+            return NumpySet_Conjunction.all_set
         start = self.selectors[0]
         for sel in self.selectors[1:]:
             start = np.intersect1d(start, sel.representation, True)
@@ -165,13 +165,13 @@ class NumpySetRepresentation(RepresentationBase):
         sel.representation = np.nonzero(sel.covers(self.df))
 
     def patch_classes(self):
-        NumpySet_SubgroupDescription.all_set = self.df.index.to_numpy()
-        self.SD = ps.SubgroupDescription
-        ps.SubgroupDescription = NumpySet_SubgroupDescription
+        NumpySet_Conjunction.all_set = self.df.index.to_numpy()
+        self.SD = ps.Conjunction
+        ps.Conjunction = NumpySet_Conjunction
 
     def __enter__(self):
         self.patch_all_selectors()
         self.patch_classes()
 
     def __exit__(self, *args):
-        ps.SubgroupDescription = self.SD
+        ps.Conjunction = self.SD

@@ -37,7 +37,7 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
              [NS_foreign_worker, NS_job],
              [NS_foreign_worker, NS_other_parties, NS_telephone, NS_personal]
              ]
-        self.result = list(map(ps.SubgroupDescription, o))
+        self.result = list(map(ps.Conjunction, o))
         self.qualities = [
             383476.7679999999,
             361710.05800000014,

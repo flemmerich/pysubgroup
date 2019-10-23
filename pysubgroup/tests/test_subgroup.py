@@ -46,22 +46,22 @@ class TestRelationsMethods(unittest.TestCase):
         self.assertTrue(hash(S1) == hash(S1_clone))
         self.assertTrue(S1 is S1_clone)
 
-    def test_SubgroupDescription_ordering(self):
+    def test_Conjunction_ordering(self):
         A1 = ps.NominalSelector("A", 1)
         A2 = ps.NominalSelector("A", 2, "AA")
         B1 = ps.NominalSelector("B", 1)
 
-        SGD1 = ps.SubgroupDescription([A1, A2])
-        SGD1_clone = ps.SubgroupDescription([A1, A2])
-        SGD1_order = ps.SubgroupDescription([A2, A1])
+        SGD1 = ps.Conjunction([A1, A2])
+        SGD1_clone = ps.Conjunction([A1, A2])
+        SGD1_order = ps.Conjunction([A2, A1])
 
         self.assertTrue(SGD1 == SGD1_clone)
         self.assertTrue(hash(SGD1) == hash(SGD1_clone))
         self.assertTrue(SGD1 == SGD1_order)
         self.assertTrue(hash(SGD1) == hash(SGD1_order))
 
-        SGD2 = ps.SubgroupDescription([A1, A2, B1])
-        SGD3 = ps.SubgroupDescription([B1])
+        SGD2 = ps.Conjunction([A1, A2, B1])
+        SGD3 = ps.Conjunction([B1])
         self.assertTrue(SGD1 > SGD2)
         self.assertTrue(SGD2 < SGD3)
 

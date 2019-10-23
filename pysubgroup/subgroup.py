@@ -41,59 +41,6 @@ class SelectorBase(ABC):
         return self._hash
 
 
-@total_ordering
-class SubgroupDescription:
-    def __init__(self, selectors):
-        if isinstance(selectors, (list, tuple)):
-            self.selectors = selectors
-        else:
-            self.selectors = [selectors]
-
-    def covers(self, instance):
-        # empty description ==> return a list of all '1's
-        if not self.selectors:
-            return np.full(len(instance), True, dtype=bool)
-        # non-empty description
-        return np.all([sel.covers(instance) for sel in self.selectors], axis=0)
-
-    def __len__(self):
-        return len(self.selectors)
-
-    def count(self, data):
-        return np.sum(self.covers(data))
-
-    def get_attributes(self):
-        return set(x.get_attribute_name() for x in self.selectors)
-
-    def __str__(self, open_brackets="", closing_brackets="", and_term=" AND "):
-        if not self.selectors:
-            return "Dataset"
-        attrs = sorted(str(sel) for sel in self.selectors)
-        return "".join((open_brackets, and_term.join(attrs), closing_brackets))
-
-    def __repr__(self):
-        if not self.selectors:
-            return "True"
-        reprs = sorted(repr(sel) for sel in self.selectors)
-        return "".join(("(", " and ".join(reprs), ")"))
-
-    def __eq__(self, other):
-        return repr(self) == repr(other)
-
-    def __lt__(self, other):
-        return repr(self) < repr(other)
-
-    def __hash__(self):
-        return hash(frozenset(self.selectors))
-
-    def __copy__(self):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        result.selectors = copy(self.selectors)
-        return result
-
-
 class NominalSelector(SelectorBase):
     def __new__(cls, attribute_name, attribute_value, selector_name=None):
         return super().__new__(cls, attribute_name, attribute_value, selector_name=selector_name)
@@ -256,10 +203,7 @@ class Subgroup():
 
         # If its already a SubgroupDescription object, we are fine, otherwise we create a new one
         self.target = target
-        if isinstance(subgroup_description, SubgroupDescription):
-            self.subgroup_description = subgroup_description
-        else:
-            self.subgroup_description = SubgroupDescription(subgroup_description)
+
 
         # initialize empty cache for statistics
         self.statistics = {}

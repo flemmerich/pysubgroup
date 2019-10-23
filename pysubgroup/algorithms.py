@@ -81,7 +81,7 @@ class BestFirstSearch:
         qf_is_bounded = isinstance(task.qf, ps.BoundedInterestingnessMeasure)
         # init the first level
         for sel in task.search_space:
-            queue.append((float("-inf"), ps.SubgroupDescription([sel])))
+            queue.append((float("-inf"), ps.Conjunction([sel])))
 
         while queue:
             q, candidate_description = heappop(queue)
@@ -218,7 +218,7 @@ class SimpleDFS:
         return result
 
     def search_internal(self, task, prefix, modification_set, result, use_optimistic_estimates):
-        sg = ps.Subgroup(task.target, ps.SubgroupDescription(copy.copy(prefix)))
+        sg = ps.Subgroup(task.target, ps.Conjunction(copy.copy(prefix)))
 
         if use_optimistic_estimates and len(prefix) < task.depth and isinstance(task.qf, ps.BoundedInterestingnessMeasure):
             optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg)
@@ -258,9 +258,9 @@ class DFS:
         self.target_bitset = task.target.covers(task.data)
         self.pop_positives = self.target_bitset.sum()
         with self.structure(task.data):
-            result = self.search_internal(task, task.search_space, [], ps.SubgroupDescription([]))
+            result = self.search_internal(task, task.search_space, [], ps.Conjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
-        result = [(quality, ps.Subgroup(task, ps.SubgroupDescription(sG.selectors))) for quality, sG in result]
+        result = [(quality, ps.Subgroup(task, ps.Conjunction(sG.selectors))) for quality, sG in result]
         return result
 
     def search_internal(self, task, modification_set, result, sg):

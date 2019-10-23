@@ -131,7 +131,7 @@ def get_max_generalization_mean(data, subgroup, weighting_attribute=None):
     generalizations = ps.powerset(selectors)
     max_mean = 0
     for sels in generalizations:
-        sg = ps.Subgroup(subgroup.target, ps.SubgroupDescription(list(sels)))
+        sg = ps.Subgroup(subgroup.target, ps.Conjunction(list(sels)))
         mean_sg = sg.get_base_statistics(data, weighting_attribute)[3]
         max_mean = max(max_mean, mean_sg)
     return max_mean

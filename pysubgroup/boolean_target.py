@@ -9,7 +9,7 @@ import scipy.stats
 
 import pysubgroup as ps
 
-from .subgroup import SubgroupDescription, Subgroup, NominalSelector
+from .subgroup import Conjunction, Subgroup, NominalSelector
 
 
 @total_ordering
@@ -272,7 +272,7 @@ def get_max_generalization_target_share(data, subgroup, weighting_attribute=None
     generalizations = ps.powerset(selectors)
     max_target_share = 0
     for sels in generalizations:
-        sgd = SubgroupDescription(list(sels))
+        sgd = Conjunction(list(sels))
         sg = Subgroup(subgroup.target, sgd)
         (_, _, instances_subgroup, positives_subgroup) = sg.get_base_statistics(data, weighting_attribute)
         target_share = positives_subgroup / instances_subgroup

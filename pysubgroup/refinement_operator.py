@@ -13,7 +13,7 @@ class StaticSpecializationOperator:
         index_of_last_selector = min(self.search_space.index(sG.selectors[-1]), len(self.search_space) - 1)
         new_selectors = self.search_space[index_of_last_selector + 1:]
 
-        return (ps.SubgroupDescription([*sG.selectors, sel]) for sel in new_selectors)
+        return (ps.Conjunction([*sG.selectors, sel]) for sel in new_selectors)
 
 
 class StaticGeneralizationOperator:
