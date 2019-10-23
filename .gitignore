@@ -11,3 +11,6 @@ build
 /.pytest_cache/v/cache
 /TestResults
 /env_pysubgroup
+/pysubgroup/tests/program.prof
+/pysubgroup/tests/tmp.py
+/Untitled.ipynb

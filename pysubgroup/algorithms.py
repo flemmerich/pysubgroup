@@ -246,132 +246,46 @@ class SimpleDFS:
         return result
 
 
-class BSD:
+class DFS:
     """
-    Implementation of the BSD algorithm for binary targets. See
-    Lemmerich, Florian, Mathias Rohlfs, and Martin Atzmueller. "Fast Discovery of Relevant Subgroup Patterns.",
-    FLAIRS Conference. 2010.
+    Implementation of a depth-first-search with look-ahead using a provided datastructure.
     """
 
-    def __init__(self):
+    def __init__(self, structure):
         self.pop_positives = 0
         self.pop_size = 0
-        self.bitsets = {}
         self.target_bitset = None
+        self.structure=structure
 
     def execute(self, task):
         self.pop_size = len(task.data)
         self.target_bitset = task.target.covers(task.data)
         self.pop_positives = self.target_bitset.sum()
-        self.bitsets = {}
-        for sel in task.search_space:
-            self.bitsets[sel] = sel.covers(task.data)
-
-        result = self.search_internal(task, [], task.search_space, [], np.ones(self.pop_size, dtype=bool))
+        with self.structure(task.data):
+            result = self.search_internal(task, task.search_space, [], ps.SubgroupDescription([]))
         result.sort(key=lambda x: x[0], reverse=True)
+        result=[(quality,ps.Subgroup(task,ps.SubgroupDescription(sG.selectors))) for quality, sG in result]
         return result
 
-    def search_internal(self, task, prefix, modification_set, result, bitset):
+    def search_internal(self, task, modification_set, result, sg):
 
-        sg_size = bitset.sum()
-        positive_instances = np.logical_and(bitset, self.target_bitset)
-        sg_positive_count = positive_instances.sum()
+        sg_size = sg.size
+        sg_positive_count = self.target_bitset[sg].sum()
 
         optimistic_estimate = task.qf.optimistic_estimate_from_statistics(self.pop_size, self.pop_positives, sg_size,
                                                                           sg_positive_count)
         if optimistic_estimate <= ps.minimum_required_quality(result, task):
             return result
-
-        sg = ps.Subgroup(task.target, copy.copy(prefix))
-
         quality = task.qf.evaluate_from_statistics(self.pop_size, self.pop_positives, sg_size, sg_positive_count)
         ps.add_if_required(result, sg, quality, task)
 
-        if len(prefix) < task.depth:
+        if len(sg) < task.depth:
             new_modification_set = copy.copy(modification_set)
             for sel in modification_set:
-                prefix.append(sel)
-                newBitset = np.logical_and(bitset, self.bitsets[sel])
+                new_sg=copy.copy(sg)
+                new_sg.append_and(sel)
                 new_modification_set.pop(0)
-                self.search_internal(task, prefix, new_modification_set, result, newBitset)
-                # remove the sel again
-                prefix.pop(-1)
-        return result
-
-
-class TID_SD:
-    """
-    Implementation of a depth-first-search with look-ahead using vertical ID lists as data structure.
-    """
-
-    def __init__(self, use_sets=False):
-        self.use_sets = use_sets
-        self.popSize = 0
-        self.popPositives = 0
-        self.targetBitset = None
-        self.bitsets = {}
-
-    def execute(self, task):
-        use_sets = self.use_sets
-        self.popSize = len(task.data)
-
-        # generate target bitset
-        x = task.target.covers(task.data)
-        if use_sets:
-            self.targetBitset = set(x.nonzero()[0])
-        else:
-            self.targetBitset = list(x.nonzero()[0])
-
-        self.popPositives = len(self.targetBitset)
-
-        # generate selector bitsets
-        self.bitsets = {}
-        for sel in task.search_space:
-            # generate data structure
-            x = sel.covers(task.data)
-            if use_sets:
-                sel_bitset = set(x.nonzero()[0])
-            else:
-                sel_bitset = list(x.nonzero()[0])
-            self.bitsets[sel] = sel_bitset
-        if use_sets:
-            result = self.search_internal(task, [], task.search_space, [], set(range(self.popSize)), use_sets)
-        else:
-            result = self.search_internal(task, [], task.search_space, [], list(range(self.popSize)), use_sets)
-        result.sort(key=lambda x: x[0], reverse=True)
-        return result
-
-    def search_internal(self, task, prefix, modificationSet, result, bitset, use_sets):
-
-        sgSize = len(bitset)
-        if use_sets:
-            positiveInstances = bitset & self.targetBitset
-        else:
-            positiveInstances = ps.intersect_of_ordered_list(bitset, self.targetBitset)
-        sgPositiveCount = len(positiveInstances)
-
-        optimisticEstimate = task.qf.optimistic_estimate_from_statistics(self.popSize, self.popPositives, sgSize,
-                                                                         sgPositiveCount)
-        if optimisticEstimate <= ps.minimum_required_quality(result, task):
-            return result
-
-        sg = ps.Subgroup(task.target, copy.copy(prefix))
-
-        quality = task.qf.evaluate_from_statistics(self.popSize, self.popPositives, sgSize, sgPositiveCount)
-        ps.add_if_required(result, sg, quality, task)
-
-        if len(prefix) < task.depth:
-            newModificationSet = copy.copy(modificationSet)
-            for sel in modificationSet:
-                prefix.append(sel)
-                if use_sets:
-                    newBitset = bitset & self.bitsets[sel]
-                else:
-                    newBitset = ps.intersect_of_ordered_list(bitset, self.bitsets[sel])
-                newModificationSet.pop(0)
-                self.search_internal(task, prefix, newModificationSet, result, newBitset, use_sets)
-                # remove the sel again
-                prefix.pop(-1)
+                self.search_internal(task, new_modification_set, result, new_sg)
         return result
 
 
