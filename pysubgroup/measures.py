@@ -18,6 +18,9 @@ class AbstractInterestingnessMeasure(ABC):
     def is_applicable(self, subgroup):
         pass
 
+    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None): #pylint: disable=unused-argument
+        return float("inf")
+
 
 class BoundedInterestingnessMeasure(AbstractInterestingnessMeasure):
     @abstractmethod

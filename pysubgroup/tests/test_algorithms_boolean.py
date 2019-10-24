@@ -65,7 +65,7 @@ class TestAlgorithms(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
 # also includes numeric attributes and has 12 targets
 
 
-class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
+class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
         NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")
@@ -109,7 +109,7 @@ class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
 # uses an a=0.5 and result_set_size = 12, is much faster because of that
 
 
-class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
+class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
         NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")

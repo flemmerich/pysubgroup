@@ -37,7 +37,7 @@ class TestRelationsMethods(unittest.TestCase):
         dnf7 = ps.DNF([])
         dnf7.append_and([A1, A2])
         dnf7.append_or(ps.Conjunction([B1, B2]))
-        self.df = pd.DataFrame.from_dict({"A1": [1, 1, 1, 2, 2, 2, 2, 0, 0, 0],
+        self.df = pd.DataFrame.from_dict({"A1": [1, 1, 1, 2, 2, 2, 2, 0, 0, 0], #pylint: disable=attribute-defined-outside-init
                                           "A2": [0, 1, 1, 1, 2, 2, 2, 0, 0, 0],
                                           "B1": [0, 0, 0, 0, 1, 1, 1, 0, 1, 1],
                                           "B2": ["0", "0", "0", "0", "1", "1", "2", "0", "0", "1"]})

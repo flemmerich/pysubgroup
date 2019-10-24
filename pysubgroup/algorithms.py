@@ -64,6 +64,8 @@ class Apriori:
             # generate candidates next level
 
             next_level_candidates_no_pruning = (sg1 + [sg2[-1]] for sg1, sg2 in combinations(promising_candidates, 2) if sg1[:-1] == sg2[:-1])
+            # select those selectors and build a subgroup from them
+            #   for which all subsets of length depth (=candidate length -1) are in the set of promising candidates
             next_level_candidates = [ps.Subgroup(task.target, ps.Conjunction(selectors)) for selectors in next_level_candidates_no_pruning
                                      if all((frozenset(g) in set_promising_candidates) for g in combinations(selectors, depth))]
             depth = depth + 1
@@ -194,7 +196,7 @@ class BeamSearch:
         while beam != last_beam and depth < task.depth:
             last_beam = beam.copy()
             for (_, last_sg) in last_beam:
-                if getattr(last_sg, 'visited', False) == False:
+                if not getattr(last_sg, 'visited', False):
                     setattr(last_sg, 'visited', True)
                     for sel in task.search_space:
                         # create a clone
@@ -247,20 +249,20 @@ class DFS:
     Implementation of a depth-first-search with look-ahead using a provided datastructure.
     """
 
-    def __init__(self, structure):
+    def __init__(self, apply_representation):
         self.pop_positives = 0
         self.pop_size = 0
         self.target_bitset = None
-        self.structure = structure
+        self.apply_representation = apply_representation
 
     def execute(self, task):
         self.pop_size = len(task.data)
         self.target_bitset = task.target.covers(task.data)
         self.pop_positives = self.target_bitset.sum()
-        with self.structure(task.data):
-            result = self.search_internal(task, task.search_space, [], ps.Conjunction([]))
+        with self.apply_representation(task.data):
+            result = self.search_internal(task, task.search_space, [], ps.RepresentationConjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
-        result = [(quality, ps.Subgroup(task, sG)) for quality, sG in result]
+        result = [(quality, ps.Subgroup(task, self.apply_representation.undo(sgd))) for quality, sgd in result]
         return result
 
     def search_internal(self, task, modification_set, result, sg):

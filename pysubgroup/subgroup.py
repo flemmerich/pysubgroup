@@ -3,13 +3,13 @@ Created on 28.04.2016
 
 @author: lemmerfn
 '''
-from abc import ABC
+from abc import ABC, abstractmethod
+import weakref
 from functools import total_ordering
-from copy import copy
 import numpy as np
 import pandas as pd
 import pysubgroup as ps
-import weakref
+
 
 
 @total_ordering
@@ -38,13 +38,14 @@ class SelectorBase(ABC):
         return repr(self) < repr(other)
 
     def __hash__(self):
-        return self._hash
+        return self._hash #pylint: disable=no-member
+
+    @abstractmethod
+    def set_descriptions(self, *args, **kwargs):
+        pass
 
 
 class NominalSelector(SelectorBase):
-    def __new__(cls, attribute_name, attribute_value, selector_name=None):
-        return super().__new__(cls, attribute_name, attribute_value, selector_name=selector_name)
-
     def __init__(self, attribute_name, attribute_value, selector_name=None):
         if attribute_name is None:
             raise TypeError()
@@ -64,7 +65,7 @@ class NominalSelector(SelectorBase):
     def attribute_value(self):
         return self._attribute_value
 
-    def set_descriptions(self, attribute_name, attribute_value, selector_name=None):
+    def set_descriptions(self, attribute_name, attribute_value, selector_name=None): # pylint: disable=arguments-differ
         self._hash, self._query, self._string = NominalSelector.compute_descriptions(attribute_name, attribute_value, selector_name=selector_name)
 
     @classmethod
@@ -94,30 +95,29 @@ class NominalSelector(SelectorBase):
     def __str__(self, open_brackets="", closing_brackets=""):
         return open_brackets + self._string + closing_brackets
 
-    def __hash__(self):
-        return self._hash
-
 
 class NegatedSelector(SelectorBase):
     def __init__(self, selector):
-        self.selector = selector
+        self._selector = selector
+        self.set_descriptions(selector)
         super().__init__()
 
     def covers(self, data_instance):
-        return not self.selector.covers(data_instance)
+        return np.logical_not(self._selector.covers(data_instance))
 
     def __repr__(self):
-        return "(not " + repr(self.selector) + ")"
-
-    def __hash__(self):
-        return repr(self).__hash__()
+        return self._query
 
     def __str__(self, open_brackets="", closing_brackets=""):
-        return "NOT " + str(self.selector, open_brackets, closing_brackets)
+        return "NOT " + str(self._selector, open_brackets, closing_brackets)
+
+    def set_descriptions(self, selector):  # pylint: disable=arguments-differ
+        self._query = "(not " + repr(selector) + ")"
+        self._hash = hash(repr(self))
 
     @property
     def attribute_name(self):
-        return self.selector.attribute_name
+        return self._selector.attribute_name
 
 
 # Including the lower bound, excluding the upper_bound
@@ -165,7 +165,7 @@ class NumericSelector(SelectorBase):
         _hash = _query.__hash__()
         return (_hash, _query, _string)
 
-    def set_descriptions(self, attribute_name, lower_bound, upper_bound, selector_name=None):
+    def set_descriptions(self, attribute_name, lower_bound, upper_bound, selector_name=None):  # pylint: disable=arguments-differ
         self._hash, self._query, self._string = NumericSelector.compute_descriptions(attribute_name, lower_bound, upper_bound, selector_name=selector_name)
 
     @classmethod
@@ -203,7 +203,7 @@ class Subgroup():
 
         # If its already a SubgroupDescription object, we are fine, otherwise we create a new one
         self.target = target
-        self.subgroup_description=subgroup_description
+        self.subgroup_description = subgroup_description
 
         # initialize empty cache for statistics
         self.statistics = {}

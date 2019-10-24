@@ -1,24 +1,27 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from functools import total_ordering
 import copy
-from pysubgroup import SelectorBase
 import numpy as np
+from pysubgroup import SelectorBase
+
 
 class BooleanExpressionBase(ABC):
-    def __or__(self,other):
+    def __or__(self, other):
         tmp = copy.copy(self)
         tmp.append_or(other)
         return tmp
 
-    def __and__(self,other):
+    def __and__(self, other):
         tmp = copy.copy(self)
         tmp.append_and(other)
         return tmp
 
-    def append_and(self):
+    @abstractmethod
+    def append_and(self, to_append):
         pass
 
-    def append_or(self):
+    @abstractmethod
+    def append_or(self, to_append):
         pass
 
 @total_ordering
@@ -61,16 +64,16 @@ class Conjunction(BooleanExpressionBase):
     def __hash__(self):
         return hash(repr(self))
 
-    def append_and(self, selector):
-        if isinstance(selector, Conjunction):
-            self._selectors.extend(selector._selectors)
+    def append_and(self, to_append):
+        if isinstance(to_append, Conjunction):
+            self._selectors.extend(to_append._selectors)
         else:
             try:
-                self._selectors.extend(selector)
+                self._selectors.extend(to_append)
             except TypeError:
-                self._selectors.append(selector)
+                self._selectors.append(to_append)
 
-    def append_or(self, selector):
+    def append_or(self, to_append):
         raise RuntimeError("Or operations are not supported by a pure Conjunction. Consider using DNF.")
 
     def pop_and(self):

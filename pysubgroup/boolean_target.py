@@ -200,6 +200,9 @@ class StandardQF(ps.BoundedInterestingnessMeasure):
     def __init__(self, a):
         self.a = a
 
+
+
+
     def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
         if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
