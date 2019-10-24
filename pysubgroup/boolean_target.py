@@ -188,7 +188,7 @@ class ChiSquaredQF(ps.AbstractInterestingnessMeasure):
         return isinstance(subgroup.target, NominalTarget)
 
 
-class StandardQF(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
+class StandardQF(ps.BoundedInterestingnessMeasure):
     @staticmethod
     def standard_qf(a, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         if instances_subgroup == 0:

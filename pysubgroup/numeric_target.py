@@ -3,15 +3,10 @@ Created on 29.09.2017
 
 @author: lemmerfn
 '''
-from abc import ABC
 from functools import total_ordering
 import numpy as np
 import pysubgroup as ps
 
-
-class QualityFunction(ABC):
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None, cache=None):
-        pass
 
 
 @total_ordering
@@ -66,7 +61,7 @@ class NumericTarget:
         subgroup.statistics['median_lift'] = subgroup.statistics['median_sg'] / subgroup.statistics['median_dataset']
 
 
-class StandardQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure, QualityFunction):
+class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
 
     @staticmethod
     def standard_qf_numeric(a, _, mean_dataset, instances_subgroup, mean_sg):
@@ -78,12 +73,12 @@ class StandardQFNumeric(ps.AbstractInterestingnessMeasure, ps.BoundedInteresting
         self.a = a
         self.invert = invert
 
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None, cache=None):
+    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None, _cache=None):
         if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
         return ps.conditional_invert(self.evaluate_from_statistics(*subgroup.get_base_statistics(data, weighting_attribute)), self.invert)
 
-    def optimistic_estimate_from_dataset(self, data, subgroup):
+    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
         if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
         all_target_values = data[subgroup.target.target_variable]

@@ -3,32 +3,32 @@ Created on 28.04.2016
 
 @author: lemmerfn
 '''
-from abc import ABC
+from abc import ABC, abstractmethod
 import numpy as np
 import pysubgroup as ps
 
 
 
 class AbstractInterestingnessMeasure(ABC):
-
+    @abstractmethod
     def supports_weights(self):
         pass
 
+    @abstractmethod
     def is_applicable(self, subgroup):
         pass
 
 
-class BoundedInterestingnessMeasure(ABC):
+class BoundedInterestingnessMeasure(AbstractInterestingnessMeasure):
+    @abstractmethod
     def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
         pass
 
-    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        pass
 
-
-class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInterestingnessMeasure):
+class CombinedInterestingnessMeasure(BoundedInterestingnessMeasure):
     def __init__(self, measures, weights=None):
         self.measures = measures
+
         if weights is None:
             weights = [1] * len(measures)
         self.weights = weights
@@ -46,11 +46,10 @@ class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInte
     def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         return np.dot([m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures], self.weights)
 
-    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
-                                            positives_subgroup):
+    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         return np.dot(
-            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
-             for m in self.measures], self.weights)
+            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures],
+            self.weights)
 
     def is_applicable(self, subgroup):
         return all([x.is_applicable(subgroup) for x in self.measures])

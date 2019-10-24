@@ -1,7 +1,5 @@
-import pysubgroup as ps
-
 import unittest
-
+import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_credit_data
 
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase

@@ -40,14 +40,14 @@ class FITarget():
         subgroup.statistics['size_dataset'] = len(data)
 
 
-class CountQF(ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
+class CountQF(ps.BoundedInterestingnessMeasure):
     def __init__(self):
         pass
 
     def evaluate_from_dataset(self, data, subgroup, _weighting_attribute=None):
         return subgroup.subgroup_description.covers(data).sum()
 
-    def optimistic_estimate_from_dataset(self, data, subgroup):
+    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
         return subgroup.subgroup_description.covers(data).sum()
 
     def evaluate_from_statistics(self, _instances_dataset, _positives_dataset, instances_subgroup, _positives_subgroup):
