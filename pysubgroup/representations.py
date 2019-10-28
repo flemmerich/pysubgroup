@@ -23,8 +23,9 @@ class RepresentationBase():
         ps.RepresentationConjunction = self.previous_conjunction
 
     def __enter__(self):
-        self.patch_all_selectors()
         self.patch_classes()
+        self.patch_all_selectors()
+
 
     def __exit__(self, * args):
         self.undo_patch_classes()
@@ -71,6 +72,10 @@ class BitSetRepresentation(RepresentationBase):
     def patch_selector(self, sel):
         sel.representation = sel.covers(self.df)
 
+    def patch_classes(self):
+        BitSet_Conjunction.n_instances = len(self.df)
+        super().patch_classes()
+
 RepresentationConjunction = BitSet_Conjunction
 
 
@@ -101,6 +106,7 @@ class Set_Conjunction(ps.Conjunction):
     def append_and(self, to_append):
         super().append_and(to_append)
         self.representation = self.representation.intersection(to_append.representation)
+        self.arr_for_interface = np.array(list(self.representation), dtype=int)
 
     @property
     def __array_interface__(self):
@@ -146,7 +152,8 @@ class NumpySet_Conjunction(ps.Conjunction):
         return tmp
 
     def append_and(self, to_append):
-        self._selectors.append(to_append)
+        super().append_and(to_append)
+        #self._selectors.append(to_append)
         self.representation = np.intersect1d(self.representation, to_append.representation, True)
 
     @property

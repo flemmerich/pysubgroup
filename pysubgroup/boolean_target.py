@@ -3,6 +3,7 @@ Created on 29.09.2017
 
 @author: lemmerfn
 '''
+from collections import namedtuple
 from functools import total_ordering
 import numpy as np
 import scipy.stats
@@ -189,6 +190,7 @@ class ChiSquaredQF(ps.AbstractInterestingnessMeasure):
 
 
 class StandardQF(ps.BoundedInterestingnessMeasure):
+    tpl = namedtuple('StandardQF_parameters',('size','positives_count'))
     @staticmethod
     def standard_qf(a, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         if instances_subgroup == 0:
@@ -199,25 +201,40 @@ class StandardQF(ps.BoundedInterestingnessMeasure):
 
     def __init__(self, a):
         self.a = a
+        self.population = None
+        self.positives = None
+        self.has_constant_statistics = False
+        
 
+    def calculate_constant_statistics(self, task):
+        data=task.data
+        self.positives = task.target.covers(data)
+        self.population=StandardQF.tpl(len(data), np.sum(self.positives))
+        self.has_constant_statistics = True
 
+    def calculate_statistics(self, subgroup, data=None):
+        cover_arr=subgroup.covers(data)
+        return StandardQF.tpl(cover_arr.sum(), self.positives[cover_arr].sum()) 
 
+    def evaluate(self, subgroup, statistics = None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        population=self.population
+        return StandardQF.standard_qf(self.a, population.size, population.positives_count, statistics.size, statistics.positives_count )
 
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        if not self.is_applicable(subgroup):
-            raise BaseException("Quality measure cannot be used for this target class")
-        return self.evaluate_from_statistics(*subgroup.get_base_statistics(data, weighting_attribute))
+    def optimistic_estimate(self, subgroup, statistics = None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        population=self.population
+        return StandardQF.standard_qf(self.a, population.size, population.positives_count, statistics.positives_count, statistics.positives_count )
 
-    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        if not self.is_applicable(subgroup):
-            raise BaseException("Quality measure cannot be used for this target class")
-        return self.optimistic_estimate_from_statistics(*subgroup.get_base_statistics(data, weighting_attribute))
-
-    def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        return StandardQF.standard_qf(self.a, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
-
-    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, _, positives_subgroup):
-        return StandardQF.standard_qf(self.a, instances_dataset, positives_dataset, positives_subgroup, positives_subgroup)
+    def ensure_statistics(self, subgroup, statistics):
+        if not self.has_constant_statistics:
+            self.calculate_constant_statistics(self, subgroup.task)
+        if (not hasattr(statistics,'size')) or (not hasattr(statistics,'positives_count')):
+            if subgroup.statistics:
+                statistics = subgroup.statistics
+            else:
+                statistics = self.calculate_statistics(subgroup, statistics)
+        return statistics
 
     def optimistic_generalisation_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         pos_remaining = positives_dataset - positives_subgroup
