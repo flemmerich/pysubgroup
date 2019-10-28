@@ -254,18 +254,21 @@ class DFS:
         self.pop_size = 0
         self.target_bitset = None
         self.apply_representation = apply_representation
+        self.operator = None
 
     def execute(self, task):
         self.pop_size = len(task.data)
         self.target_bitset = task.target.covers(task.data)
         self.pop_positives = self.target_bitset.sum()
+        self.operator = ps.StaticSpecializationOperator(task.search_space)
+        result=[]
         with self.apply_representation(task.data):
-            result = self.search_internal(task, task.search_space, [], ps.RepresentationConjunction([]))
+            self.search_internal(task, result, ps.RepresentationConjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
-        result = [(quality, ps.Subgroup(task, self.apply_representation.undo(sgd))) for quality, sgd in result]
+        result = [(quality, ps.Subgroup(task, sgd)) for quality, sgd in result]
         return result
 
-    def search_internal(self, task, modification_set, result, sg):
+    def search_internal(self, task, result, sg):
 
         sg_size = sg.size
         sg_positive_count = self.target_bitset[sg].sum()
@@ -273,18 +276,13 @@ class DFS:
         optimistic_estimate = task.qf.optimistic_estimate_from_statistics(self.pop_size, self.pop_positives, sg_size,
                                                                           sg_positive_count)
         if optimistic_estimate <= ps.minimum_required_quality(result, task):
-            return result
+            return
         quality = task.qf.evaluate_from_statistics(self.pop_size, self.pop_positives, sg_size, sg_positive_count)
         ps.add_if_required(result, sg, quality, task)
 
         if len(sg) < task.depth:
-            new_modification_set = copy.copy(modification_set)
-            for sel in modification_set:
-                new_sg = copy.copy(sg)
-                new_sg.append_and(sel)
-                new_modification_set.pop(0)
-                self.search_internal(task, new_modification_set, result, new_sg)
-        return result
+            for new_sg in self.operator.refinements(sg):
+                self.search_internal(task, result, new_sg)
 
 
 class DFSNumeric():
