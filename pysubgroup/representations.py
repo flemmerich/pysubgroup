@@ -8,6 +8,7 @@ class RepresentationBase():
     def __init__(self, new_conjunction):
         self._new_conjunction = new_conjunction
         self.previous_conjunction = None
+
     def patch_all_selectors(self):
         for sel in ps.SelectorBase.__refs__:
             self.patch_selector(sel)
@@ -50,10 +51,10 @@ class BitSet_Conjunction(ps.Conjunction):
     def size(self):
         return np.sum(self.representation)
 
-    def __copy__(self):
-        tmp = super().__copy__()
-        tmp.representation = self.representation.copy()
-        return tmp
+    #def __copy__(self):
+    #    tmp = super().__copy__()
+    #    tmp.representation = self.representation.copy()
+    #    return tmp
 
     def append_and(self, to_append):
         super().append_and(to_append)
@@ -98,10 +99,10 @@ class Set_Conjunction(ps.Conjunction):
     def size(self):
         return len(self.representation)
 
-    def __copy__(self):
-        tmp = super().__copy__()
-        tmp.representation = self.representation.copy()
-        return tmp
+    #def __copy__(self):
+    #    tmp = super().__copy__()
+    #    tmp.representation = self.representation.copy()
+    #    return tmp
 
     def append_and(self, to_append):
         super().append_and(to_append)
@@ -146,10 +147,10 @@ class NumpySet_Conjunction(ps.Conjunction):
     def size(self):
         return len(self.representation)
 
-    def __copy__(self):
-        tmp = super().__copy__()
-        tmp.representation = self.representation.copy()
-        return tmp
+    #def __copy__(self):
+    #    tmp = super().__copy__()
+    #    tmp.representation = self.representation.copy()
+    #    return tmp
 
     def append_and(self, to_append):
         super().append_and(to_append)

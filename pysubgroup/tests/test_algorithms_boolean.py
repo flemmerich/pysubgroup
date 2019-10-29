@@ -65,7 +65,7 @@ class TestAlgorithms(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
 # also includes numeric attributes and has 12 targets
 
 
-class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase):
+class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
         NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")
@@ -109,7 +109,7 @@ class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase):
 # uses an a=0.5 and result_set_size = 12, is much faster because of that
 
 
-class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase):
+class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.NominalSelector("checking_status", b"<0")
         NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")
@@ -156,7 +156,13 @@ class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase):
 
 if __name__ == '__main__':
 
-    unittest.main()
+    #unittest.main()
+    suite1 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms)
+    suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2)
+    suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3)
+    complete_suite= unittest.TestSuite([suite1, suite2, suite3])
+    unittest.TextTestRunner(verbosity=2).run(complete_suite)
+
     #import cProfile
     # p=cProfile.Profile()
     # p.enable()
