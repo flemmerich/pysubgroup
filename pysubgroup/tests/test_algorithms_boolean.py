@@ -7,26 +7,26 @@ from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
 class BooleanTargetBase():
     # pylint: disable=no-member
-    def test_Apriori(self):
-        self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
+    #def test_Apriori(self):
+    #    self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
 
-    def test_SimpleDFS(self):
-        self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
+    # def test_SimpleDFS(self):
+    #     self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
 
-    def test_BestFirstSearch(self):
-        self.runAlgorithm(ps.BestFirstSearch(), "BestFirstSearch", self.result, self.qualities, self.task)
+    # def test_BestFirstSearch(self):
+    #     self.runAlgorithm(ps.BestFirstSearch(), "BestFirstSearch", self.result, self.qualities, self.task)
 
-    def test_BeamSearch(self):
-        self.runAlgorithm(ps.BeamSearch(beam_width=12), "BeamSearch", self.result, self.qualities, self.task)
+    # def test_BeamSearch(self):
+    #     self.runAlgorithm(ps.BeamSearch(beam_width=12), "BeamSearch", self.result, self.qualities, self.task)
 
-    def test_BFS_bitset(self):
-        self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "BFS bitset", self.result, self.qualities, self.task)
+    def test_DFS_bitset(self):
+        self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS bitset", self.result, self.qualities, self.task)
 
-    def test_BFS_set(self):
-        self.runAlgorithm(ps.DFS(ps.SetRepresentation), "BFS set", self.result, self.qualities, self.task)
+    #def test_DFS_set(self):
+    #    self.runAlgorithm(ps.DFS(ps.SetRepresentation), "DFS set", self.result, self.qualities, self.task)
 
-    def test_BFS_numpy_sets(self):
-        self.runAlgorithm(ps.DFS(ps.NumpySetRepresentation), "BFS numpyset", self.result, self.qualities, self.task)
+    # def test_DFS_numpy_sets(self):
+    #     self.runAlgorithm(ps.DFS(ps.NumpySetRepresentation), "DFS numpyset", self.result, self.qualities, self.task)
     # pylint: enable=no-member
 
 class TestAlgorithms(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
@@ -160,7 +160,7 @@ if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms)
     suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2)
     suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3)
-    complete_suite= unittest.TestSuite([suite1, suite2, suite3])
+    complete_suite = unittest.TestSuite([suite1, suite2, suite3])
     unittest.TextTestRunner(verbosity=2).run(complete_suite)
 
     #import cProfile

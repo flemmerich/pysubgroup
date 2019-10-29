@@ -106,29 +106,53 @@ class NominalTarget():
         subgroup.statistics['lift_weighted'] = (positives_subgroup / instances_subgroup) / (positives_dataset / instances_dataset)
 
 
-class ChiSquaredQF(ps.AbstractInterestingnessMeasure):
+class SimpleCountQF(ps.AbstractInterestingnessMeasure):
+    tpl = namedtuple('CountQF_parameters' , ('size' , 'positives_count'))
+
+    def __init__(self):
+        self.population = None
+        self.positives = None
+        self.has_constant_statistics = False
+
+    def ensure_statistics(self, subgroup, statistics):
+        if not self.has_constant_statistics:
+            self.calculate_constant_statistics(subgroup.data)
+        if (not hasattr(statistics, 'size')) or (not hasattr(statistics, 'positives_count')):
+            if subgroup.statistics:
+                statistics = subgroup.statistics
+            else:
+                statistics = self.calculate_statistics(subgroup, statistics)
+        return statistics
+
+    def calculate_constant_statistics(self, task):
+        data = task.data
+        self.positives = task.target.covers(data)
+        self.population = SimpleCountQF.tpl(len(data), np.sum(self.positives))
+        self.has_constant_statistics = True
+
+    def calculate_statistics(self, subgroup, data=None):
+        if hasattr(subgroup, "representation"):
+            cover_arr = subgroup
+        else:
+            cover_arr = subgroup.covers(data)
+        return SimpleCountQF.tpl(np.count_nonzero(cover_arr), np.count_nonzero(self.positives[cover_arr]))
+
+        
+class ChiSquaredQF(SimpleCountQF):
     @staticmethod
     def chi_squared_qf(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup, min_instances=5, bidirect=True, direction_positive=True):
         if (instances_subgroup < min_instances) or ((instances_dataset - instances_subgroup) < min_instances):
             return float("-inf")
         p_subgroup = positives_subgroup / instances_subgroup
         p_dataset = positives_dataset / instances_dataset
+        
+        negatives_subgroup =  instances_subgroup - positives_subgroup
+        negatives_dataset =    instances_dataset - positives_dataset
+        negatives_complement = negatives_dataset - negatives_subgroup
         positives_complement = positives_dataset - positives_subgroup
 
-        # instancesComplement = instancesDataset - instancesSubgroup
-        negatives_subgroup = instances_subgroup - positives_subgroup
-        negatives_dataset = instances_dataset - positives_dataset
-        negatives_complement = negatives_dataset - negatives_subgroup
-
-        # observed = [positivesSubgroup, positives_complement,negatives_subgroup, negatives_complement]
-        #
-        # if round(positivesSubgroup) < 0 or
-        #    round(positives_complement) < 0 or
-        #    round(negatives_subgroup) <0 or
-        #    round (negatives_complement) < 0:
-        #    print ("XXXXX")
-        val = scipy.stats.chi2_contingency([[round(positives_subgroup), round(positives_complement)],
-                                            [round(negatives_subgroup), round(negatives_complement)]], correction=False)[0]
+        val = scipy.stats.chi2_contingency([[positives_subgroup, positives_complement],
+                                            [negatives_subgroup, negatives_complement]], correction=False)[0]
         if bidirect:
             return val
         elif direction_positive and p_subgroup > p_dataset:
@@ -166,21 +190,25 @@ class ChiSquaredQF(ps.AbstractInterestingnessMeasure):
             self.bidirect = False
             self.direction_positive = False
         self.min_instances = min_instances
+        super().__init__()
 
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        if not self.is_applicable(subgroup):
-            raise BaseException("Quality measure cannot be used for this target class")
-        if weighting_attribute is None:
-            result = self.evaluate_from_statistics(*subgroup.get_base_statistics(data))
-        else:
-            (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = subgroup.get_base_statistics(data, weighting_attribute)
-            weights = data[weighting_attribute]
-            base = self.evaluate_from_statistics(instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)
-            result = base * ps.effective_sample_size(weights) / instancesDataset
-        return result
 
-    def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        return ChiSquaredQF.chi_squared_qf(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup, self.min_instances, self.bidirect, self.direction_positive)
+    # def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
+    #     if not self.is_applicable(subgroup):
+    #         raise BaseException("Quality measure cannot be used for this target class")
+    #     if weighting_attribute is None:
+    #         result = self.evaluate_from_statistics(*subgroup.get_base_statistics(data))
+    #     else:
+    #         (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = subgroup.get_base_statistics(data, weighting_attribute)
+    #         weights = data[weighting_attribute]
+    #         base = self.evaluate_from_statistics(instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)
+    #         result = base * ps.effective_sample_size(weights) / instancesDataset
+    #     return result
+
+    def evaluate(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        population = self.population
+        return ChiSquaredQF.chi_squared_qf(population.size, population.positives_count, statistics.size, statistics.positives_count, self.min_instances, self.bidirect, self.direction_positive)
 
     def supports_weights(self):
         return True
@@ -189,8 +217,8 @@ class ChiSquaredQF(ps.AbstractInterestingnessMeasure):
         return isinstance(subgroup.target, NominalTarget)
 
 
-class StandardQF(ps.BoundedInterestingnessMeasure):
-    tpl = namedtuple('StandardQF_parameters',('size','positives_count'))
+class StandardQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
+
     @staticmethod
     def standard_qf(a, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         if instances_subgroup == 0:
@@ -201,44 +229,23 @@ class StandardQF(ps.BoundedInterestingnessMeasure):
 
     def __init__(self, a):
         self.a = a
-        self.population = None
-        self.positives = None
-        self.has_constant_statistics = False
+        super().__init__()
         
-
-    def calculate_constant_statistics(self, task):
-        data=task.data
-        self.positives = task.target.covers(data)
-        self.population=StandardQF.tpl(len(data), np.sum(self.positives))
-        self.has_constant_statistics = True
-
-    def calculate_statistics(self, subgroup, data=None):
-        cover_arr=subgroup.covers(data)
-        return StandardQF.tpl(cover_arr.sum(), self.positives[cover_arr].sum()) 
-
-    def evaluate(self, subgroup, statistics = None):
+    def evaluate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
-        population=self.population
+        population = self.population
         return StandardQF.standard_qf(self.a, population.size, population.positives_count, statistics.size, statistics.positives_count )
 
-    def optimistic_estimate(self, subgroup, statistics = None):
+    def optimistic_estimate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
-        population=self.population
+        population = self.population
         return StandardQF.standard_qf(self.a, population.size, population.positives_count, statistics.positives_count, statistics.positives_count )
 
-    def ensure_statistics(self, subgroup, statistics):
-        if not self.has_constant_statistics:
-            self.calculate_constant_statistics(self, subgroup.task)
-        if (not hasattr(statistics,'size')) or (not hasattr(statistics,'positives_count')):
-            if subgroup.statistics:
-                statistics = subgroup.statistics
-            else:
-                statistics = self.calculate_statistics(subgroup, statistics)
-        return statistics
-
-    def optimistic_generalisation_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        pos_remaining = positives_dataset - positives_subgroup
-        return StandardQF.standard_qf(self.a, instances_dataset, positives_dataset, instances_subgroup + pos_remaining, positives_subgroup + pos_remaining)
+    def optimistic_generalisation(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        population = self.population
+        pos_remaining = population.positives_count - statistics.positives_count
+        return StandardQF.standard_qf(self.a, population.size, population.positives_count, statistics.size + pos_remaining, population.positives_count)
 
     def supports_weights(self):
         return True

@@ -212,7 +212,10 @@ class Subgroup():
         return "<<" + repr(self.target) + "; D: " + repr(self.subgroup_description) + ">>"
 
     def covers(self, instance):
-        return self.subgroup_description.covers(instance)
+        if hasattr(self.subgroup_description,"representation"):
+            return self.subgroup_description
+        else:
+            return self.subgroup_description.covers(instance)
 
     def count(self, data):
         return np.sum(self.subgroup_description.covers(data))

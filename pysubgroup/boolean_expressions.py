@@ -12,7 +12,7 @@ class BooleanExpressionBase(ABC):
         return tmp
 
     def __and__(self, other):
-        tmp = copy.copy(self)
+        tmp = self.__copy__()
         tmp.append_and(other)
         return tmp
 
@@ -24,6 +24,10 @@ class BooleanExpressionBase(ABC):
     def append_or(self, to_append):
         pass
 
+    @abstractmethod
+    def __copy__(self):
+        pass
+
 @total_ordering
 class Conjunction(BooleanExpressionBase):
     def __init__(self, selectors):
@@ -32,7 +36,6 @@ class Conjunction(BooleanExpressionBase):
             self._selectors = list(it)
         except TypeError:
             self._selectors = [selectors]
-        self._compute_representations()
 
     def covers(self, instance):
         # empty description ==> return a list of all '1's
@@ -51,7 +54,11 @@ class Conjunction(BooleanExpressionBase):
         return "".join((open_brackets, and_term.join(attrs), closing_brackets))
 
     def __repr__(self):
-        return self._repr
+        if hasattr(self, "_repr"):
+            return self._repr
+        else:
+            self._repr = self._compute_repr()
+            return self._repr
 
     def __eq__(self, other):
         return repr(self) == repr(other)
@@ -60,7 +67,11 @@ class Conjunction(BooleanExpressionBase):
         return repr(self) < repr(other)
 
     def __hash__(self):
-        return self._hash
+        if hasattr(self, "_hash"):
+            return self._hash
+        else:
+            self._hash = self._compute_hash()
+            return self._hash
 
     def _compute_representations(self):
         self._repr=self._compute_repr()
@@ -75,15 +86,23 @@ class Conjunction(BooleanExpressionBase):
     def _compute_hash(self):
         return hash(repr(self))
 
+    def _invalidate_representations(self):
+        if hasattr(self, '_repr'):
+            delattr(self, '_repr')
+        if hasattr(self, '_hash'):
+            delattr(self, '_hash')
+
     def append_and(self, to_append):
-        if isinstance(to_append, Conjunction):
+        if isinstance(to_append, SelectorBase):
+            self._selectors.append(to_append)
+        elif isinstance(to_append, Conjunction):
             self._selectors.extend(to_append._selectors)
         else:
             try:
                 self._selectors.extend(to_append)
             except TypeError:
                 self._selectors.append(to_append)
-        self._compute_representations()
+        self._invalidate_representations()
 
     def append_or(self, to_append):
         raise RuntimeError("Or operations are not supported by a pure Conjunction. Consider using DNF.")
@@ -98,7 +117,7 @@ class Conjunction(BooleanExpressionBase):
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
-        result._selectors = copy.copy(self._selectors)
+        result._selectors = list(self._selectors)
         return result
 
 

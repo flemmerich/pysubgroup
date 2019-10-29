@@ -49,7 +49,7 @@ class BitSet_Conjunction(ps.Conjunction):
 
     @property
     def size(self):
-        return np.sum(self.representation)
+        return np.count_nonzero(self.representation)
 
     #def __copy__(self):
     #    tmp = super().__copy__()

@@ -5,8 +5,9 @@ Created on 29.04.2016
 '''
 import copy
 import functools
-from itertools import combinations, chain, product
+from itertools import combinations, chain
 from heapq import heappush, heappop
+from collections import Counter, namedtuple
 
 import numpy as np
 import pysubgroup as ps
@@ -27,52 +28,64 @@ class SubgroupDiscoveryTask:
         self.min_quality = min_quality
         self.weighting_attribute = weighting_attribute
 
-from collections import Counter
+
 class Apriori:
+    def __init__(self, apply_representation=None, combination=None):
+        if combination is None:
+            combination = ps.RepresentationConjunction
+        self.combination = combination
+        if apply_representation is None:
+            apply_representation = ps.BitSetRepresentation
+        self.apply_representation = apply_representation
     def execute(self, task):
         if not isinstance(task.qf, ps.BoundedInterestingnessMeasure):
             raise RuntimeWarning("Quality function is unbounded, long runtime expected")
-        result = []
-        task.qf.calculate_constant_statistics(task)
-        # init the first level
-        next_level_candidates = []
-        for sel in task.search_space:
-            next_level_candidates.append(ps.Subgroup(task.target, ps.Conjunction([sel])))
+        with self.apply_representation(task.data):
+            result = []
+            task.qf.calculate_constant_statistics(task)
+            # init the first level
+            next_level_candidates = []
+            for sel in task.search_space:
+                next_level_candidates.append(ps.Subgroup(task.target, self.combination([sel])))
 
-        # level-wise search
-        depth = 1
-        while next_level_candidates:
-            # check sgs from the last level
-            promising_candidates = []
-            for sg in next_level_candidates:
-                statistics = task.qf.calculate_statistics(sg, task.data)
-                ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task)
-                optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
+            # level-wise search
+            depth = 1
+            while next_level_candidates:
+                # check sgs from the last level
+                promising_candidates = []
+                for sg in next_level_candidates:
+                    statistics = task.qf.calculate_statistics(sg, task.data)
+                    ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task)
+                    optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
 
-                if optimistic_estimate >= ps.minimum_required_quality(result, task):
-                    promising_candidates.append(list(sg.subgroup_description._selectors))
+                    if optimistic_estimate >= ps.minimum_required_quality(result, task):
+                        promising_candidates.append(list(sg.subgroup_description._selectors))
 
-            if depth == task.depth:
-                break
-            print(len(promising_candidates))
-            set_promising_candidates = set(frozenset(p) for p in promising_candidates)
-            for k in range(1, depth):
-                promising_candidates_k=(combinations(selectors, k) for selectors in promising_candidates)
-                tmp =  Counter(chain.from_iterable(promising_candidates_k))
-                d=depth + 1 - k
-                tmp2 = set(frozenset(sel) for sel, count in tmp.items() if count  < d)
-                promising_candidates = list(selectors for selectors in promising_candidates if all(frozenset(comb) not in tmp2 for comb in combinations(selectors,k)))
-                print(len(tmp2))
-            print()
-            #promising_candidates = list(selectors for selectors in promising_candidates if all(sel not in tmp2 for sel in selectors))
-            l=list((sg,[sg[-1]],hash(tuple(sg[:-1])), sg[:-1]) for sg in promising_candidates)
-            next_level_candidates_no_pruning = (sg1 + n_r for (sg1,n_l,h_l,l_l),(sg2,n_r,h_r,l_r) in combinations(l,2) if (h_l==h_r) and (l_l==l_r))
-            #next_level_candidates_no_pruning = (sg1 + [sg2[-1]] for sg1, sg2 in combinations(promising_candidates, 2) if sg1[:-1] == sg2[:-1])
-            # select those selectors and build a subgroup from them
-            #   for which all subsets of length depth (=candidate length -1) are in the set of promising candidates
-            next_level_candidates = [ps.Subgroup(task.target, ps.Conjunction(selectors)) for selectors in next_level_candidates_no_pruning
-                                     if all((frozenset(subset) in set_promising_candidates) for subset in combinations(selectors, depth))]
-            depth = depth + 1
+                if depth == task.depth:
+                    break
+                set_promising_candidates = set(frozenset(p) for p in promising_candidates)
+                # print(len(promising_candidates))
+                # 
+                # for k in range(1, depth):
+                #     promising_candidates_k = (combinations(selectors, k) for selectors in promising_candidates)
+                #     tmp = Counter(chain.from_iterable(promising_candidates_k))
+                #     d = depth + 1 - k
+                #     tmp2 = set(frozenset(sel) for sel, count in tmp.items() if count < d)
+                #     promising_candidates = list(selectors for selectors in promising_candidates if all(frozenset(comb) not in tmp2 for comb in combinations(selectors, k)))
+                #     print(len(tmp2))
+                # print()
+                combine = self.combination
+                #promising_candidates = list(selectors for selectors in promising_candidates if all(sel not in tmp2 for sel in selectors))
+                l = list((sg, [sg[-1]], hash(tuple(sg[:-1])), sg[:-1]) for sg in promising_candidates)
+                next_level_candidates_no_pruning = (sg1 + n_r for (sg1, _, hash_l, l_l), (_, n_r, hash_r, l_r) in combinations(l, 2)
+                                                    if (hash_l == hash_r) and (l_l == l_r))
+                #next_level_candidates_no_pruning = (sg1 + [sg2[-1]] for sg1, sg2 in combinations(promising_candidates, 2) if sg1[:-1] == sg2[:-1])
+                # select those selectors and build a subgroup from them
+                #   for which all subsets of length depth (=candidate length -1) are in the set of promising candidates
+                
+                next_level_candidates = [ps.Subgroup(task.target, combine(selectors)) for selectors in next_level_candidates_no_pruning
+                                        if all((frozenset(subset) in set_promising_candidates) for subset in combinations(selectors, depth))]
+                depth = depth + 1
 
         result.sort(key=lambda x: x[0], reverse=True)
         return result
@@ -83,24 +96,25 @@ class BestFirstSearch:
         result = []
         queue = []
         operator = ps.StaticSpecializationOperator(task.search_space)
+        task.qf.calculate_constant_statistics(task)
         # init the first level
         for sel in task.search_space:
             queue.append((float("-inf"), ps.Conjunction([sel])))
-        task.qf.calculate_constant_statistics(task)
-
+        
         while queue:
             q, candidate_description = heappop(queue)
             q = -q
             if q < ps.minimum_required_quality(result, task):
                 break
-
             sg = ps.Subgroup(task.target, candidate_description)
             statistics = task.qf.calculate_statistics(sg, task.data)
             ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task)
             optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
 
+
             # compute refinements and fill the queue
             if len(candidate_description) < task.depth and optimistic_estimate >= ps.minimum_required_quality(result, task):
+                #print(ps.minimum_required_quality(result, task))
                 for new_description in operator.refinements(candidate_description):
                     heappush(queue, (-optimistic_estimate, new_description))
 
@@ -130,8 +144,6 @@ class GeneralisingBFS:
                 break
 
             sg = ps.Subgroup(task.target, candidate_description)
-
-            # if measure_statistics_based:
             statistics = task.qf.calculate_statistics(sg, task.data)
             quality = task.qf.evaluate(sg, statistics)
             ps.add_if_required(result, sg, quality, task)
@@ -140,7 +152,7 @@ class GeneralisingBFS:
             qual = ps.minimum_required_quality(result, task)
 
             if (quality, sg) in result:
-                print(qual)
+                #print(qual)
                 # print(queue)
                 new_queue = []
                 for q_tmp, c_tmp in queue:
@@ -218,6 +230,7 @@ class BeamSearch:
 
 class SimpleDFS:
     def execute(self, task, use_optimistic_estimates=True):
+        task.qf.calculate_constant_statistics(task)
         result = self.search_internal(task, [], task.search_space, [], use_optimistic_estimates)
         result.sort(key=lambda x: x[0], reverse=True)
         return result
@@ -230,10 +243,8 @@ class SimpleDFS:
             if optimistic_estimate <= ps.minimum_required_quality(result, task):
                 return result
 
-        if task.qf.supports_weights():
-            quality = task.qf.evaluate(task.data, sg, task.weighting_attribute)
-        else:
-            quality = task.qf.evaluate(task.data, sg)
+
+        quality = task.qf.evaluate(sg, task.data)
         ps.add_if_required(result, sg, quality, task)
 
         if len(prefix) < task.depth:
@@ -246,7 +257,7 @@ class SimpleDFS:
                 prefix.pop(-1)
         return result
 
-from collections import namedtuple
+
 class DFS:
     """
     Implementation of a depth-first-search with look-ahead using a provided datastructure.
@@ -256,13 +267,13 @@ class DFS:
         self.target_bitset = None
         self.apply_representation = apply_representation
         self.operator = None
-        self.params_tpl= namedtuple('StandardQF_parameters',('size','positives_count'))
+        self.params_tpl = namedtuple('StandardQF_parameters', ('size', 'positives_count'))
 
     def execute(self, task):
         self.target_bitset = task.target.covers(task.data)
         self.operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task)
-        result=[]
+        result = []
         with self.apply_representation(task.data):
             self.search_internal(task, result, ps.RepresentationConjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
@@ -270,7 +281,7 @@ class DFS:
         return result
 
     def search_internal(self, task, result, sg):
-        params=self.params_tpl(sg.size, np.count_nonzero(self.target_bitset[sg]))
+        params = self.params_tpl(sg.size, np.count_nonzero(self.target_bitset[sg]))
 
         optimistic_estimate = task.qf.optimistic_estimate(sg, params)
         if optimistic_estimate <= ps.minimum_required_quality(result, task):
