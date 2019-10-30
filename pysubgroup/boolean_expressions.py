@@ -119,6 +119,9 @@ class Conjunction(BooleanExpressionBase):
         result.__dict__.update(self.__dict__)
         result._selectors = list(self._selectors)
         return result
+    @property
+    def depth(self):
+        return len(self._selectors)
 
 
 @total_ordering

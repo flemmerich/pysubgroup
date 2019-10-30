@@ -217,8 +217,8 @@ class Subgroup():
         else:
             return self.subgroup_description.covers(instance)
 
-    def count(self, data):
-        return np.sum(self.subgroup_description.covers(data))
+    def __getattr__(self, name):
+        return getattr(self.subgroup_description, name)
 
     def __eq__(self, other):
         if other is None:

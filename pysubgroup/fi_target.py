@@ -3,15 +3,15 @@ Created on 29.09.2017
 
 @author: lemmerfn
 '''
+from collections import namedtuple
 from functools import total_ordering
+import numpy as np
 import pysubgroup as ps
+
 
 
 @total_ordering
 class FITarget():
-    def __init__(self):
-        pass
-
     def __repr__(self):
         return "T: Frequent Itemsets"
 
@@ -40,21 +40,36 @@ class FITarget():
         subgroup.statistics['size_dataset'] = len(data)
 
 
-class CountQF(ps.BoundedInterestingnessMeasure):
-    def __init__(self):
+class SimpleCountQF(ps.AbstractInterestingnessMeasure):
+    tpl = namedtuple('CountQF_parameters' , ('size'))
+
+    def ensure_statistics(self, subgroup, statistics):
+        if (not hasattr(statistics, 'size')):
+            if subgroup.statistics:
+                statistics = subgroup.statistics
+            else:
+                statistics = self.calculate_statistics(subgroup, statistics)
+        return statistics
+
+    def calculate_constant_statistics(self, task):
         pass
 
-    def evaluate_from_dataset(self, data, subgroup, _weighting_attribute=None):
-        return subgroup.subgroup_description.covers(data).sum()
+    def calculate_statistics(self, subgroup, data=None):
+        if hasattr(subgroup, "representation"):
+            cover_arr = subgroup
+        else:
+            cover_arr = subgroup.covers(data)
+        return SimpleCountQF.tpl(np.count_nonzero(cover_arr))
 
-    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        return subgroup.subgroup_description.covers(data).sum()
 
-    def evaluate_from_statistics(self, _instances_dataset, _positives_dataset, instances_subgroup, _positives_subgroup):
-        return instances_subgroup
+class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
+    def evaluate(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        return statistics.size
 
-    def optimistic_estimate_from_statistics(self, _instances_dataset, _postives_dataset, instances_subgroup, _postives_subgroup):
-        return instances_subgroup
+    def optimistic_estimate(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        return statistics.size
 
     def is_applicable(self, subgroup):
         return isinstance(subgroup.target, FITarget)
@@ -63,12 +78,10 @@ class CountQF(ps.BoundedInterestingnessMeasure):
         return False
 
 
-class AreaQF(ps.AbstractInterestingnessMeasure):
-    def __init__(self):
-        pass
-
-    def evaluate_from_dataset(self, data, subgroup, _):
-        return len(subgroup.subgroup_description) * subgroup.subgroup_description.covers(data).sum()
+class AreaQF(SimpleCountQF):
+    def evaluate(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        return statistics.size * subgroup.depth
 
     def is_applicable(self, subgroup):
         return isinstance(subgroup.target, FITarget)
