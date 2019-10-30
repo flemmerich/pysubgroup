@@ -4,29 +4,34 @@ from pysubgroup.tests.DataSets import get_credit_data
 
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
-
+skip_long_running=True
 class BooleanTargetBase():
+    
     # pylint: disable=no-member
-    #def test_Apriori(self):
-    #    self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
+    def test_Apriori(self):
+        self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
 
-    # def test_SimpleDFS(self):
-    #     self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
+    def test_SimpleDFS(self):
+        self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
 
-    # def test_BestFirstSearch(self):
-    #     self.runAlgorithm(ps.BestFirstSearch(), "BestFirstSearch", self.result, self.qualities, self.task)
+    def test_BestFirstSearch(self):
+        self.runAlgorithm(ps.BestFirstSearch(), "BestFirstSearch", self.result, self.qualities, self.task)
 
-    # def test_BeamSearch(self):
-    #     self.runAlgorithm(ps.BeamSearch(beam_width=12), "BeamSearch", self.result, self.qualities, self.task)
+    def test_BeamSearch(self):
+        self.runAlgorithm(ps.BeamSearch(beam_width=12), "BeamSearch", self.result, self.qualities, self.task)
 
     def test_DFS_bitset(self):
         self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS bitset", self.result, self.qualities, self.task)
 
-    #def test_DFS_set(self):
-    #    self.runAlgorithm(ps.DFS(ps.SetRepresentation), "DFS set", self.result, self.qualities, self.task)
+    @unittest.skipIf(skip_long_running, "as skip_long_running flag is True")
+    def test_SimpleSearch(self):
+        self.runAlgorithm(ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task)
 
-    # def test_DFS_numpy_sets(self):
-    #     self.runAlgorithm(ps.DFS(ps.NumpySetRepresentation), "DFS numpyset", self.result, self.qualities, self.task)
+    def test_DFS_set(self):
+        self.runAlgorithm(ps.DFS(ps.SetRepresentation), "DFS set", self.result, self.qualities, self.task)
+
+    def test_DFS_numpy_sets(self):
+        self.runAlgorithm(ps.DFS(ps.NumpySetRepresentation), "DFS numpyset", self.result, self.qualities, self.task)
     # pylint: enable=no-member
 
 class TestAlgorithms(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
