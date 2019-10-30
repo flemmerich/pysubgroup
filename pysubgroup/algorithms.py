@@ -228,6 +228,20 @@ class BeamSearch:
         return result
 
 
+class SimpleSearch:
+    def execute(self, task):
+        task.qf.calculate_constant_statistics(task)
+        result=[]
+        all_selectors=chain.from_iterable(combinations(task.search_space, r) for r in range(1,task.depth+1))
+        for selectors in all_selectors:
+            sg=ps.Subgroup(task.target, ps.Conjunction(selectors))
+            statistics=task.qf.calculate_statistics(sg, task.data)
+            quality = task.qf.evaluate(sg, statistics)
+            ps.add_if_required(result, sg, quality, task)
+        result.sort(key=lambda x: x[0], reverse=True)
+        return result
+
+
 class SimpleDFS:
     def execute(self, task, use_optimistic_estimates=True):
         task.qf.calculate_constant_statistics(task)
@@ -238,13 +252,14 @@ class SimpleDFS:
     def search_internal(self, task, prefix, modification_set, result, use_optimistic_estimates):
         sg = ps.Subgroup(task.target, ps.Conjunction(copy.copy(prefix)))
         
+        statistics=task.qf.calculate_statistics(sg, task.data)
         if use_optimistic_estimates and len(prefix) < task.depth and isinstance(task.qf, ps.BoundedInterestingnessMeasure):
-            optimistic_estimate = task.qf.optimistic_estimate_from_dataset(task.data, sg)
+            optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
             if optimistic_estimate <= ps.minimum_required_quality(result, task):
                 return result
 
 
-        quality = task.qf.evaluate(sg, task.data)
+        quality = task.qf.evaluate(sg, statistics)
         ps.add_if_required(result, sg, quality, task)
 
         if len(prefix) < task.depth:
