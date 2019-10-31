@@ -47,38 +47,44 @@ class TestRelationsMethods(unittest.TestCase):
         self.assertTrue(S1 is S1_clone)
 
     def test_Conjunction_ordering(self):
+        self.assert_class_ordering(ps.Conjunction)
+
+    def assert_class_ordering(self, cls):
         A1 = ps.NominalSelector("A", 1)
         A2 = ps.NominalSelector("A", 2, "AA")
         B1 = ps.NominalSelector("B", 1)
 
-        SGD1 = ps.Conjunction([A1, A2])
-        SGD1_clone = ps.Conjunction([A1, A2])
-        SGD1_order = ps.Conjunction([A2, A1])
+        SGD1 = cls([A1, A2])
+        SGD1_clone = cls([A1, A2])
+        SGD1_order = cls([A2, A1])
 
         self.assertTrue(SGD1 == SGD1_clone)
         self.assertTrue(hash(SGD1) == hash(SGD1_clone))
         self.assertTrue(SGD1 == SGD1_order)
         self.assertTrue(hash(SGD1) == hash(SGD1_order))
 
-        SGD2 = ps.Conjunction([A1, A2, B1])
-        SGD3 = ps.Conjunction([B1])
+        SGD2 = cls([A1, A2, B1])
+        SGD3 = cls([B1])
         self.assertTrue(SGD1 > SGD2)
         self.assertTrue(SGD2 < SGD3)
 
+    def test_Disjunction_ordering(self):
+        self.assert_class_ordering(ps.Disjunction)
+
     def test_nominal_selector_covers(self):
         A = np.array([0, 0, 1, 1, 0, 0, 1, 1, 1, 1], dtype=bool)
-        A1 = ps.NominalSelector("A", True)
-        A0 = ps.NominalSelector("A", False)
+        A1 = ps.NominalSelector("columnA", True)
+        A0 = ps.NominalSelector("columnA", False)
 
         B = np.array(["A", "B", "C", "C", "B", "A", "D", "A", "A", "A"])
-        BA = ps.NominalSelector("B", "A")
-        BC = ps.NominalSelector("B", "C")
+        BA = ps.NominalSelector("columnB", "A")
+        BC = ps.NominalSelector("columnB", "C")
 
         C = np.array([np.nan, np.nan, 1.1, 1.1, 2, 2, 2, 2, 2, 2])
-        CA = ps.NominalSelector("C", 1.1)
-        CNan = ps.NominalSelector("C", np.nan)
+        CA = ps.NominalSelector("columnC", 1.1)
+        CNan = ps.NominalSelector("columnC", np.nan)
 
-        df = pd.DataFrame.from_dict({"A": A, "B": B, "C": C})
+        df = pd.DataFrame.from_dict({"columnA": A, "columnB": B, "columnC": C})
 
         np.testing.assert_array_equal(A1.covers(df), A)
         np.testing.assert_array_equal(A0.covers(df), np.logical_not(A))
