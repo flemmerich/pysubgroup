@@ -3,57 +3,69 @@ Created on 29.09.2017
 
 @author: lemmerfn
 '''
+from collections import namedtuple
 from functools import total_ordering
+import numpy as np
 import pysubgroup as ps
 
+
+
 @total_ordering
-class FITarget(object):
-    def __init__(self):
-        pass
-        
+class FITarget():
     def __repr__(self):
         return "T: Frequent Itemsets"
-    
-    def __eq__(self, other): 
+
+    def __eq__(self, other):
         return self.__dict__ == other.__dict__
-    
-    def __lt__(self, other): 
+
+    def __lt__(self, other):
         return str(self) < str(other)
-    
+
     def get_attributes(self):
         return []
-    
-    def get_base_statistics (self, data, subgroup, weighting_attribute=None):
+
+    def get_base_statistics(self, data, subgroup, weighting_attribute=None):
         if weighting_attribute is None:
             sg_instances = subgroup.subgroup_description.covers(data)
-            return sg_instances.sum()  
+            return sg_instances.sum()
         else:
-            raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
-        
+            raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
+
     def calculate_statistics(self, subgroup, data, weighting_attribute=None):
         if weighting_attribute is not None:
-            raise NotImplemented("Attribute weights with numeric targets are not yet implemented.")
+            raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
         sg_instances = subgroup.subgroup_description.covers(data)
-        
+
         subgroup.statistics['size_sg'] = len(sg_instances)
         subgroup.statistics['size_dataset'] = len(data)
 
 
-class CountQF (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasure):
+class SimpleCountQF(ps.AbstractInterestingnessMeasure):
+    tpl = namedtuple('CountQF_parameters' , ('size'))
+
     def __init__(self):
+        self.required_stat_attrs = ('size',)
+        self.has_constant_statistics = True
+
+    def calculate_constant_statistics(self, task):
         pass
-    
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        return subgroup.subgroup_description.covers(data).sum()
-    
-    def optimistic_estimate_from_dataset(self, data, subgroup):
-        return subgroup.subgroup_description.covers(data).sum()
-        
-    def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        return instances_subgroup
-    
-    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        return instances_subgroup
+
+    def calculate_statistics(self, subgroup, data=None):
+        if hasattr(subgroup, "representation"):
+            cover_arr = subgroup
+        else:
+            cover_arr = subgroup.covers(data)
+        return SimpleCountQF.tpl(np.count_nonzero(cover_arr))
+
+
+class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
+    def evaluate(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        return statistics.size
+
+    def optimistic_estimate(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        return statistics.size
 
     def is_applicable(self, subgroup):
         return isinstance(subgroup.target, FITarget)
@@ -62,12 +74,10 @@ class CountQF (ps.AbstractInterestingnessMeasure, ps.BoundedInterestingnessMeasu
         return False
 
 
-class AreaQF(ps.AbstractInterestingnessMeasure):
-    def __init__(self):
-        pass
-
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        return len(subgroup.subgroup_description) * subgroup.subgroup_description.covers(data).sum()
+class AreaQF(SimpleCountQF):
+    def evaluate(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        return statistics.size * subgroup.depth
 
     def is_applicable(self, subgroup):
         return isinstance(subgroup.target, FITarget)

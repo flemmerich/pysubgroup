@@ -3,32 +3,46 @@ Created on 28.04.2016
 
 @author: lemmerfn
 '''
+from abc import ABC, abstractmethod
 import numpy as np
 import pysubgroup as ps
 
 
-class AbstractInterestingnessMeasure(object):
-    def optimistic_estimate_from_dataset(self, data, subgroup):
-        return float("inf")
 
-    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
-                                            positives_subgroup):
-        return float("inf")
-
+class AbstractInterestingnessMeasure(ABC):
+    @abstractmethod
     def supports_weights(self):
-        return False
+        pass
 
+    @abstractmethod
     def is_applicable(self, subgroup):
-        return False
+        pass
+
+    def ensure_statistics(self, subgroup, statistics):
+        if not self.has_constant_statistics:
+            self.calculate_constant_statistics(subgroup.data)
+        if any(not hasattr(statistics, attr) for attr in self.required_stat_attrs):
+            if subgroup.statistics:
+                statistics = subgroup.statistics
+            else:
+                statistics = self.calculate_statistics(subgroup, statistics)
+        return statistics
+
+    #def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None): #pylint: disable=unused-argument
+    #    return float("inf")
 
 
-class BoundedInterestingnessMeasure:
+class BoundedInterestingnessMeasure(AbstractInterestingnessMeasure):
     pass
+    #@abstractmethod
+    #def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
+    #    pass
 
 
-class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInterestingnessMeasure):
+class CombinedInterestingnessMeasure(BoundedInterestingnessMeasure):
     def __init__(self, measures, weights=None):
         self.measures = measures
+
         if weights is None:
             weights = [1] * len(measures)
         self.weights = weights
@@ -38,21 +52,18 @@ class CombinedInterestingnessMeasure(AbstractInterestingnessMeasure, BoundedInte
             raise BaseException("Quality measure cannot be used for this target class")
         return np.dot([m.evaluate_from_dataset(data, subgroup, weighting_attribute) for m in self.measures], self.weights)
 
-    def optimistic_estimate_from_dataset(self, data, subgroup):
+    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
         if not self.is_applicable(subgroup):
             raise BaseException("Quality measure cannot be used for this target class")
         return np.dot([m.optimistic_estimate_from_dataset(data, subgroup) for m in self.measures], self.weights)
 
     def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        return np.dot(
-            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
-                for m in self.measures], self.weights)
+        return np.dot([m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures], self.weights)
 
-    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup,
-                                         positives_subgroup):
+    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         return np.dot(
-            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup)
-             for m in self.measures], self.weights)
+            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures],
+            self.weights)
 
     def is_applicable(self, subgroup):
         return all([x.is_applicable(subgroup) for x in self.measures])

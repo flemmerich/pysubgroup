@@ -1,10 +1,10 @@
-import pysubgroup as ps
-import pandas as pd
 import matplotlib.pyplot as plt
+import pysubgroup as ps
+from pysubgroup.tests.DataSets import get_titanic_data
 plt.interactive(False)
 
 
-data = pd.read_table("../data/titanic.csv")
+data = get_titanic_data()
 target = ps.NominalTarget('Survived', 0)
 search_space = ps.create_selectors(data, ignore=['Survived'])
 task = ps.SubgroupDiscoveryTask(data, target, search_space,
@@ -14,5 +14,6 @@ task = ps.SubgroupDiscoveryTask(data, target, search_space,
 result = ps.SimpleDFS().execute(task)
 
 dfs = ps.results_as_df(data, result)
-plt = ps.plot_roc(data, dfs, ps.ChiSquaredQF())
+fig = ps.plot_roc(dfs, data, ps.ChiSquaredQF())
+fig.show()
 plt.show()
