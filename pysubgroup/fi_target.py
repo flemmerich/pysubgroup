@@ -43,13 +43,9 @@ class FITarget():
 class SimpleCountQF(ps.AbstractInterestingnessMeasure):
     tpl = namedtuple('CountQF_parameters' , ('size'))
 
-    def ensure_statistics(self, subgroup, statistics):
-        if (not hasattr(statistics, 'size')):
-            if subgroup.statistics:
-                statistics = subgroup.statistics
-            else:
-                statistics = self.calculate_statistics(subgroup, statistics)
-        return statistics
+    def __init__(self):
+        self.required_stat_attrs = ('size',)
+        self.has_constant_statistics = True
 
     def calculate_constant_statistics(self, task):
         pass

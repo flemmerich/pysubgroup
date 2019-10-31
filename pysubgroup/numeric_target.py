@@ -3,10 +3,10 @@ Created on 29.09.2017
 
 @author: lemmerfn
 '''
+from collections import namedtuple
 from functools import total_ordering
 import numpy as np
 import pysubgroup as ps
-
 
 
 @total_ordering
@@ -62,37 +62,60 @@ class NumericTarget:
 
 
 class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
-
+    tpl = namedtuple('StandardQFNumeric_parameters' , ('size' , 'mean', 'size_greater_mean','sum_greater_mean'))
     @staticmethod
     def standard_qf_numeric(a, _, mean_dataset, instances_subgroup, mean_sg):
-        if instances_subgroup == 0:
-            return 0
         return instances_subgroup ** a * (mean_sg - mean_dataset)
 
     def __init__(self, a, invert=False):
         self.a = a
         self.invert = invert
+        self.required_stat_attrs = ('size', 'mean')
+        self.datatset = None
+        self.positives = None
+        self.has_constant_statistics = False
 
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None, _cache=None):
-        if not self.is_applicable(subgroup):
+    def calculate_constant_statistics(self, task):
+        if not self.is_applicable(task):
             raise BaseException("Quality measure cannot be used for this target class")
-        return ps.conditional_invert(self.evaluate_from_statistics(*subgroup.get_base_statistics(data, weighting_attribute)), self.invert)
+        data = task.data
+        self.all_target_values = data[task.target.target_variable].to_numpy()
+        target_mean = np.mean(self.all_target_values)
+        self.indices_greater_mean = np.nonzero(self.all_target_values > target_mean)[0]
+        self.target_values_greater_mean = self.all_target_values[self.indices_greater_mean]
+        self.dataset = StandardQFNumeric.tpl(len(data), target_mean, 0, 0)
+        self.has_constant_statistics = True
 
-    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        if not self.is_applicable(subgroup):
-            raise BaseException("Quality measure cannot be used for this target class")
-        all_target_values = data[subgroup.target.target_variable]
-        sg_instances = subgroup.subgroup_description.covers(data)
-        mean_dataset = np.mean(all_target_values)
-        sg_target_values = all_target_values[sg_instances]
-        target_values_larger_than_mean = sg_target_values[sg_target_values > mean_dataset]
-        return ps.conditional_invert(np.sum(target_values_larger_than_mean) - (len(target_values_larger_than_mean) * mean_dataset), self.invert)
+    def evaluate(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        dataset = self.dataset
+        return StandardQFNumeric.standard_qf_numeric(self.a, dataset.size, dataset.mean, statistics.size, statistics.mean)
 
-    def evaluate_from_statistics(self, instances_dataset, mean_dataset, instances_subgroup, mean_sg):
-        return StandardQFNumeric.standard_qf_numeric(self.a, instances_dataset, mean_dataset, instances_subgroup, mean_sg)
+    def calculate_statistics(self, subgroup, data=None):
+        if hasattr(subgroup, "representation"):
+            cover_arr = np.array(subgroup)
+        else:
+            cover_arr = subgroup.covers(data)
+        sg_size=np.count_nonzero(cover_arr)
+        sg_mean=np.array([0])
+        #size_greater_mean=0
+        #sum_greater_mean=np.array([0])
+        if sg_size > 0:
+            sg_mean=np.mean(self.all_target_values[cover_arr])
+        larger_than_mean = self.target_values_greater_mean[cover_arr[self.indices_greater_mean]]
+        size_greater_mean = len(larger_than_mean)
+        sum_greater_mean = np.sum(larger_than_mean)
 
-    def optimistic_estimate_from_statistics(self, _instances_dataset, _positives_dataset, _instances_subgroup, _positives_subgroup):
-        return float("inf")
+        return StandardQFNumeric.tpl(sg_size, sg_mean, size_greater_mean, sum_greater_mean)
+
+
+    def optimistic_estimate(self, subgroup, statistics=None):
+        statistics = self.ensure_statistics(subgroup, statistics)
+        dataset = self.dataset
+        a = statistics.sum_greater_mean
+        b = statistics.size_greater_mean
+        sg_mean=np.divide(a, b, out=np.zeros_like(a), where=b!=0) # deal with the case where b==0
+        return StandardQFNumeric.standard_qf_numeric(self.a, dataset.size, dataset.mean, statistics.size_greater_mean, sg_mean )
 
     def is_applicable(self, subgroup):
         return isinstance(subgroup.target, NumericTarget)

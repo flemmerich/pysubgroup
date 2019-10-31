@@ -18,6 +18,16 @@ class AbstractInterestingnessMeasure(ABC):
     def is_applicable(self, subgroup):
         pass
 
+    def ensure_statistics(self, subgroup, statistics):
+        if not self.has_constant_statistics:
+            self.calculate_constant_statistics(subgroup.data)
+        if any(not hasattr(statistics, attr) for attr in self.required_stat_attrs):
+            if subgroup.statistics:
+                statistics = subgroup.statistics
+            else:
+                statistics = self.calculate_statistics(subgroup, statistics)
+        return statistics
+
     #def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None): #pylint: disable=unused-argument
     #    return float("inf")
 

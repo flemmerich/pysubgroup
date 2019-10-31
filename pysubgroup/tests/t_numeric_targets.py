@@ -1,10 +1,9 @@
-from scipy.io import arff
-import pandas as pd
+import unittest
 import pysubgroup as ps
+from pysubgroup.tests.DataSets import get_credit_data
 
-
-
-data = pd.DataFrame(arff.loadarff("../data/credit-g.arff")[0])
+from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
+data = get_credit_data()
 
 target = ps.NumericTarget('credit_amount')
 sg = ps.Subgroup(target, ps.NominalSelector("purpose", b"other"))

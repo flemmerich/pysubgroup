@@ -113,16 +113,7 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):
         self.datatset = None
         self.positives = None
         self.has_constant_statistics = False
-
-    def ensure_statistics(self, subgroup, statistics):
-        if not self.has_constant_statistics:
-            self.calculate_constant_statistics(subgroup.data)
-        if (not hasattr(statistics, 'size')) or (not hasattr(statistics, 'positives_count')):
-            if subgroup.statistics:
-                statistics = subgroup.statistics
-            else:
-                statistics = self.calculate_statistics(subgroup, statistics)
-        return statistics
+        self.required_stat_attrs=('size', 'positives_count')
 
     def calculate_constant_statistics(self, task):
         data = task.data

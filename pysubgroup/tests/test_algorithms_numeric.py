@@ -59,6 +59,9 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
     def test_SimpleDFS(self):
         self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
 
+    def test_Apriori(self):
+        self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
+
     def test_DFSNumeric(self):
         self.runAlgorithm(ps.DFSNumeric(), "DFS_numeric", self.result, self.qualities, self.task)
 

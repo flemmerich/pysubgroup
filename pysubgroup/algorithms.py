@@ -310,6 +310,7 @@ class DFS:
 
 
 class DFSNumeric():
+    tpl = namedtuple('size_mean_parameters' , ('size' , 'mean'))
     def __init__(self):
         self.pop_size = 0
         self.f = None
@@ -325,8 +326,8 @@ class DFSNumeric():
         # generate target bitset
         self.target_values = sorted_data[task.target.get_attributes()[0]].values
 
-        f = functools.partial(task.qf.evaluate_from_statistics, len(sorted_data), self.target_values.mean())
-        self.f = np.vectorize(f)
+        task.qf.calculate_constant_statistics(task)
+        self.f = task.qf.evaluate
 
         # generate selector bitsets
         self.bitsets = {}
@@ -345,8 +346,10 @@ class DFSNumeric():
         target_values_sg = self.target_values[bitset]
 
         target_values_cs = np.cumsum(target_values_sg)
-        mean_values_cs = target_values_cs / (np.arange(len(target_values_cs)) + 1)
-        qualities = self.f(np.arange(len(target_values_cs)) + 1, mean_values_cs)
+        sizes=np.arange(1, len(target_values_cs)+1)
+        mean_values_cs = target_values_cs / sizes
+        tpl=DFSNumeric.tpl(sizes, mean_values_cs)
+        qualities = self.f(None, tpl)
         optimistic_estimate = np.max(qualities)
 
         if optimistic_estimate <= ps.minimum_required_quality(result, task):
