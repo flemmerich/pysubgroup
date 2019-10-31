@@ -304,37 +304,9 @@ class DFS:
         quality = task.qf.evaluate(sg, params)
         ps.add_if_required(result, sg, quality, task)
 
-        if len(prefix) < task.depth:
-            new_modification_set = copy.copy(modification_set)
-            for sel in modification_set:
-                prefix.append(sel)
-                newBitset = np.logical_and(bitset, self.bitsets[sel])
-                new_modification_set.pop(0)
-                self.search_internal(task, prefix, new_modification_set, result, newBitset)
-                # remove the sel again
-                prefix.pop(-1)
-        return result
-
-
-class TID_SD (object):
-    """
-    Implementation of a depth-first-search with look-ahead using vertical ID lists as data structure.
-    """
-
-    def __init__(self,use_sets=False):
-        self.use_sets=use_sets
-
-    def execute(self, task ):
-        use_sets=self.use_sets
-        self.popSize = len(task.data)
-
-        # generate target bitset
-        x = task.target.covers(task.data)
-        if use_sets:
-            self.targetBitset = set (x.nonzero()[0])
-        else:
-            self.targetBitset = list(x.nonzero()[0])
-
+        if len(sg) < task.depth:
+            for new_sg in self.operator.refinements(sg):
+                self.search_internal(task, result, new_sg)
 
 
 class DFSNumeric():
@@ -344,22 +316,6 @@ class DFSNumeric():
         self.f = None
         self.target_values = None
         self.bitsets = {}
-        for sel in task.search_space:
-            # generate data structure
-            x = sel.covers(task.data)
-            if use_sets:
-                sel_bitset = set (x.nonzero()[0])
-            else:
-                sel_bitset = list(x.nonzero()[0])
-            self.bitsets[sel] = sel_bitset
-        if use_sets:
-            result = self.search_internal(task, [], task.search_space, [], set(range(self.popSize)), use_sets)
-        else:
-            result = self.search_internal(task, [], task.search_space, [], list(range(self.popSize)), use_sets)
-        result.sort(key=lambda x: x[0], reverse=True)
-        return result
-
-    def search_internal(self, task, prefix, modificationSet, result, bitset, use_sets):
 
     def execute(self, task):
         if not isinstance(task.qf, ps.StandardQFNumeric):
