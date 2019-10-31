@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{b516f102-74b1-490d-9d76-edcae37fbf73}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>pysubgroup\tests\test_algorithms_boolean.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>MSBuild|env_pysubgroup|$(MSBuildProjectFullPath)</InterpreterId>
+    <TestFramework>Pytest</TestFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="doc\conf.py" />
+    <Compile Include="pysubgroup\algorithms.py" />
+    <Compile Include="pysubgroup\boolean_target.py" />
+    <Compile Include="pysubgroup\fi_target.py" />
+    <Compile Include="pysubgroup\measures.py" />
+    <Compile Include="pysubgroup\boolean_expressions.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pysubgroup\numeric_target.py" />
+    <Compile Include="pysubgroup\refinement_operator.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pysubgroup\representations.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pysubgroup\subgroup.py" />
+    <Compile Include="pysubgroup\tests\algorithms_testing.py" />
+    <Compile Include="pysubgroup\tests\DataSets.py" />
+    <Compile Include="pysubgroup\tests\test_algorithms_boolean.py" />
+    <Compile Include="pysubgroup\tests\test_algorithms_numeric.py" />
+    <Compile Include="pysubgroup\tests\test_boolean_expressions.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pysubgroup\tests\test_generalisations.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="pysubgroup\tests\test_subgroup.py" />
+    <Compile Include="pysubgroup\tests\test_ChiSquaredQF.py" />
+    <Compile Include="pysubgroup\tests\t_combined_im.py" />
+    <Compile Include="pysubgroup\tests\test_fi_target.py" />
+    <Compile Include="pysubgroup\tests\t_numeric_targets.py" />
+    <Compile Include="pysubgroup\tests\t_numeric_targets2.py" />
+    <Compile Include="pysubgroup\tests\t_simple_dfs.py" />
+    <Compile Include="pysubgroup\tests\t_titanic.py" />
+    <Compile Include="pysubgroup\tests\test_visualization.py" />
+    <Compile Include="pysubgroup\tests\__init__.py" />
+    <Compile Include="pysubgroup\utils.py" />
+    <Compile Include="pysubgroup\visualization.py" />
+    <Compile Include="pysubgroup\__init__.py" />
+    <Compile Include="setup.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitignore" />
+    <Content Include=".pylintrc" />
+    <Content Include="doc\requirements.txt" />
+    <Content Include="pysubgroup.egg-info\dependency_links.txt" />
+    <Content Include="pysubgroup.egg-info\requires.txt" />
+    <Content Include="pysubgroup.egg-info\SOURCES.txt" />
+    <Content Include="pysubgroup.egg-info\top_level.txt" />
+    <Content Include="pysubgroup\data\credit-g.arff" />
+    <Content Include="pysubgroup\data\titanic.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="doc" />
+    <Folder Include="pysubgroup" />
+    <Folder Include="pysubgroup.egg-info" />
+    <Folder Include="pysubgroup\data\" />
+    <Folder Include="pysubgroup\tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="env_pysubgroup\">
+      <Id>env_pysubgroup</Id>
+      <Version>3.7</Version>
+      <Description>env_pysubgroup (Python 3.7 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
