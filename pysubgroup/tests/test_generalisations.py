@@ -11,7 +11,9 @@ class BooleanTargetBase(TestAlgorithmsBase):
     def test_GeneralisingBFS(self):
         self.runAlgorithm(ps.GeneralisingBFS(), "GeneralisingBFS", self.result, self.qualities, self.task)
     def test_GeneralisingApriori(self):
-        self.runAlgorithm(ps.Apriori(ps.Disjunction), "GeneralisingApriori", self.result, self.qualities, self.task)
+        algorithm = ps.Apriori(combination_name='Disjunction')
+        algorithm.optimistic_estimate_name = 'optimistic_generalisation'
+        self.runAlgorithm(algorithm, "GeneralisingApriori", self.result, self.qualities, self.task)
     # pylint: enable=no-member
 
 class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
@@ -45,8 +47,20 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
         data = get_credit_data()
         target = ps.NominalTarget('class', b'bad')
         searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
-        self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0))
+        self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=4, qf=ps.StandardQF(1.0))
 
 
 if __name__ == '__main__':
     unittest.main()
+#depth =5
+#   0.07800000000000001: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR other_parties=='b'co applicant'' OR other_payment_plans=='b'bank''
+#   0.07800000000000001: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR other_parties=='b'co applicant'' OR other_payment_plans=='b'bank'' OR purpose=='b'other''
+#   0.07790000000000001: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR credit_history=='b'no credits/all paid'' OR other_parties=='b'co applicant'' OR other_payment_plans=='b'bank''
+#   0.0779:              checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR other_payment_plans=='b'bank''
+#   0.0779:              checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR other_payment_plans=='b'bank'' OR purpose=='b'other''
+#   0.07780000000000002: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR credit_history=='b'no credits/all paid'' OR other_payment_plans=='b'bank''
+#   0.07780000000000002: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR credit_history=='b'no credits/all paid'' OR other_payment_plans=='b'bank'' OR purpose=='b'other''
+#   0.07770000000000002: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR credit_history=='b'no credits/all paid'' OR other_payment_plans=='b'bank'' OR purpose=='b'repairs''
+#   0.0776:              checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR other_parties=='b'co applicant'' OR other_payment_plans=='b'bank'' OR purpose=='b'repairs''
+#   0.07750000000000001: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR other_payment_plans=='b'bank'' OR purpose=='b'repairs''
+#   0.07750000000000001: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR credit_history=='b'all paid'' OR other_parties=='b'co applicant'' OR other_payment_plans=='b'bank''
