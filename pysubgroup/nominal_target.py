@@ -107,13 +107,13 @@ class NominalTarget():
 
 
 class SimplePositivesQF(ps.AbstractInterestingnessMeasure):
-    tpl = namedtuple('PositivesQF_parameters' , ('size' , 'positives_count'))
+    tpl = namedtuple('PositivesQF_parameters', ('size', 'positives_count'))
 
     def __init__(self):
         self.datatset = None
         self.positives = None
         self.has_constant_statistics = False
-        self.required_stat_attrs=('size', 'positives_count')
+        self.required_stat_attrs = ('size', 'positives_count')
 
     def calculate_constant_statistics(self, task):
         data = task.data
@@ -127,6 +127,9 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):
         else:
             cover_arr = subgroup.covers(data)
         return SimplePositivesQF.tpl(np.count_nonzero(cover_arr), np.count_nonzero(self.positives[cover_arr]))
+
+    def is_applicable(self, subgroup):
+        return isinstance(subgroup.target, NominalTarget)
 
         
 class ChiSquaredQF(SimplePositivesQF):
@@ -204,17 +207,17 @@ class ChiSquaredQF(SimplePositivesQF):
     def supports_weights(self):
         return True
 
-    def is_applicable(self, subgroup):
-        return isinstance(subgroup.target, NominalTarget)
+
 
 
 class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
 
     @staticmethod
     def standard_qf(a, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        if instances_subgroup == 0:
-            return 0
-        p_subgroup = positives_subgroup / instances_subgroup
+        p_subgroup = np.divide(positives_subgroup, instances_subgroup)
+        #if instances_subgroup == 0:
+        #    return 0
+        #p_subgroup = positives_subgroup / instances_subgroup
         p_dataset = positives_dataset / instances_dataset
         return (instances_subgroup / instances_dataset) ** a * (p_subgroup - p_dataset)
 
@@ -240,9 +243,6 @@ class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
 
     def supports_weights(self):
         return True
-
-    def is_applicable(self, subgroup):
-        return isinstance(subgroup.target, NominalTarget)
 
 
 class WRAccQF(StandardQF):
