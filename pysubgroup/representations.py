@@ -26,6 +26,7 @@ class RepresentationBase():
     def __enter__(self):
         self.patch_classes()
         self.patch_all_selectors()
+        return self
 
 
     def __exit__(self, * args):
@@ -35,7 +36,6 @@ class RepresentationBase():
 
 class BitSet_Conjunction(ps.Conjunction):
     n_instances = 0
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.representation = self.compute_representation()
@@ -51,11 +51,6 @@ class BitSet_Conjunction(ps.Conjunction):
     def size(self):
         return np.count_nonzero(self.representation)
 
-    #def __copy__(self):
-    #    tmp = super().__copy__()
-    #    tmp.representation = self.representation.copy()
-    #    return tmp
-
     def append_and(self, to_append):
         super().append_and(to_append)
         self.representation = np.logical_and(self.representation, to_append.representation)
@@ -65,7 +60,37 @@ class BitSet_Conjunction(ps.Conjunction):
         return self.representation.__array_interface__
 
 
+
+class BitSet_Disjunction(ps.Disjunction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.representation = self.compute_representation()
+
+    def compute_representation(self):
+                # empty description ==> return a list of all '1's
+        if not self._selectors:
+            return np.full(BitSet_Conjunction.n_instances, False, dtype=bool)
+        # non-empty description
+        return np.any([sel.representation for sel in self._selectors], axis=0)
+
+    @property
+    def size(self):
+        return np.count_nonzero(self.representation)
+
+    def append_or(self, to_append):
+        super().append_or(to_append)
+        self.representation = np.logical_or(self.representation, to_append.representation)
+
+    @property
+    def __array_interface__(self):
+        return self.representation.__array_interface__
+
+
+
+
 class BitSetRepresentation(RepresentationBase):
+    Conjunction = BitSet_Conjunction
+    Disjunction = BitSet_Disjunction
     def __init__(self, df):
         self.df = df
         super().__init__(BitSet_Conjunction)
