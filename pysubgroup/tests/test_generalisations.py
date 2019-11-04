@@ -51,7 +51,9 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    suite1 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms)
+    complete_suite = unittest.TestSuite([suite1])
+    unittest.TextTestRunner(verbosity=2).run(complete_suite)
 #depth =5
 #   0.07800000000000001: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR other_parties=='b'co applicant'' OR other_payment_plans=='b'bank''
 #   0.07800000000000001: checking_status=='b'0<=X<200'' OR checking_status=='b'<0'' OR other_parties=='b'co applicant'' OR other_payment_plans=='b'bank'' OR purpose=='b'other''
