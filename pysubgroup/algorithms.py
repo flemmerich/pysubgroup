@@ -28,6 +28,9 @@ class SubgroupDiscoveryTask:
         self.weighting_attribute = weighting_attribute
 
 
+
+
+
 class Apriori:
     def __init__(self, representation_type=None, combination_name='Conjunction'):
         self.combination_name = combination_name
@@ -38,6 +41,11 @@ class Apriori:
         self.use_vectorization = True
         self.use_repruning = False
         self.optimistic_estimate_name = 'optimistic_estimate'
+        try:
+            import numba # pylint: disable=unused-import
+            self.next_level = self.get_next_level_numba
+        except ImportError:
+            self.next_level = self.get_next_level
 
     def get_next_level_candidates(self, task, result, next_level_candidates):
         promising_candidates = []
@@ -84,10 +92,40 @@ class Apriori:
                                         if all(frozenset(comb) not in unpromising_combinations for comb in combinations(selectors, k)))
         return promising_candidates
 
+    def get_next_level_numba(self, promising_candidates):
+
+        from numba import jit
+        @jit
+        def getNewCandidates(l, hashes):
+            result = []
+            for i in range(len(l)-1):
+                for j in range(i + 1, len(l)):
+                    if hashes[i] == hashes[j]:
+                        if np.all(l[i, :-1] == l[j, :-1]):
+                            result.append((i, j))
+            return result
+
+        all_selectors = Counter(chain.from_iterable(promising_candidates))
+        d = {selector:i for i, selector in enumerate(all_selectors)}
+        l = [tuple(d[sel] for sel in selectors) for selectors in promising_candidates]
+        arr = np.array(l, dtype=int)
+
+        print(len(arr))
+        hashes = np.array([hash(tuple(x[:-1])) for x in l], dtype=np.int64)
+        candidates_int = getNewCandidates(arr, hashes)
+        return list((*promising_candidates[i], promising_candidates[j][-1])  for i, j in candidates_int)
+
+    def get_next_level(self, promising_candidates):
+        precomputed_list = list((tuple(sg), sg[-1], hash(tuple(sg[:-1])), tuple(sg[:-1])) for sg in promising_candidates)
+        return list((*sg1, new_selector) for (sg1, _, hash_l, selectors_l), (_, new_selector, hash_r, selectors_r) in combinations(precomputed_list, 2)
+                    if (hash_l == hash_r) and (selectors_l == selectors_r))
+
+
 
     def execute(self, task):
         if not isinstance(task.qf, ps.BoundedInterestingnessMeasure):
             raise RuntimeWarning("Quality function is unbounded, long runtime expected")
+
         with self.representation_type(task.data) as representation:
             combine_selectors = getattr(representation.__class__, self.combination_name)
             result = []
@@ -113,17 +151,13 @@ class Apriori:
                 if self.use_repruning:
                     promising_candidates = self.reprune_lower_levels(promising_candidates, depth)
 
-                set_promising_candidates = set(frozenset(p) for p in promising_candidates)
+                next_level_candidates_no_pruning = self.next_level(promising_candidates)
 
-                precomputed_list = list((sg, [sg[-1]], hash(tuple(sg[:-1])), sg[:-1]) for sg in promising_candidates)
-                next_level_candidates_no_pruning = (sg1 + new_selector for (sg1, _, hash_l, selectors_l), (_, new_selector, hash_r, selectors_r) in combinations(precomputed_list, 2)
-                                                    if (hash_l == hash_r) and (selectors_l == selectors_r))
-                del precomputed_list
                 # select those selectors and build a subgroup from them
                 #   for which all subsets of length depth (=candidate length -1) are in the set of promising candidates
-
+                set_promising_candidates = set(tuple(p) for p in promising_candidates)
                 next_level_candidates = [ps.Subgroup(task.target, combine_selectors(selectors)) for selectors in next_level_candidates_no_pruning
-                                         if all((frozenset(subset) in set_promising_candidates) for subset in combinations(selectors, depth))]
+                                         if all((subset in set_promising_candidates) for subset in combinations(selectors, depth))]
                 depth = depth + 1
 
         result.sort(key=lambda x: x[0], reverse=True)
