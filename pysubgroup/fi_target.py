@@ -73,6 +73,15 @@ class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
     def supports_weights(self):
         return False
 
+    def gp_get_stats(self, row_index):
+        return {"size" : 1}
+    
+    def gp_get_null_vector(self):
+        return {"size":0}
+
+    def gp_merge(self, l, r):
+        l["size"]+=r["size"]
+
 
 class AreaQF(SimpleCountQF):
     def evaluate(self, subgroup, statistics=None):
