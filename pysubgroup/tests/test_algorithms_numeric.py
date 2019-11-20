@@ -52,19 +52,51 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
 
         data = get_credit_data()
         target = ps.NumericTarget('credit_amount')
-        searchSpace = ps.create_nominal_selectors(data, ignore=['credit_amount'])
-
-        self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQFNumeric(1, False))
+        searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['credit_amount'])
+        searchSpace_Numeric = [] #ps.create_numeric_selectors(data, ignore=['credit_amount'], nbins=10)
+        searchSpace = searchSpace_Nominal + searchSpace_Numeric
+        self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(1, False, 'sum')))
 
     def test_SimpleDFS(self):
         self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
 
-    def test_Apriori(self):
-        self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
+    def test_DFS_average(self):
+        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'average'))
+        self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS average", self.result, self.qualities, self.task)
 
+    def test_DFS_order(self):
+        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'order'))
+        self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS order", self.result, self.qualities, self.task)
+
+    def test_DFS_sum(self):
+        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'sum'))
+        self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS sum", self.result, self.qualities, self.task)
+    
+    def test_Apriori_no_numba(self):
+        self.runAlgorithm(ps.Apriori(use_numba=False), "Apriori use_numba=False", self.result, self.qualities, self.task)
+
+    def test_Apriori_with_numba(self):
+        self.runAlgorithm(ps.Apriori(use_numba=True), "Apriori use_numba=True", self.result, self.qualities, self.task)
     def test_DFSNumeric(self):
-        self.runAlgorithm(ps.DFSNumeric(), "DFS_numeric", self.result, self.qualities, self.task)
+        algo = ps.DFSNumeric()
+        self.runAlgorithm(algo, "DFS_numeric", self.result, self.qualities, self.task)
+        print('   Number of call to qf:', algo.num_calls)
+
+    #def test_SimpleSearch(self):
+    #   self.runAlgorithm(ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task)
 
 
 if __name__ == '__main__':
     unittest.main()
+
+
+   # 639577.0460000001:   duration>=30.0
+   # 624424.3040000001:   duration>=30.0 AND foreign_worker=='b'yes''
+   # 579219.206:  duration>=30.0 AND other_parties=='b'none''
+   # 564066.4640000002:   duration>=30.0 AND foreign_worker=='b'yes'' AND other_parties=='b'none''
+   # 547252.302:  duration>=30.0 AND num_dependents==1.0
+   # 532099.56:   duration>=30.0 AND foreign_worker=='b'yes'' AND num_dependents==1.0
+   # 491104.688:  duration>=30.0 AND num_dependents==1.0 AND other_parties=='b'none''
+   # 490633.1400000001:   duration>=30.0 AND foreign_worker=='b'yes'' AND other_payment_plans=='b'none''
+   # 490633.1400000001:   duration>=30.0 AND other_payment_plans=='b'none''
+   # 475951.94600000005:  duration>=30.0 AND foreign_worker=='b'yes'' AND num_dependents==1.0 AND other_parties=='b'none''

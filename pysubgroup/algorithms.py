@@ -4,10 +4,11 @@ Created on 29.04.2016
 @author: lemmerfn
 '''
 import copy
+from math import factorial
 from itertools import combinations, chain
 from heapq import heappush, heappop
 from collections import Counter, namedtuple
-
+import warnings
 import numpy as np
 import pysubgroup as ps
 
@@ -32,7 +33,7 @@ class SubgroupDiscoveryTask:
 
 
 class Apriori:
-    def __init__(self, representation_type=None, combination_name='Conjunction'):
+    def __init__(self, representation_type=None, combination_name='Conjunction', use_numba = True):
         self.combination_name = combination_name
 
         if representation_type is None:
@@ -41,12 +42,15 @@ class Apriori:
         self.use_vectorization = True
         self.use_repruning = False
         self.optimistic_estimate_name = 'optimistic_estimate'
-        try:
-            import numba # pylint: disable=unused-import
-            self.next_level = self.get_next_level_numba
-        except ImportError:
-            self.next_level = self.get_next_level
-
+        self.next_level = self.get_next_level
+        if use_numba:
+            try:
+                import numba # pylint: disable=unused-import
+                self.next_level = self.get_next_level_numba
+                print('Apriori: Using numba for speedup')
+            except ImportError:
+                pass
+           
     def get_next_level_candidates(self, task, result, next_level_candidates):
         promising_candidates = []
         optimistic_estimate_function = getattr(task.qf, self.optimistic_estimate_name)
@@ -95,15 +99,17 @@ class Apriori:
     def get_next_level_numba(self, promising_candidates):
 
         from numba import jit
-        @jit
-        def getNewCandidates(l, hashes):
-            result = []
-            for i in range(len(l)-1):
-                for j in range(i + 1, len(l)):
-                    if hashes[i] == hashes[j]:
-                        if np.all(l[i, :-1] == l[j, :-1]):
-                            result.append((i, j))
-            return result
+        if not hasattr(self, 'compiled_func'):
+            @jit
+            def getNewCandidates(l, hashes):
+                result = []
+                for i in range(len(l)-1):
+                    for j in range(i + 1, len(l)):
+                        if hashes[i] == hashes[j]:
+                            if np.all(l[i, :-1] == l[j, :-1]):
+                                result.append((i, j))
+                return result
+            self.compiled_func = getNewCandidates
 
         all_selectors = Counter(chain.from_iterable(promising_candidates))
         d = {selector:i for i, selector in enumerate(all_selectors)}
@@ -112,7 +118,7 @@ class Apriori:
 
         print(len(arr))
         hashes = np.array([hash(tuple(x[:-1])) for x in l], dtype=np.int64)
-        candidates_int = getNewCandidates(arr, hashes)
+        candidates_int = self.compiled_func(arr, hashes)
         return list((*promising_candidates[i], promising_candidates[j][-1])  for i, j in candidates_int)
 
     def get_next_level(self, promising_candidates):
@@ -126,10 +132,11 @@ class Apriori:
         if not isinstance(task.qf, ps.BoundedInterestingnessMeasure):
             raise RuntimeWarning("Quality function is unbounded, long runtime expected")
 
+        task.qf.calculate_constant_statistics(task)
+        
         with self.representation_type(task.data) as representation:
             combine_selectors = getattr(representation.__class__, self.combination_name)
-            result = []
-            task.qf.calculate_constant_statistics(task)
+            result = []    
             # init the first level
             next_level_candidates = []
             for sel in task.search_space:
@@ -302,10 +309,23 @@ class BeamSearch:
 
 
 class SimpleSearch:
-    def execute(self, task):
+    def execute(self, task, show_progress=True):
         task.qf.calculate_constant_statistics(task)
         result = []
         all_selectors = chain.from_iterable(combinations(task.search_space, r) for r in range(1, task.depth + 1))
+        if show_progress:
+            try:
+                from tqdm import tqdm
+                def binomial(x, y):
+                    try:
+                        binom = factorial(x) // factorial(y) // factorial(x - y)
+                    except ValueError:
+                        binom = 0
+                    return binom
+                total = sum(binomial(len(task.search_space), k) for k in range(1, task.depth + 1))
+                all_selectors = tqdm(all_selectors, total=total)
+            except ImportError:
+                pass
         for selectors in all_selectors:
             sg = ps.Subgroup(task.target, ps.Conjunction(selectors))
             statistics = task.qf.calculate_statistics(sg, task.data)
@@ -358,7 +378,6 @@ class DFS:
         self.params_tpl = namedtuple('StandardQF_parameters', ('size', 'positives_count'))
 
     def execute(self, task):
-        self.target_bitset = task.target.covers(task.data)
         self.operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task)
         result = []
@@ -369,15 +388,14 @@ class DFS:
         return result
 
     def search_internal(self, task, result, sg):
-        params = self.params_tpl(sg.size, np.count_nonzero(self.target_bitset[sg]))
-
-        optimistic_estimate = task.qf.optimistic_estimate(sg, params)
+        statistics = task.qf.calculate_statistics(sg)
+        optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
         if not(optimistic_estimate > ps.minimum_required_quality(result, task)):
             return
-        quality = task.qf.evaluate(sg, params)
+        quality = task.qf.evaluate(sg, statistics)
         ps.add_if_required(result, sg, quality, task)
 
-        if len(sg) < task.depth:
+        if sg.depth < task.depth and statistics.size > 0:
             for new_sg in self.operator.refinements(sg):
                 self.search_internal(task, result, new_sg)
 
@@ -389,18 +407,19 @@ class DFSNumeric():
         self.f = None
         self.target_values = None
         self.bitsets = {}
+        self.num_calls = 0
 
     def execute(self, task):
         if not isinstance(task.qf, ps.StandardQFNumeric):
-            raise NotImplementedError("BSD_numeric so far is only implemented for StandardQFNumeric")
+            warnings.warn("BSD_numeric so far is only implemented for StandardQFNumeric")
         self.pop_size = len(task.data)
         sorted_data = task.data.sort_values(task.target.get_attributes(), ascending=False)
 
         # generate target bitset
-        self.target_values = sorted_data[task.target.get_attributes()[0]].values
+        self.target_values = sorted_data[task.target.get_attributes()[0]].to_numpy()
 
         task.qf.calculate_constant_statistics(task)
-        self.f = task.qf.evaluate
+        self.evaluate = task.qf.evaluate
 
         # generate selector bitsets
         self.bitsets = {}
@@ -413,6 +432,7 @@ class DFSNumeric():
         return result
 
     def search_internal(self, task, prefix, modification_set, result, bitset):
+        self.num_calls += 1
         sg_size = bitset.sum()
         if sg_size == 0:
             return result
@@ -422,7 +442,7 @@ class DFSNumeric():
         sizes = np.arange(1, len(target_values_cs) + 1)
         mean_values_cs = target_values_cs / sizes
         tpl = DFSNumeric.tpl(sizes, mean_values_cs)
-        qualities = self.f(None, tpl)
+        qualities = self.evaluate(None, tpl)
         optimistic_estimate = np.max(qualities)
 
         if optimistic_estimate <= ps.minimum_required_quality(result, task):
