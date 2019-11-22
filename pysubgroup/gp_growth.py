@@ -2,17 +2,21 @@ from collections import  namedtuple
 from collections import defaultdict
 import numpy as np
 import pysubgroup as ps
+import warnings
 
 
 from pysubgroup.tests.DataSets import get_credit_data
+from pysubgroup import model_target
 
 data = get_credit_data()
-
-searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['class'])
-searchSpace_Numeric = ps.create_numeric_selectors(data, ignore=['class'])
+#warnings.filterwarnings("error")
+print(data.columns)
+searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['duration','credit_amount'])
+searchSpace_Numeric = ps.create_numeric_selectors(data, ignore=['duration','credit_amount'])
 searchSpace = searchSpace_Nominal + searchSpace_Numeric
 target = ps.FITarget()
-task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=30, depth=5, qf=ps.CountQF())
+QF=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration',y_name='credit_amount'))
+task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=50, depth=2, qf=QF)
 def get_path(node):
     ref = node
     path = []
@@ -28,9 +32,10 @@ def get_path(node):
 class GP_Growth:
     def __init__(self):
         self.GP_node = namedtuple('GP_node', ['cls', 'id', 'parent', 'children', 'stats'])
-        self.minSupp = 500
+        self.minSupp = 200
 
     def prepare_selectors(self, search_space):
+        
         self.get_stats = task.qf.gp_get_stats
         self.get_null_vector = task.qf.gp_get_null_vector
         self.merge = task.qf.gp_merge
@@ -45,14 +50,15 @@ class GP_Growth:
         arrs = np.vstack(list(arr for size, selector, arr in s)).T
         return selectors_sorted, arrs
 
-    def execute(self, task): 
+    def execute(self, task):
+        task.qf.calculate_constant_statistics(task)
         selectors_sorted, arrs = self.prepare_selectors(task.search_space)
         GP_node = self.GP_node
         
         root = GP_node(-1, -1, None, {}, self.get_null_vector())
         nodes = []
         for row_index, row in enumerate(arrs):
-            d = self.get_stats(row_index)
+            new_stats = self.get_stats(row_index)
             nn = np.nonzero(row)[0]
             node = root
             for cls in nn:
@@ -60,27 +66,30 @@ class GP_Growth:
                     new_child = GP_node(cls, len(nodes), node, {}, self.get_null_vector())
                     nodes.append(new_child)
                     node.children[cls] = new_child
-                self.merge(node.stats, d)
+                self.merge(node.stats, new_stats)
                 node = node.children[cls]
-            self.merge(node.stats, d)
+            self.merge(node.stats, new_stats)
         nodes.append(root)
 
         cls_nodes = defaultdict(list)
         for node in nodes:
             cls_nodes[node.cls].append(node)
-        print(self.get_stats_for_class(cls_nodes))
         
         patterns = self.recurse(cls_nodes, [])
         out = []
-        for indices, stats in sorted(patterns, key=lambda x: x[1]["size"]):
+        for indices, gp_params in sorted(patterns, key=lambda x: x[1][0]):
             selectors = [selectors_sorted[i] for i in indices]
-            print(selectors, stats)
-            out.append((stats["size"], ps.Conjunction(selectors)))
+            #print(selectors, stats)
+            sg = ps.Conjunction(selectors)
+            statistics = task.qf.gp_get_params(sg.covers(data), gp_params)
+            #qual1 = task.qf.evaluate(sg, task.qf.calculate_statistics(sg, task.data))
+            qual2 = task.qf.evaluate(sg, statistics)
+            out.append((qual2, sg))
         return out
 
 
     def check_constraints(self, node):
-        return node['size'] > self.minSupp
+        return node[0] > self.minSupp
 
     def recurse(self, cls_nodes, prefix):
         if len(cls_nodes) == 0:
@@ -134,12 +143,11 @@ class GP_Growth:
                 new_nodes[node.id] = new_node
             else:
                 new_node = new_nodes[node.id]
-            for key, val in stats.items():
-                new_node.stats[key] += val
+            self.merge(new_node.stats, stats)
             if parent is not None:
                 parent.children[new_node.cls] = new_node
             parent = new_node
-        
+
     def get_nodes_upwards(self, node):
         ref = node
         path = []
@@ -153,16 +161,25 @@ class GP_Growth:
 
 
 gp = GP_Growth().execute(task)
+gp = [(qual, sg) for qual,sg in gp if sg.depth <= task.depth]
+gp=sorted(gp)
+for qual, sg in gp:
+    print(qual, sg)
 for i in range(5):
     print()
 dfs1 = ps.SimpleDFS().execute(task)
-dfs = []
-for size, sg in dfs1:
-    print('{}    {}'.format(sg.subgroup_description, size))
-    dfs.append((size, sg.subgroup_description))
+dfs = [(qual, sg.subgroup_description) for qual,sg in dfs1]
+dfs = sorted(dfs,reverse=True)
+gp = sorted(gp,reverse=True)
 print(len(dfs))
 print(len(gp))
-for l, r in zip(reversed(gp), dfs):
+for quality, sg in dfs:
+    print(quality, sg)
+
+
+gp = gp[:task.result_set_size]
+for l, r in zip(gp, dfs):
     print(l)
     print(r)
-    assert(l==r)
+    assert(abs(l[0]-r[0]) < 0.00000001)
+    assert(l[1]==r[1])
