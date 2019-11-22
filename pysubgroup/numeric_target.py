@@ -3,11 +3,12 @@ Created on 29.09.2017
 
 @author: lemmerfn
 '''
+import warnings
 from collections import namedtuple
 from functools import total_ordering
 import numpy as np
 import pysubgroup as ps
-import warnings
+
 
 @total_ordering
 class NumericTarget:
@@ -126,7 +127,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
 
     def supports_weights(self):
         return False
-    
+
     class Summation_Estimator:
         def __init__(self, qf):
             self.qf = qf

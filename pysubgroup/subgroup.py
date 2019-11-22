@@ -212,7 +212,7 @@ class Subgroup():
         return "<<" + repr(self.target) + "; D: " + repr(self.subgroup_description) + ">>"
 
     def covers(self, instance):
-        if hasattr(self.subgroup_description,"representation"):
+        if hasattr(self.subgroup_description, "representation"):
             return self.subgroup_description
         else:
             return self.subgroup_description.covers(instance)
