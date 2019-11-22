@@ -309,7 +309,7 @@ class BeamSearch:
 
 
 class SimpleSearch:
-    def execute(self, task, show_progress=True):
+    def execute(self, task, show_progress=False):
         task.qf.calculate_constant_statistics(task)
         result = []
         all_selectors = chain.from_iterable(combinations(task.search_space, r) for r in range(1, task.depth + 1))
