@@ -33,7 +33,7 @@ class SubgroupDiscoveryTask:
 
 
 class Apriori:
-    def __init__(self, representation_type=None, combination_name='Conjunction', use_numba = True):
+    def __init__(self, representation_type=None, combination_name='Conjunction', use_numba=True):
         self.combination_name = combination_name
 
         if representation_type is None:
@@ -43,6 +43,7 @@ class Apriori:
         self.use_repruning = False
         self.optimistic_estimate_name = 'optimistic_estimate'
         self.next_level = self.get_next_level
+        self.compiled_func = None
         if use_numba:
             try:
                 import numba # pylint: disable=unused-import
@@ -50,7 +51,7 @@ class Apriori:
                 print('Apriori: Using numba for speedup')
             except ImportError:
                 pass
-           
+
     def get_next_level_candidates(self, task, result, next_level_candidates):
         promising_candidates = []
         optimistic_estimate_function = getattr(task.qf, self.optimistic_estimate_name)
@@ -174,29 +175,24 @@ class Apriori:
 class BestFirstSearch:
     def execute(self, task):
         result = []
-        queue = []
+        queue = [(float("-inf"), ps.Conjunction([]))]
         operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task)
-        # init the first level
-        for sel in task.search_space:
-            queue.append((float("-inf"), ps.Conjunction([sel])))
 
         while queue:
-            q, candidate_description = heappop(queue)
-            q = -q
-            if not (q > ps.minimum_required_quality(result, task)):
+            neg_estimate, old_description = heappop(queue)
+            estimate = - neg_estimate
+            if not (estimate > ps.minimum_required_quality(result, task)):
                 break
-            sg = ps.Subgroup(task.target, candidate_description)
-            statistics = task.qf.calculate_statistics(sg, task.data)
-            ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task)
-            optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
+            for candidate_description in operator.refinements(old_description):
+                sg = ps.Subgroup(task.target, candidate_description)
+                statistics = task.qf.calculate_statistics(sg, task.data)
+                ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task)
+                optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
 
-
-            # compute refinements and fill the queue
-            if len(candidate_description) < task.depth and optimistic_estimate >= ps.minimum_required_quality(result, task):
-                #print(ps.minimum_required_quality(result, task))
-                for new_description in operator.refinements(candidate_description):
-                    heappush(queue, (-optimistic_estimate, new_description))
+                # compute refinements and fill the queue
+                if len(candidate_description) < task.depth and optimistic_estimate >= ps.minimum_required_quality(result, task):
+                    heappush(queue, (-optimistic_estimate, candidate_description))
 
         result.sort(key=lambda x: x[0], reverse=True)
         return result
