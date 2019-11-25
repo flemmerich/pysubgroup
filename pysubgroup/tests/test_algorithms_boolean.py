@@ -4,35 +4,56 @@ from pysubgroup.tests.DataSets import get_credit_data
 
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
-skip_long_running=True
+class TestSettings:
+    All = True
+    Apriori = False
+    SimpleDFS = False
+    BestFirstSearch = False
+    BeamSearch = False
+    DFS_bitset = False
+    DFS_set = False
+    DFS_numpyset = False
+    SimpleSearch = False
+
+skip_long_running = True
 class BooleanTargetBase():
-    
+
     # pylint: disable=no-member
+    @unittest.skipUnless(TestSettings.All or TestSettings.Apriori, 'flag not set')
     def test_Apriori(self):
         self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
 
+    @unittest.skipUnless(TestSettings.All or TestSettings.SimpleDFS, 'flag not set')
     def test_SimpleDFS(self):
         self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
 
+    @unittest.skipUnless(TestSettings.All or TestSettings.BestFirstSearch, 'flag not set')
     def test_BestFirstSearch(self):
         self.runAlgorithm(ps.BestFirstSearch(), "BestFirstSearch", self.result, self.qualities, self.task)
 
+    @unittest.skipUnless(TestSettings.All or TestSettings.BeamSearch, 'flag not set')
     def test_BeamSearch(self):
         self.runAlgorithm(ps.BeamSearch(beam_width=12), "BeamSearch", self.result, self.qualities, self.task)
 
+    @unittest.skipUnless(TestSettings.All or TestSettings.DFS_bitset, 'flag not set')
     def test_DFS_bitset(self):
         self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS bitset", self.result, self.qualities, self.task)
 
     @unittest.skipIf(skip_long_running, "as skip_long_running flag is True")
+    @unittest.skipUnless(TestSettings.All or TestSettings.SimpleSearch, 'flag not set')
     def test_SimpleSearch(self):
         self.runAlgorithm(ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task)
 
+    @unittest.skipUnless(TestSettings.All or TestSettings.DFS_set, 'flag not set')
     def test_DFS_set(self):
         self.runAlgorithm(ps.DFS(ps.SetRepresentation), "DFS set", self.result, self.qualities, self.task)
 
+    @unittest.skipUnless(TestSettings.All or TestSettings.DFS_numpyset, 'flag not set')
     def test_DFS_numpy_sets(self):
         self.runAlgorithm(ps.DFS(ps.NumpySetRepresentation), "DFS numpyset", self.result, self.qualities, self.task)
     # pylint: enable=no-member
+
+
 
 class TestAlgorithms(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
     def setUp(self):
