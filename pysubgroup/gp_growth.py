@@ -1,38 +1,17 @@
-from collections import  namedtuple
-from collections import defaultdict
+from collections import  namedtuple, defaultdict
+from itertools import combinations
 import numpy as np
 import pysubgroup as ps
-import warnings
-
-
-from pysubgroup.tests.DataSets import get_credit_data
-from pysubgroup import model_target
-
-data = get_credit_data()
-#warnings.filterwarnings("error")
-print(data.columns)
-searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['duration','credit_amount'])
-searchSpace_Numeric = ps.create_numeric_selectors(data, ignore=['duration','credit_amount'])
-searchSpace = searchSpace_Nominal + searchSpace_Numeric
-target = ps.FITarget()
-QF=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration',y_name='credit_amount'))
-task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=50, depth=2, qf=QF)
-def get_path(node):
-    ref = node
-    path = []
-    while True:
-        path.append(ref.cls)
-        ref = ref.parent
-        if ref is None:
-            break
-    return path
-
+from tqdm import tqdm
 
 
 class GP_Growth:
+
     def __init__(self):
         self.GP_node = namedtuple('GP_node', ['cls', 'id', 'parent', 'children', 'stats'])
         self.minSupp = 200
+        self.tqdm = tqdm
+        self.depth = 0
 
     def prepare_selectors(self, search_space):
         
@@ -52,40 +31,62 @@ class GP_Growth:
 
     def execute(self, task):
         task.qf.calculate_constant_statistics(task)
+        self.depth = task.depth
         selectors_sorted, arrs = self.prepare_selectors(task.search_space)
         GP_node = self.GP_node
-        
+
         root = GP_node(-1, -1, None, {}, self.get_null_vector())
         nodes = []
-        for row_index, row in enumerate(arrs):
+        for row_index, row in self.tqdm(enumerate(arrs), 'creating tree', total=len(arrs)):
             new_stats = self.get_stats(row_index)
-            nn = np.nonzero(row)[0]
-            node = root
-            for cls in nn:
-                if cls not in node.children:
-                    new_child = GP_node(cls, len(nodes), node, {}, self.get_null_vector())
-                    nodes.append(new_child)
-                    node.children[cls] = new_child
-                self.merge(node.stats, new_stats)
-                node = node.children[cls]
-            self.merge(node.stats, new_stats)
+            classes = np.nonzero(row)[0]
+            self.normal_insert(root, nodes, new_stats, classes)
         nodes.append(root)
-
         cls_nodes = defaultdict(list)
         for node in nodes:
             cls_nodes[node.cls].append(node)
-        
+
         patterns = self.recurse(cls_nodes, [])
         out = []
-        for indices, gp_params in sorted(patterns, key=lambda x: x[1][0]):
-            selectors = [selectors_sorted[i] for i in indices]
-            #print(selectors, stats)
-            sg = ps.Conjunction(selectors)
-            statistics = task.qf.gp_get_params(sg.covers(data), gp_params)
-            #qual1 = task.qf.evaluate(sg, task.qf.calculate_statistics(sg, task.data))
-            qual2 = task.qf.evaluate(sg, statistics)
-            out.append((qual2, sg))
+        for indices, gp_params in self.tqdm(patterns, 'computing quality function',):
+            if len(indices) > 0:
+                selectors = [selectors_sorted[i] for i in indices]
+                #print(selectors, stats)
+                sg = ps.Conjunction(selectors)
+                statistics = task.qf.gp_get_params(sg.covers(data), gp_params)
+                #qual1 = task.qf.evaluate(sg, task.qf.calculate_statistics(sg, task.data))
+                qual2 = task.qf.evaluate(sg, statistics)
+                out.append((qual2, sg))
         return out
+
+    def normal_insert(self, root, nodes, new_stats, classes):
+        node = root
+        for cls in classes:
+            if cls not in node.children:
+                new_child = self.GP_node(cls, len(nodes), node, {}, self.get_null_vector())
+                nodes.append(new_child)
+                node.children[cls] = new_child
+            self.merge(node.stats, new_stats)
+            node = node.children[cls]
+        self.merge(node.stats, new_stats)
+        return node
+
+    def insert_into_tree(self, root, nodes, new_stats, classes, max_depth):
+        ''' Creates a tree of a maximum depth = depth
+        '''
+        if len(classes) <= max_depth:
+            self.normal_insert(root, nodes, new_stats, classes)
+            return
+        for prefix in combinations(classes, max_depth -1):
+            node = self.normal_insert(root, nodes, new_stats, classes)
+            # do normal insert for prefix
+            index_for_remaining = classes.index(prefix) + 1
+            for cls in classes[index_for_remaining:]:
+                if cls not in node.children:
+                    new_child = self.GP_node(cls, len(nodes), node, {}, self.get_null_vector())
+                    nodes.append(new_child)
+                    node.children[cls] = new_child
+                    self.merge(node.stats, new_stats)
 
 
     def check_constraints(self, node):
@@ -98,6 +99,8 @@ class GP_Growth:
         stats_dict = self.get_stats_for_class(cls_nodes)
         
         results.append((prefix, cls_nodes[-1][0].stats))
+        if len(prefix) >= self.depth:
+            return results
         for cls, nodes in cls_nodes.items():
             if cls >= 0:
                 if self.check_constraints(stats_dict[cls]):
@@ -121,7 +124,7 @@ class GP_Growth:
         for node in nodes:
             nodes_upwards = self.get_nodes_upwards(node)
             self.create_copy_of_path(nodes_upwards[1:], new_nodes, node.stats)
- 
+
         #self.remove_infrequent_nodes(new_nodes)
         cls_nodes = defaultdict(list)
         for new_node in new_nodes.values():
@@ -158,28 +161,40 @@ class GP_Growth:
                 break
         return path
 
+if __name__ == '__main__':
+    from pysubgroup.tests.DataSets import get_credit_data
+    from pysubgroup import model_target
+
+    data = get_credit_data()
+    #warnings.filterwarnings("error")
+    print(data.columns)
+    searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['duration', 'credit_amount'])
+    searchSpace_Numeric = ps.create_numeric_selectors(data, ignore=['duration', 'credit_amount'])
+    searchSpace = searchSpace_Nominal + searchSpace_Numeric
+    target = ps.FITarget()
+    QF=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration', y_name='credit_amount'))
+    task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=50, depth=3, qf=QF)
 
 
-gp = GP_Growth().execute(task)
-gp = [(qual, sg) for qual,sg in gp if sg.depth <= task.depth]
-gp=sorted(gp)
-for qual, sg in gp:
-    print(qual, sg)
-for i in range(5):
-    print()
-dfs1 = ps.SimpleDFS().execute(task)
-dfs = [(qual, sg.subgroup_description) for qual,sg in dfs1]
-dfs = sorted(dfs,reverse=True)
-gp = sorted(gp,reverse=True)
-print(len(dfs))
-print(len(gp))
-for quality, sg in dfs:
-    print(quality, sg)
+    import time
+    start_time = time.time()
+    gp = GP_Growth().execute(task)
+    print("--- %s seconds ---" % (time.time() - start_time))
+    #gp = [(qual, sg) for qual, sg in gp if sg.depth <= task.depth]
+    gp = sorted(gp)
 
 
-gp = gp[:task.result_set_size]
-for l, r in zip(gp, dfs):
-    print(l)
-    print(r)
-    assert(abs(l[0]-r[0]) < 0.00000001)
-    assert(l[1]==r[1])
+    start_time = time.time()
+    dfs1 = ps.SimpleDFS().execute(task)
+    print("--- %s seconds ---" % (time.time() - start_time))
+    dfs = [(qual, sg.subgroup_description) for qual, sg in dfs1]
+    dfs = sorted(dfs, reverse=True)
+    gp = sorted(gp, reverse=True)
+
+
+    gp = gp[:task.result_set_size]
+    for l, r in zip(gp, dfs):
+        print('gp:', l)
+        print('df:', r)
+        assert(abs(l[0]-r[0]) < 0.00000001)
+        assert(l[1] == r[1])
