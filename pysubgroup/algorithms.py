@@ -330,12 +330,13 @@ class SimpleDFS:
             optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
             if not(optimistic_estimate > ps.minimum_required_quality(result, task)):
                 return result
-
+        if statistics.size < 200:
+            return result
 
         quality = task.qf.evaluate(sg, statistics)
         ps.add_if_required(result, sg, quality, task)
 
-        if len(prefix) < task.depth:
+        if len(prefix) < task.depth and statistics.size > 200:
             new_modification_set = copy.copy(modification_set)
             for sel in modification_set:
                 prefix.append(sel)
