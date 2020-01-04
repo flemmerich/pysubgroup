@@ -78,7 +78,8 @@ class PolyRegression_ModelClass:
         self.y = data[self.y_name].to_numpy()
         self.has_constant_statistics = True
 
-    def gp_merge(self, u, v):
+    @staticmethod
+    def gp_merge(u, v):
         v0 = v[0]
         u0 = u[0]
         if v0 == 0 or u0 == 0:

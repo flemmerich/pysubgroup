@@ -3,13 +3,13 @@ from itertools import combinations
 import numpy as np
 import pysubgroup as ps
 from tqdm import tqdm
-
+from copy import copy
 
 class GP_Growth:
 
     def __init__(self):
         self.GP_node = namedtuple('GP_node', ['cls', 'id', 'parent', 'children', 'stats'])
-        self.minSupp = 200
+        self.minSupp = 10
         self.tqdm = tqdm
         self.depth = 0
 
@@ -90,23 +90,36 @@ class GP_Growth:
 
 
     def check_constraints(self, node):
-        return node[0] > self.minSupp
+        return node[0] >= self.minSupp
 
-    def recurse(self, cls_nodes, prefix):
+    def recurse(self, cls_nodes, prefix, is_single_path=False):
         if len(cls_nodes) == 0:
             raise RuntimeError
         results = []
-        stats_dict = self.get_stats_for_class(cls_nodes)
-        
+
         results.append((prefix, cls_nodes[-1][0].stats))
         if len(prefix) >= self.depth:
             return results
-        for cls, nodes in cls_nodes.items():
-            if cls >= 0:
-                if self.check_constraints(stats_dict[cls]):
-                    new_tree = self.create_new_tree_from_nodes(nodes)
-                    if len(new_tree) > 0:
-                        results.extend(self.recurse(new_tree, (*prefix, cls)))
+        
+        stats_dict = self.get_stats_for_class(cls_nodes)
+        if is_single_path:
+            root_stats = cls_nodes[-1][0].stats
+            del stats_dict[-1]
+            all_combinations = ps.powerset(stats_dict.keys(), max_length=self.depth - len(prefix))
+            
+            for comb in all_combinations:
+                results.append((prefix+comb, root_stats))
+        else:
+            for cls, nodes in cls_nodes.items():
+                if cls >= 0:
+                    if self.check_constraints(stats_dict[cls]):
+                        if len(prefix) == (self.depth - 1):
+                            results.append(((*prefix, cls), stats_dict[cls]))
+                        else:
+                            is_single_path_now = len(nodes) == 1
+                            new_tree = self.create_new_tree_from_nodes(nodes)
+                            if len(new_tree) > 0:
+                                results.extend(self.recurse(new_tree, (*prefix, cls), is_single_path_now))
         return results
 
     def get_stats_for_class(self, cls_nodes):
@@ -142,11 +155,11 @@ class GP_Growth:
         parent = None
         for node in reversed(nodes):
             if node.id not in new_nodes:
-                new_node = self.GP_node(node.cls, node.id, parent, {}, self.get_null_vector())
+                new_node = self.GP_node(node.cls, node.id, parent, {}, stats.copy())
                 new_nodes[node.id] = new_node
             else:
                 new_node = new_nodes[node.id]
-            self.merge(new_node.stats, stats)
+                self.merge(new_node.stats, stats)
             if parent is not None:
                 parent.children[new_node.cls] = new_node
             parent = new_node
@@ -173,7 +186,7 @@ if __name__ == '__main__':
     searchSpace = searchSpace_Nominal + searchSpace_Numeric
     target = ps.FITarget()
     QF=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration', y_name='credit_amount'))
-    task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=50, depth=3, qf=QF)
+    task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=100, depth=4, qf=QF)
 
 
     import time
@@ -182,7 +195,7 @@ if __name__ == '__main__':
     print("--- %s seconds ---" % (time.time() - start_time))
     #gp = [(qual, sg) for qual, sg in gp if sg.depth <= task.depth]
     gp = sorted(gp)
-
+    #quit()
 
     start_time = time.time()
     dfs1 = ps.SimpleDFS().execute(task)
@@ -191,10 +204,28 @@ if __name__ == '__main__':
     dfs = sorted(dfs, reverse=True)
     gp = sorted(gp, reverse=True)
 
-
+    def better_sorted(l):
+        the_dict=defaultdict(list)
+        prev_key=l[0][0]
+        for key, val in l:
+            
+            if abs(prev_key-key)<10**-11:
+                the_dict[prev_key].append(val)
+            else:
+                the_dict[key].append(val)
+                prev_key = key
+        print(len(the_dict))
+        result = []
+        for key, vals in the_dict.items():
+            for val in sorted(vals):
+                result.append((key, val))
+        return result
+    dfs=better_sorted(dfs)
+    gp=better_sorted(gp)
     gp = gp[:task.result_set_size]
-    for l, r in zip(gp, dfs):
+    for i, (l, r) in enumerate(zip(gp, dfs)):
+        print(i)
         print('gp:', l)
         print('df:', r)
-        assert(abs(l[0]-r[0]) < 0.00000001)
+        assert(abs(l[0]-r[0]) < 10 ** -7)
         assert(l[1] == r[1])
