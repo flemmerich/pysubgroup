@@ -4,7 +4,7 @@ import numpy as np
 import pysubgroup as ps
 from tqdm import tqdm
 from copy import copy
-
+import itertools
 class GP_Growth:
 
     def __init__(self):
@@ -29,6 +29,13 @@ class GP_Growth:
         arrs = np.vstack(list(arr for size, selector, arr in s)).T
         return selectors_sorted, arrs
 
+    def nodes_to_cls_nodes(self, nodes):
+        cls_nodes = defaultdict(list)
+        for node in nodes:
+            cls_nodes[node.cls].append(node)
+        return cls_nodes
+
+
     def execute(self, task):
         task.qf.calculate_constant_statistics(task)
         self.depth = task.depth
@@ -42,11 +49,12 @@ class GP_Growth:
             classes = np.nonzero(row)[0]
             self.normal_insert(root, nodes, new_stats, classes)
         nodes.append(root)
-        cls_nodes = defaultdict(list)
-        for node in nodes:
-            cls_nodes[node.cls].append(node)
-
-        patterns = self.recurse(cls_nodes, [])
+        cls_nodes = self.nodes_to_cls_nodes(nodes)
+        patterns = self.recurse_top_down(cls_nodes, root)
+        #patterns = self.recurse(cls_nodes, [])
+        print(len(patterns))
+        for i in range(len(selectors_sorted)):
+            print(i, selectors_sorted[i])
         out = []
         for indices, gp_params in self.tqdm(patterns, 'computing quality function',):
             if len(indices) > 0:
@@ -122,6 +130,94 @@ class GP_Growth:
                                 results.extend(self.recurse(new_tree, (*prefix, cls), is_single_path_now))
         return results
 
+    def get_prefixes_top_down(self, alpha, max_length):
+        if len(alpha) == 0:
+            return [()]
+        if len(alpha) == 1 or max_length == 1:
+            return [(alpha[0],)]
+        results = [(alpha[0],)]
+        results.extend( [(alpha[0], *suffix) for suffix in self.get_prefixes_top_down(alpha[1:], max_length-1)])
+        return results
+
+
+    def recurse_top_down(self, cls_nodes, root, depth_in=0):
+        results = []
+        alpha = []
+        curr_depth = depth_in
+        while True:
+            if root.cls == -1:
+               pass
+            else:
+                alpha.append(root.cls)
+            if len(root.children) == 1 and curr_depth <= self.depth:
+                print('deeper')
+                curr_depth += 1
+                root = next(iter(root.children.values()))
+            else:
+                break
+        #print(alpha, self.depth - depth_in)
+        prefixes = self.get_prefixes_top_down(alpha, max_length=self.depth - depth_in + 1)
+        #print(prefixes)
+        if len(root.children) == 0 or curr_depth >= self.depth:
+            #print('asdfg')
+            stats_dict = self.get_stats_for_class(cls_nodes)
+            for prefix in prefixes:
+                cls = max(prefix)
+                if self.check_constraints(stats_dict[cls]):
+                    results.append((prefix, stats_dict[cls]))
+            #print(results)
+            return results
+        else:
+            suffixes = [((), root.stats)]
+            stats_dict = self.get_stats_for_class(cls_nodes)
+            for cls in sorted(cls_nodes):
+                if cls >= 0 and cls not in alpha:
+                    if self.check_constraints(stats_dict[cls]):
+                        if curr_depth == (self.depth - 1):
+                            #print(cls)
+                            suffixes.append(((cls,), stats_dict[cls]))
+                        else:
+                            new_root, nodes = self.get_top_down_tree_for_class(cls_nodes, cls)
+                            if len(nodes) > 0:
+                                new_cls_nodes = self.nodes_to_cls_nodes(nodes)
+                                print("  " * curr_depth, cls, curr_depth, len(new_cls_nodes))
+                                suffixes.extend(self.recurse_top_down(new_cls_nodes, new_root, curr_depth+1))
+                            
+        return [((*pre, *(suf[0])), suf[1]) for pre, suf in itertools.product(prefixes, suffixes)]
+    
+    def get_top_down_tree_for_class(self, cls_nodes, cls):
+        base_root = None
+        nodes = []
+        if len(cls_nodes[cls]) > 0:
+            base_root = self.create_copy_of_tree_top_down(cls_nodes[cls][0], nodes)
+            for other_root in cls_nodes[cls][1:]:
+                self.merge_trees_top_down(nodes, base_root, other_root)
+        return base_root, nodes
+
+    def create_copy_of_tree_top_down(self, root, nodes=None, parent=None):
+        root_cls = root.cls
+        if nodes is None:
+            nodes = []
+        #if len(nodes) == 0:
+        #    root_cls = -1
+        children = {}
+        new_root = self.GP_node(root_cls, len(nodes), parent, children, root.stats.copy())
+        nodes.append(new_root)
+        for child_cls, child in root.children.items():
+            new_child = self.create_copy_of_tree_top_down(child, nodes, new_root)
+            children[new_child.cls] = new_child
+        return new_root
+
+    def merge_trees_top_down(self, nodes, tree_root, other_root):
+        node = tree_root
+        for cls in other_root.children:
+            if cls not in node.children:
+                new_child = self.GP_node(cls, len(nodes), node, {}, self.get_null_vector())
+                nodes.append(new_child)
+                node.children[cls] = new_child
+            self.merge_trees_top_down(nodes, node.children[cls], other_root.children[cls])
+        self.merge(node.stats, other_root.stats)
+
     def get_stats_for_class(self, cls_nodes):
         out = {}
         for key, nodes in cls_nodes.items():
@@ -186,7 +282,7 @@ if __name__ == '__main__':
     searchSpace = searchSpace_Nominal + searchSpace_Numeric
     target = ps.FITarget()
     QF=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration', y_name='credit_amount'))
-    task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=100, depth=4, qf=QF)
+    task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=200, depth=3, qf=QF)
 
 
     import time
@@ -223,6 +319,9 @@ if __name__ == '__main__':
     dfs=better_sorted(dfs)
     gp=better_sorted(gp)
     gp = gp[:task.result_set_size]
+
+    for l in gp:
+        print(l)
     for i, (l, r) in enumerate(zip(gp, dfs)):
         print(i)
         print('gp:', l)
