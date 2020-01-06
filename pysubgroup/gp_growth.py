@@ -7,11 +7,13 @@ from copy import copy
 import itertools
 class GP_Growth:
 
-    def __init__(self):
+    def __init__(self, mode='b_u' ):
         self.GP_node = namedtuple('GP_node', ['cls', 'id', 'parent', 'children', 'stats'])
         self.minSupp = 10
         self.tqdm = tqdm
         self.depth = 0
+        self.mode = 'b_u'  #specify eihther b_u (bottom up) or t_d (top down)
+        # Future: There also is the option of a stable mode which never creates the prefix trees
 
     def prepare_selectors(self, search_space):
         
@@ -26,7 +28,7 @@ class GP_Growth:
 
         s = sorted(l, reverse=True)
         selectors_sorted = [selector for size, selector, arr in s]
-        arrs = np.vstack(list(arr for size, selector, arr in s)).T
+        arrs = np.vstack([arr for size, selector, arr in s]).T
         return selectors_sorted, arrs
 
     def nodes_to_cls_nodes(self, nodes):
@@ -37,24 +39,31 @@ class GP_Growth:
 
 
     def execute(self, task):
+        assert(self.mode in ('b_u', 't_d'))
         task.qf.calculate_constant_statistics(task)
         self.depth = task.depth
         selectors_sorted, arrs = self.prepare_selectors(task.search_space)
-        GP_node = self.GP_node
 
-        root = GP_node(-1, -1, None, {}, self.get_null_vector())
+        # Create tree
+        root = self.GP_node(-1, -1, None, {}, self.get_null_vector())
         nodes = []
         for row_index, row in self.tqdm(enumerate(arrs), 'creating tree', total=len(arrs)):
-            new_stats = self.get_stats(row_index)
-            classes = np.nonzero(row)[0]
-            self.normal_insert(root, nodes, new_stats, classes)
+            self.normal_insert(root, nodes, self.get_stats(row_index), np.nonzero(row)[0])
         nodes.append(root)
+
+        # mine tree
         cls_nodes = self.nodes_to_cls_nodes(nodes)
-        patterns = self.recurse_top_down(cls_nodes, root)
-        #patterns = self.recurse(cls_nodes, [])
-        print(len(patterns))
-        for i in range(len(selectors_sorted)):
-            print(i, selectors_sorted[i])
+        if self.mode == 'b_u':
+            patterns = self.recurse(cls_nodes, [])
+        elif self.mode == 't_d':
+            patterns = self.recurse_top_down(cls_nodes, root)
+        else:
+            raise RuntimeError('mode needs to be either b_u or t_d')
+
+        # compute quality functions
+        return self.calculate_quality_function_for_patterns(patterns, selectors_sorted)
+
+    def calculate_quality_function_for_patterns(self, patterns, selectors_sorted):
         out = []
         for indices, gp_params in self.tqdm(patterns, 'computing quality function',):
             if len(indices) > 0:
@@ -135,13 +144,13 @@ class GP_Growth:
             return [()]
         if len(alpha) == 1 or max_length == 1:
             return [(alpha[0],)]
-        results = [(alpha[0],)]
-        results.extend( [(alpha[0], *suffix) for suffix in self.get_prefixes_top_down(alpha[1:], max_length-1)])
-        return results
+        prefixes = [(alpha[0],)]
+        prefixes.extend([(alpha[0], *suffix) for suffix in self.get_prefixes_top_down(alpha[1:], max_length-1)])
+        return prefixes
 
 
     def recurse_top_down(self, cls_nodes, root, depth_in=0):
-        results = []
+
         alpha = []
         curr_depth = depth_in
         while True:
@@ -150,31 +159,36 @@ class GP_Growth:
             else:
                 alpha.append(root.cls)
             if len(root.children) == 1 and curr_depth <= self.depth:
-                print('deeper')
                 curr_depth += 1
                 root = next(iter(root.children.values()))
             else:
                 break
-        #print(alpha, self.depth - depth_in)
         prefixes = self.get_prefixes_top_down(alpha, max_length=self.depth - depth_in + 1)
-        #print(prefixes)
+
+        # Bug: If we have a longer path that branches. eg. consider the tree from items A - B - C and A - B - D
+        # and depth - depth_in == 2 then prefixes = [(A), (A, B)] but the sets
+        # (A, C) and (A, D) are also valid
+        # basically if we have prefixes of diffrent length this does not work properly
         if len(root.children) == 0 or curr_depth >= self.depth:
-            #print('asdfg')
+            results = []
             stats_dict = self.get_stats_for_class(cls_nodes)
             for prefix in prefixes:
                 cls = max(prefix)
                 if self.check_constraints(stats_dict[cls]):
                     results.append((prefix, stats_dict[cls]))
-            #print(results)
             return results
         else:
             suffixes = [((), root.stats)]
             stats_dict = self.get_stats_for_class(cls_nodes)
-            for cls in sorted(cls_nodes):
+            for cls in cls_nodes:
                 if cls >= 0 and cls not in alpha:
                     if self.check_constraints(stats_dict[cls]):
+                        # Future: There is also the possibility to compute the stats_dict of the prefix tree
+                        # without creating the prefix tree first
+                        # This might be useful if curr_depth == self.depth - 2
+                        # as we need not recreate the tree
+
                         if curr_depth == (self.depth - 1):
-                            #print(cls)
                             suffixes.append(((cls,), stats_dict[cls]))
                         else:
                             new_root, nodes = self.get_top_down_tree_for_class(cls_nodes, cls)
@@ -182,10 +196,25 @@ class GP_Growth:
                                 new_cls_nodes = self.nodes_to_cls_nodes(nodes)
                                 print("  " * curr_depth, cls, curr_depth, len(new_cls_nodes))
                                 suffixes.extend(self.recurse_top_down(new_cls_nodes, new_root, curr_depth+1))
-                            
+
         return [((*pre, *(suf[0])), suf[1]) for pre, suf in itertools.product(prefixes, suffixes)]
-    
+
+    def remove_infrequent_class(self, nodes, cls_nodes, stats_dict):
+        # returns cleaned tree
+
+        infrequent_classes = []
+        for cls in cls_nodes:
+            if not self.check_constraints(stats_dict[cls]):
+                infrequent_classes.append(cls)
+        infrequent_classes = sorted(infrequent_classes, reverse=True)
+        for cls in infrequent_classes:
+            for node_to_remove in cls_nodes[cls]:
+                self.merge_trees_top_down(nodes, node_to_remove.parent, node_to_remove)
+
+
+
     def get_top_down_tree_for_class(self, cls_nodes, cls):
+        # Future: Can eventually also remove infrequent nodes already during tree creation
         base_root = None
         nodes = []
         if len(cls_nodes[cls]) > 0:
@@ -195,28 +224,26 @@ class GP_Growth:
         return base_root, nodes
 
     def create_copy_of_tree_top_down(self, root, nodes=None, parent=None):
-        root_cls = root.cls
         if nodes is None:
             nodes = []
         #if len(nodes) == 0:
         #    root_cls = -1
         children = {}
-        new_root = self.GP_node(root_cls, len(nodes), parent, children, root.stats.copy())
+        new_root = self.GP_node(root.cls, len(nodes), parent, children, root.stats.copy())
         nodes.append(new_root)
         for child_cls, child in root.children.items():
             new_child = self.create_copy_of_tree_top_down(child, nodes, new_root)
-            children[new_child.cls] = new_child
+            children[child_cls] = new_child
         return new_root
 
-    def merge_trees_top_down(self, nodes, tree_root, other_root):
-        node = tree_root
+    def merge_trees_top_down(self, nodes, mutable_root, other_root):
+        self.merge(mutable_root.stats, other_root.stats)
         for cls in other_root.children:
-            if cls not in node.children:
-                new_child = self.GP_node(cls, len(nodes), node, {}, self.get_null_vector())
-                nodes.append(new_child)
-                node.children[cls] = new_child
-            self.merge_trees_top_down(nodes, node.children[cls], other_root.children[cls])
-        self.merge(node.stats, other_root.stats)
+            if cls not in mutable_root.children:
+                self.create_copy_of_tree_top_down(other_root.children[cls], nodes, mutable_root)
+            else:
+                self.merge_trees_top_down(nodes, mutable_root.children[cls], other_root.children[cls])
+        
 
     def get_stats_for_class(self, cls_nodes):
         out = {}
@@ -287,7 +314,7 @@ if __name__ == '__main__':
 
     import time
     start_time = time.time()
-    gp = GP_Growth().execute(task)
+    gp = GP_Growth(mode='b_u').execute(task)
     print("--- %s seconds ---" % (time.time() - start_time))
     #gp = [(qual, sg) for qual, sg in gp if sg.depth <= task.depth]
     gp = sorted(gp)
@@ -316,12 +343,10 @@ if __name__ == '__main__':
             for val in sorted(vals):
                 result.append((key, val))
         return result
-    dfs=better_sorted(dfs)
-    gp=better_sorted(gp)
+    dfs = better_sorted(dfs)
+    gp = better_sorted(gp)
     gp = gp[:task.result_set_size]
 
-    for l in gp:
-        print(l)
     for i, (l, r) in enumerate(zip(gp, dfs)):
         print(i)
         print('gp:', l)
