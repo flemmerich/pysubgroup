@@ -61,16 +61,16 @@ class GP_Growth:
             raise RuntimeError('mode needs to be either b_u or t_d')
 
         # compute quality functions
-        return self.calculate_quality_function_for_patterns(patterns, selectors_sorted)
+        return self.calculate_quality_function_for_patterns(patterns, selectors_sorted, arrs)
 
-    def calculate_quality_function_for_patterns(self, patterns, selectors_sorted):
+    def calculate_quality_function_for_patterns(self, patterns, selectors_sorted, arrs):
         out = []
         for indices, gp_params in self.tqdm(patterns, 'computing quality function',):
             if len(indices) > 0:
                 selectors = [selectors_sorted[i] for i in indices]
                 #print(selectors, stats)
                 sg = ps.Conjunction(selectors)
-                statistics = task.qf.gp_get_params(sg.covers(data), gp_params)
+                statistics = task.qf.gp_get_params(np.all([arrs[i] for i in indices]), gp_params)
                 #qual1 = task.qf.evaluate(sg, task.qf.calculate_statistics(sg, task.data))
                 qual2 = task.qf.evaluate(sg, statistics)
                 out.append((qual2, sg))
@@ -318,7 +318,7 @@ if __name__ == '__main__':
     print("--- %s seconds ---" % (time.time() - start_time))
     #gp = [(qual, sg) for qual, sg in gp if sg.depth <= task.depth]
     gp = sorted(gp)
-    #quit()
+    quit()
 
     start_time = time.time()
     dfs1 = ps.SimpleDFS().execute(task)
