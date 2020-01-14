@@ -305,11 +305,13 @@ class BeamSearch:
 
 
 class SimpleSearch:
-    def execute(self, task, show_progress=True):
+    def __init__(self, show_progress=True):
+        self.show_progress = show_progress
+    def execute(self, task):
         task.qf.calculate_constant_statistics(task)
         result = []
         all_selectors = chain.from_iterable(combinations(task.search_space, r) for r in range(1, task.depth + 1))
-        if show_progress:
+        if self.show_progress:
             try:
                 from tqdm import tqdm
                 def binomial(x, y):
@@ -377,7 +379,7 @@ class DFS:
         self.operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task)
         result = []
-        with self.apply_representation(task.data):
+        with self.apply_representation(task.data, task.search_space):
             self.search_internal(task, result, ps.RepresentationConjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
         result = [(quality, ps.Subgroup(task, sgd)) for quality, sgd in result]
