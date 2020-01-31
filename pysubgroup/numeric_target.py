@@ -188,7 +188,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             if self.use_numba and not self.numba_in_place:
                 try:
                     from numba import njit # pylint: disable=unused-import
-                    print('StandardQf_Numeric: Using numba for speedup')
+                    #print('StandardQf_Numeric: Using numba for speedup')
                 except ImportError:
                     return
                 @njit
