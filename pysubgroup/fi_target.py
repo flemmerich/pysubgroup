@@ -82,6 +82,15 @@ class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
     def gp_merge(self, l, r):
         l["size"]+=r["size"]
 
+    def gp_get_params(self, _cover_arr, v):
+        return SimpleCountQF.tpl(v['size'])
+    
+    def gp_to_str(self, stats):
+        return str(stats['size'])
+    @property
+    def gp_requires_cover_arr(self):
+        return False
+
 
 class AreaQF(SimpleCountQF):
     def evaluate(self, subgroup, statistics=None):

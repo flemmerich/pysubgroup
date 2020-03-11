@@ -43,6 +43,7 @@ class GP_Growth:
         task.qf.calculate_constant_statistics(task)
         self.depth = task.depth
         selectors_sorted, arrs = self.prepare_selectors(task.search_space)
+        self.requires_cover_arr = task.qf.gp_requires_cover_arr
 
         # Create tree
         root = self.GP_node(-1, -1, None, {}, self.get_null_vector())
@@ -70,7 +71,10 @@ class GP_Growth:
                 selectors = [selectors_sorted[i] for i in indices]
                 #print(selectors, stats)
                 sg = ps.Conjunction(selectors)
-                statistics = task.qf.gp_get_params(np.all([arrs[i] for i in indices]), gp_params)
+                if self.requires_cover_arr:
+                    statistics = task.qf.gp_get_params(np.all([arrs[i] for i in indices]), gp_params)
+                else:
+                    statistics = task.qf.gp_get_params(None, gp_params)
                 #qual1 = task.qf.evaluate(sg, task.qf.calculate_statistics(sg, task.data))
                 qual2 = task.qf.evaluate(sg, statistics)
                 out.append((qual2, sg))
@@ -107,7 +111,8 @@ class GP_Growth:
 
 
     def check_constraints(self, node):
-        return node[0] >= self.minSupp
+        #return node[0] >= self.minSupp
+        return node['size'] >= self.minSupp
 
     def recurse(self, cls_nodes, prefix, is_single_path=False):
         if len(cls_nodes) == 0:
@@ -297,6 +302,20 @@ class GP_Growth:
                 break
         return path
 
+    def to_file(self, task, path):
+        task.qf.calculate_constant_statistics(task)
+        self.depth = task.depth
+        selectors_sorted, arrs = self.prepare_selectors(task.search_space)
+
+        # Create tree
+        root = self.GP_node(-1, -1, None, {}, self.get_null_vector())
+        nodes = []
+        with open(path, 'w') as f:
+            for row_index, row in self.tqdm(enumerate(arrs), 'creating tree', total=len(arrs)):
+                #print(np.nonzero(row)[0])
+                f.write(" ".join(map(str, np.nonzero(row)[0])) + " "+ task.qf.gp_to_str(self.get_stats(row_index))+"\r\n")
+        
+
 if __name__ == '__main__':
     from pysubgroup.tests.DataSets import get_credit_data
     from pysubgroup import model_target
@@ -308,9 +327,10 @@ if __name__ == '__main__':
     searchSpace_Numeric = ps.create_numeric_selectors(data, ignore=['duration', 'credit_amount'])
     searchSpace = searchSpace_Nominal + searchSpace_Numeric
     target = ps.FITarget()
-    QF=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration', y_name='credit_amount'))
-    task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=200, depth=3, qf=QF)
-
+    #QF=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration', y_name='credit_amount'))
+    QF=ps.CountQF()
+    task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=200, depth=4, qf=QF)
+    GP_Growth(mode='b_u').to_file(task,'E:/tmp/gp_credit.txt')
 
     import time
     start_time = time.time()
