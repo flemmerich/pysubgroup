@@ -19,6 +19,7 @@ It has, however, been already successfully employed in active application projec
    :caption: Contents:
 
    tutorials/introduction
+   gp_growth
 
 Indices and tables
 ==================
