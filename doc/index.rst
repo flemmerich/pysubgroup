@@ -20,6 +20,7 @@ It has, however, been already successfully employed in active application projec
 
    tutorials/introduction
    gp_growth
+   Selectors
 
 Indices and tables
 ==================

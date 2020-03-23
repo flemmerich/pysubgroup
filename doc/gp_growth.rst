@@ -28,13 +28,16 @@ The basic usage of the gp-growth algorithm is not very different from the usage 
     task = ps.SubgroupDiscoveryTask (data, target, dearchspace, result_set_size=5, depth=2, qf=ps.WRAccQF())
     GpGrowth.execute(task)
 
-But beware that gp-growth is using an exhaustive search strategy! This can greatly increase the runtime for high search depth. You can specify the :code:`mode` argument in the constructor of GpGrowth to run gp-growth either bottom up (:code:`mode='b_u'`) or top down (:code:`mode='b_u'`).
+But beware that gp-growth is using an exhaustive search strategy! This can greatly increase the runtime for high search depth.
+You can specify the :code:`mode` argument in the constructor of GpGrowth to run gp-growth either bottom up (:code:`mode='b_u'`) or top down (:code:`mode='b_u'`).
 As gp growth is a generalisation of fp-growth you can also perform standard fp-growth using gp_growth by using the CountQF (TODO LINK) quality function.
 
 
 
-Saving a gp_tree
+Export a gp_tree
 =================
+It is possible to export a gp_tree
+TODO
 
 
 
