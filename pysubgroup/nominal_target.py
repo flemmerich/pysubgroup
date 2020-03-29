@@ -10,7 +10,7 @@ import scipy.stats
 
 import pysubgroup as ps
 
-from .subgroup import Subgroup, NominalSelector
+from .subgroup import Subgroup, EqualitySelector
 from .boolean_expressions import Conjunction
 
 
@@ -25,7 +25,7 @@ class NominalTarget():
         if target_attribute is not None and target_value is not None:
             if target_selector is not None:
                 raise BaseException("NominalTarget is to be constructed EITHER by a selector OR by attribute/value pair")
-            target_selector = NominalSelector(target_attribute, target_value)
+            target_selector = EqualitySelector(target_attribute, target_value)
         if target_selector is None:
             raise BaseException("No target selector given")
         self.target_selector = target_selector
@@ -246,21 +246,18 @@ class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
 
 
 class WRAccQF(StandardQF):
-    def __init__(self, a):
+    def __init__(self, a=1.0):
         super().__init__(a)
-        self.a = 1.0
 
 
 class LiftQF(StandardQF):
-    def __init__(self, a):
+    def __init__(self, a=0.0):
         super().__init__(a)
-        self.a = 0.0
 
 
 class SimpleBinomial(StandardQF):
-    def __init__(self, a):
+    def __init__(self, a=0.5):
         super().__init__(a)
-        self.a = 0.5
 
 
 #####

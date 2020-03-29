@@ -5,14 +5,14 @@ import pysubgroup as ps
 from tqdm import tqdm
 from copy import copy
 import itertools
-class GP_Growth:
+class GpGrowth:
 
     def __init__(self, mode='b_u' ):
         self.GP_node = namedtuple('GP_node', ['cls', 'id', 'parent', 'children', 'stats'])
         self.minSupp = 10
         self.tqdm = tqdm
         self.depth = 0
-        self.mode = 'b_u'  #specify eihther b_u (bottom up) or t_d (top down)
+        self.mode = mode  #specify eihther b_u (bottom up) or t_d (top down)
         # Future: There also is the option of a stable mode which never creates the prefix trees
 
     def prepare_selectors(self, search_space):
@@ -330,11 +330,11 @@ if __name__ == '__main__':
     #QF=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration', y_name='credit_amount'))
     QF=ps.CountQF()
     task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=200, depth=4, qf=QF)
-    GP_Growth(mode='b_u').to_file(task,'E:/tmp/gp_credit.txt')
+    GpGrowth(mode='b_u').to_file(task,'E:/tmp/gp_credit.txt')
 
     import time
     start_time = time.time()
-    gp = GP_Growth(mode='b_u').execute(task)
+    gp = GpGrowth(mode='b_u').execute(task)
     print("--- %s seconds ---" % (time.time() - start_time))
     #gp = [(qual, sg) for qual, sg in gp if sg.depth <= task.depth]
     gp = sorted(gp)

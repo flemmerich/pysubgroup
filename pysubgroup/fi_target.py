@@ -87,6 +87,7 @@ class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
     
     def gp_to_str(self, stats):
         return str(stats['size'])
+        
     @property
     def gp_requires_cover_arr(self):
         return False
