@@ -106,7 +106,7 @@ class NominalTarget():
         subgroup.statistics['lift_weighted'] = (positives_subgroup / instances_subgroup) / (positives_dataset / instances_dataset)
 
 
-class SimplePositivesQF(ps.AbstractInterestingnessMeasure):
+class SimplePositivesQF(ps.AbstractInterestingnessMeasure): # pylint: disable=abstract-method
     tpl = namedtuple('PositivesQF_parameters', ('size', 'positives_count'))
 
     def __init__(self):
@@ -131,25 +131,40 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):
     def is_applicable(self, subgroup):
         return isinstance(subgroup.target, NominalTarget)
 
-        
+# TODO Make ChiSquared useful for real nominal data not just binary
+# TODO Introduce Enum for direction
 class ChiSquaredQF(SimplePositivesQF):
     @staticmethod
-    def chi_squared_qf(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup, min_instances=5, bidirect=True, direction_positive=True):
+    def chi_squared_qf(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup, min_instances=5, bidirect=True, direction_positive=True, index=0):
+        """ Performs chi2 test of statistical independence (see scipy.stats.chi2_contingency)
+
+        Parameters
+        ----------
+        instances_dataset, positives_dataset, instances_subgroup, positives_subgroup: int
+            counts of subgroup and dataset
+        min_instances : int, optional
+            number of required instances, if less -inf is returned for that subgroup
+        bidirect : bool, optional
+            If true both directions are considered interesting else direction_positive decides which direction is interesting
+        index : {0, 1}
+            decides whether the test statistic (0) or the p-value (1) should be used
+        """
+
         if (instances_subgroup < min_instances) or ((instances_dataset - instances_subgroup) < min_instances):
             return float("-inf")
-        p_subgroup = positives_subgroup / instances_subgroup
-        p_dataset = positives_dataset / instances_dataset
-        
-        negatives_subgroup =  instances_subgroup - positives_subgroup
-        negatives_dataset =    instances_dataset - positives_dataset
+
+        negatives_subgroup =  instances_subgroup - positives_subgroup # pylint: disable=bad-whitespace
+        negatives_dataset =    instances_dataset - positives_dataset # pylint: disable=bad-whitespace
         negatives_complement = negatives_dataset - negatives_subgroup
         positives_complement = positives_dataset - positives_subgroup
 
         val = scipy.stats.chi2_contingency([[positives_subgroup, positives_complement],
-                                            [negatives_subgroup, negatives_complement]], correction=False)[0]
+                                            [negatives_subgroup, negatives_complement]], correction=False)[index]
         if bidirect:
             return val
-        elif direction_positive and p_subgroup > p_dataset:
+        p_subgroup = positives_subgroup / instances_subgroup
+        p_dataset = positives_dataset / instances_dataset
+        if direction_positive and p_subgroup > p_dataset:
             return val
         elif not direction_positive and p_subgroup < p_dataset:
             return val
@@ -173,8 +188,19 @@ class ChiSquaredQF(SimplePositivesQF):
                                             [negatives_subgroup, negatives_complement]], correction=True)[0]
         return scipy.stats.chi2.sf(val * effective_sample_size / instancesDataset, 1)
 
-    def __init__(self, direction='bidirect', min_instances=5):
-        if direction == 'bidirect':
+    def __init__(self, direction='both', min_instances=5, stat='chi2'):
+        """
+        Parameters
+        ----------
+        direction : {'both', 'positive', 'negative'}
+            direction of deviation that is of interest
+        min_instances : int, optional
+            number of required instances, if less -inf is returned for that subgroup
+        stat : {'chi2', 'p'}
+            whether to report the test statistic or the p-value (see scipy.stats.chi2_contingency)
+        """
+
+        if direction == 'both':
             self.bidirect = True
             self.direction_positive = True
         if direction == 'positive':
@@ -184,25 +210,14 @@ class ChiSquaredQF(SimplePositivesQF):
             self.bidirect = False
             self.direction_positive = False
         self.min_instances = min_instances
+        self.index = {'chi2' : 0, 'p': 1}[stat]
         super().__init__()
 
-
-    # def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-    #     if not self.is_applicable(subgroup):
-    #         raise BaseException("Quality measure cannot be used for this target class")
-    #     if weighting_attribute is None:
-    #         result = self.evaluate_from_statistics(*subgroup.get_base_statistics(data))
-    #     else:
-    #         (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = subgroup.get_base_statistics(data, weighting_attribute)
-    #         weights = data[weighting_attribute]
-    #         base = self.evaluate_from_statistics(instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup)
-    #         result = base * ps.effective_sample_size(weights) / instancesDataset
-    #     return result
 
     def evaluate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
         datatset = self.datatset
-        return ChiSquaredQF.chi_squared_qf(datatset.size, datatset.positives_count, statistics.size, statistics.positives_count, self.min_instances, self.bidirect, self.direction_positive)
+        return ChiSquaredQF.chi_squared_qf(datatset.size, datatset.positives_count, statistics.size, statistics.positives_count, self.min_instances, self.bidirect, self.direction_positive, self.index)
 
     def supports_weights(self):
         return True
@@ -211,6 +226,21 @@ class ChiSquaredQF(SimplePositivesQF):
 
 
 class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
+    """
+    StandardQF which weights the relative size against the difference in averages
+
+    ...
+
+    Attributes
+    -----------
+    a : float
+        used as an exponent to scale the relative size to the difference in averages
+
+    Functions
+    ----------
+    standard_qf
+        computes the standard qf value from values
+    """
 
     @staticmethod
     def standard_qf(a, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
@@ -222,18 +252,25 @@ class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
         return (instances_subgroup / instances_dataset) ** a * (p_subgroup - p_dataset)
 
     def __init__(self, a):
+        """
+        Parameters
+        ----------
+        a : float
+            exponent to scale the relative size to the difference in means
+        """
+
         self.a = a
         super().__init__()
-        
+
     def evaluate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
         datatset = self.datatset
-        return StandardQF.standard_qf(self.a, datatset.size, datatset.positives_count, statistics.size, statistics.positives_count )
+        return StandardQF.standard_qf(self.a, datatset.size, datatset.positives_count, statistics.size, statistics.positives_count)
 
     def optimistic_estimate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
         datatset = self.datatset
-        return StandardQF.standard_qf(self.a, datatset.size, datatset.positives_count, statistics.positives_count, statistics.positives_count )
+        return StandardQF.standard_qf(self.a, datatset.size, datatset.positives_count, statistics.positives_count, statistics.positives_count)
 
     def optimistic_generalisation(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
