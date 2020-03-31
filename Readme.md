@@ -103,3 +103,16 @@ any hindrance to your application, please feel free to contact me, I am sure tha
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+    
+**Cite**
+If you are using pysubgroup for your research, please consider citing our demo paper:
+        
+    Lemmerich, F., & Becker, M. (2018, September). pysubgroup: Easy-to-use subgroup discovery in python. In Joint European Conference on Machine Learning and Knowledge Discovery in Databases (ECMLPKDD). pp. 658-662.
+    
+    @inproceedings{lemmerich2018pysubgroup,
+      title={pysubgroup: Easy-to-use subgroup discovery in python},
+      author={Lemmerich, Florian and Becker, Martin},
+      booktitle={Joint European Conference on Machine Learning and Knowledge Discovery in Databases},
+      pages={658--662},
+      year={2018}
+    }
