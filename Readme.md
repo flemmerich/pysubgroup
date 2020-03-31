@@ -108,7 +108,8 @@ any hindrance to your application, please feel free to contact me, I am sure tha
 If you are using pysubgroup for your research, please consider citing our demo paper:
         
     Lemmerich, F., & Becker, M. (2018, September). pysubgroup: Easy-to-use subgroup discovery in python. In Joint European Conference on Machine Learning and Knowledge Discovery in Databases (ECMLPKDD). pp. 658-662.
-  
+    
+bibtex:
   
     @inproceedings{lemmerich2018pysubgroup,
       title={pysubgroup: Easy-to-use subgroup discovery in python},
