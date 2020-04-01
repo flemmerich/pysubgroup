@@ -106,6 +106,7 @@ class NominalTarget():
         subgroup.statistics['lift_weighted'] = (positives_subgroup / instances_subgroup) / (positives_dataset / instances_dataset)
 
 
+
 class SimplePositivesQF(ps.AbstractInterestingnessMeasure): # pylint: disable=abstract-method
     tpl = namedtuple('PositivesQF_parameters', ('size', 'positives_count'))
 
@@ -131,22 +132,38 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure): # pylint: disable=ab
     def is_applicable(self, subgroup):
         return isinstance(subgroup.target, NominalTarget)
 
+
+
 # TODO Make ChiSquared useful for real nominal data not just binary
 # TODO Introduce Enum for direction
+# TODO Maybe it is possible to give a optimistic estimate for ChiSquared
 class ChiSquaredQF(SimplePositivesQF):
+    """
+    ChiSquaredQF which test for statistical independence of a subgroup against it's complement
+
+    ...
+
+    """
+
     @staticmethod
     def chi_squared_qf(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup, min_instances=5, bidirect=True, direction_positive=True, index=0):
-        """ Performs chi2 test of statistical independence (see scipy.stats.chi2_contingency)
+        """
+        Performs chi2 test of statistical independence
+
+        Test whether a subgroup is statistically independent from it's complement (see scipy.stats.chi2_contingency).
+
 
         Parameters
         ----------
-        instances_dataset, positives_dataset, instances_subgroup, positives_subgroup: int
+        instances_dataset, positives_dataset, instances_subgroup, positives_subgroup : int
             counts of subgroup and dataset
         min_instances : int, optional
             number of required instances, if less -inf is returned for that subgroup
         bidirect : bool, optional
             If true both directions are considered interesting else direction_positive decides which direction is interesting
-        index : {0, 1}
+        direction_positive: bool, optional
+            Only used if bidirect=False; specifies whether you are interested in positive (True) or negative deviations
+        index : {0, 1}, optional
             decides whether the test statistic (0) or the p-value (1) should be used
         """
 
@@ -229,17 +246,14 @@ class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
     """
     StandardQF which weights the relative size against the difference in averages
 
-    ...
+    The StandardQF is a general form of quality function which for different values of a is order equivalen to
+    many popular quality measures.
 
     Attributes
-    -----------
+    ----------
     a : float
         used as an exponent to scale the relative size to the difference in averages
 
-    Functions
-    ----------
-    standard_qf
-        computes the standard qf value from values
     """
 
     @staticmethod
@@ -282,21 +296,58 @@ class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
         return True
 
 
-class WRAccQF(StandardQF):
-    def __init__(self, a=1.0):
-        super().__init__(a)
 
 
 class LiftQF(StandardQF):
-    def __init__(self, a=0.0):
-        super().__init__(a)
+    """
+    Lift Quality Function
+
+    LiftQF is a StandardQF with a=0.
+    Thus it treats the difference in ratios as the quality without caring about the relative size of a subgroup.
+    """
+
+    def __init__(self):
+        """
+        """
+
+        super().__init__(0.0)
 
 
-class SimpleBinomial(StandardQF):
-    def __init__(self, a=0.5):
-        super().__init__(a)
+
+# TODO add true binomial quality function as in https://opus.bibliothek.uni-wuerzburg.de/opus4-wuerzburg/frontdoor/index/index/docId/1786
+class SimpleBinomialQF(StandardQF):
+    """
+    Simple Binomial Quality Function
+
+    SimpleBinomialQF is a StandardQF with a=0.5.
+    It is an order equivalent approximation of the full binomial test if the subgroup size is much smaller than the size of the entire dataset.
+    """
+
+    def __init__(self):
+        """
+        """
+
+        super().__init__(0.5)
 
 
+
+class WRAccQF(StandardQF):
+    """
+    Weighted Relative Accuracy Quality Function
+
+    WRAccQF is a StandardQF with a=1.
+    It is order equivalent to the difference in the observed and expected number of positive instances.
+    """
+
+    def __init__(self):
+        """
+        """
+
+        super().__init__(1.0)
+
+
+
+# TODO Redo Generalization Aware SGD
 #####
 # GeneralizationAware Interestingness Measures
 #####

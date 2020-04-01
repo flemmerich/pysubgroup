@@ -21,6 +21,8 @@ It has, however, been already successfully employed in active application projec
    tutorials/introduction
    gp_growth
    Selectors
+   targets
+   source/modules
 
 Indices and tables
 ==================
