@@ -46,7 +46,7 @@ def plot_roc(result_df, data, qf=ps.StandardQF(0.5), levels=40, annotate=False):
     xlist = np.linspace(0.01, 0.99, 100)
     ylist = np.linspace(0.01, 0.99, 100)
     X, Y = np.meshgrid(xlist, ylist)
-    f = np.vectorize(partial(qf.evaluate_from_statistics, instances_dataset, positives_dataset), otypes=[np.float])
+    f = np.vectorize(partial(qf.evaluate, instances_dataset, positives_dataset), otypes=[np.float])
     Z = f(X * negatives_dataset + Y * positives_dataset, Y * positives_dataset)
     max_val = np.max([np.max(Z), -np.min(Z)])
 

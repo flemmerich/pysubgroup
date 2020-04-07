@@ -30,13 +30,13 @@ class TestCountQF(TestAlgorithmsBase, unittest.TestCase):
         self.runAlgorithm(ps.SimpleDFS(), "DFS", self.result[:-1], self.qualities[:-1], self.task)
 
     def setUp(self):
-        NS_cabin = ps.NominalSelector("Cabin", np.nan)
-        NS_embarked=ps.NominalSelector("Embarked", 'S')
-        NS_male = ps.NominalSelector("Sex", 'male')
-        NS_female = ps.NominalSelector("Sex", 'female')
-        #NS_other_parties = ps.NominalSelector("other_parties", b"none")
-        #NS_savings_status = ps.NominalSelector("savings_status", b"<100")
-        #NS_job = ps.NominalSelector("job", b"skilled")
+        NS_cabin = ps.EqualitySelector("Cabin", np.nan)
+        NS_embarked=ps.EqualitySelector("Embarked", 'S')
+        NS_male = ps.EqualitySelector("Sex", 'male')
+        NS_female = ps.EqualitySelector("Sex", 'female')
+        #NS_other_parties = ps.EqualitySelector("other_parties", b"none")
+        #NS_savings_status = ps.EqualitySelector("savings_status", b"<100")
+        #NS_job = ps.EqualitySelector("job", b"skilled")
         self.result = [ps.Conjunction([]),
                        ps.Conjunction([NS_cabin]),
                        ps.Conjunction([NS_embarked]),
@@ -76,14 +76,14 @@ class TestAreaQF(TestAlgorithmsBase, unittest.TestCase):
    #56:  Sex=='female'
    #46:  Cabin.isnull() AND Embarked=='C'
     def setUp(self):
-        NS_cabin = ps.NominalSelector("Cabin", np.nan)
-        NS_embarked=ps.NominalSelector("Embarked", 'S')
-        NS_embarked2=ps.NominalSelector("Embarked", 'C')
-        NS_male = ps.NominalSelector("Sex", 'male')
-        NS_female = ps.NominalSelector("Sex", 'female')
-        #NS_other_parties = ps.NominalSelector("other_parties", b"none")
-        #NS_savings_status = ps.NominalSelector("savings_status", b"<100")
-        #NS_job = ps.NominalSelector("job", b"skilled")
+        NS_cabin = ps.EqualitySelector("Cabin", np.nan)
+        NS_embarked=ps.EqualitySelector("Embarked", 'S')
+        NS_embarked2=ps.EqualitySelector("Embarked", 'C')
+        NS_male = ps.EqualitySelector("Sex", 'male')
+        NS_female = ps.EqualitySelector("Sex", 'female')
+        #NS_other_parties = ps.EqualitySelector("other_parties", b"none")
+        #NS_savings_status = ps.EqualitySelector("savings_status", b"<100")
+        #NS_job = ps.EqualitySelector("job", b"skilled")
         self.result = [ps.Conjunction([NS_cabin, NS_embarked]),
                        ps.Conjunction([NS_cabin, NS_male]),
                        ps.Conjunction([NS_embarked, NS_male]),
