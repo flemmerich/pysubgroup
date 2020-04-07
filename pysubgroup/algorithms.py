@@ -97,7 +97,6 @@ class Apriori:
         return promising_candidates
 
     def get_next_level_numba(self, promising_candidates):
-
         from numba import jit
         if not hasattr(self, 'compiled_func') or self.compiled_func is None:
             @jit
@@ -345,7 +344,6 @@ class SimpleDFS:
             optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
             if not(optimistic_estimate > ps.minimum_required_quality(result, task)):
                 return result
-        print("A"+ str(prefix))
         quality = task.qf.evaluate(sg, statistics)
         ps.add_if_required(result, sg, quality, task)
 
@@ -375,8 +373,8 @@ class DFS:
         self.operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task)
         result = []
-        with self.apply_representation(task.data, task.search_space):
-            self.search_internal(task, result, ps.RepresentationConjunction([]))
+        with self.apply_representation(task.data, task.search_space) as representation:
+            self.search_internal(task, result, representation.Conjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
         result = [(quality, ps.Subgroup(task, sgd)) for quality, sgd in result]
         return result

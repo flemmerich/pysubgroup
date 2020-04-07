@@ -18,7 +18,7 @@ class RepresentationBase():
         raise NotImplementedError
 
     def patch_classes(self):
-        ps.RepresentationConjunction = self._new_conjunction
+        pass
 
     def undo_patch_classes(self):
         pass
