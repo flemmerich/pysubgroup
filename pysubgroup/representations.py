@@ -91,12 +91,14 @@ class BitSet_Disjunction(ps.Disjunction):
 class BitSetRepresentation(RepresentationBase):
     Conjunction = BitSet_Conjunction
     Disjunction = BitSet_Disjunction
-    def __init__(self, df):
+    def __init__(self, df, selectors_to_patch):
         self.df = df
+        self.selectors_to_patch = selectors_to_patch
         super().__init__(BitSet_Conjunction)
 
-    def patch_selector(self, sel):
-        sel.representation = sel.covers(self.df)
+    def patch_all_selectors(self):
+        for sel in self.selectors_to_patch:
+            sel.representation = sel.covers(self.df)
 
     def patch_classes(self):
         BitSet_Conjunction.n_instances = len(self.df)

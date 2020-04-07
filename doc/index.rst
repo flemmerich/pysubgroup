@@ -19,6 +19,10 @@ It has, however, been already successfully employed in active application projec
    :caption: Contents:
 
    tutorials/introduction
+   gp_growth
+   Selectors
+   targets
+   source/modules
 
 Indices and tables
 ==================

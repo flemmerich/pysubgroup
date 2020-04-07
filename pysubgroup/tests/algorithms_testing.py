@@ -22,5 +22,8 @@ class TestAlgorithmsBase(abc.ABC):
         algorithm_result = algorithm.execute(task)
         end = timer()
         print("   Runtime for {}: {}".format(name, end - start))
+
+        if hasattr(self.task.qf,'calls'):
+            print('   Number of call to qf:', self.task.qf.calls)
         print()
         self.evaluate_result(algorithm_result, result, qualities)

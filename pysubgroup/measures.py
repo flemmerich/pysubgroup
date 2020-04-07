@@ -127,3 +127,25 @@ def overlaps_list(sg, list_of_sgs, data, similarity_level=0.9):
         if ps.overlap(sg, anotherSG, data) > similarity_level:
             return True
     return False
+
+
+class CountCallsInterestingMeasure(BoundedInterestingnessMeasure):
+    def __init__(self, qf):
+        self.qf = qf
+        self.calls = 0
+
+    def supports_weights(self):
+        return self.qf.supports_weights
+
+    def is_applicable(self, subgroup):
+        return self.qf.is_applicable(subgroup)
+
+    def calculate_statistics(self, sg, data=None):
+        self.calls += 1
+        return self.qf.calculate_statistics(sg, data)
+
+    def __getattr__(self, name):
+        return getattr(self.qf, name)
+
+    def __hasattr__(self, name):
+        return hasattr(self.qf, name)

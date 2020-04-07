@@ -45,7 +45,7 @@ class SelectorBase(ABC):
         pass
 
 
-class NominalSelector(SelectorBase):
+class EqualitySelector(SelectorBase):
     def __init__(self, attribute_name, attribute_value, selector_name=None):
         if attribute_name is None:
             raise TypeError()
@@ -66,7 +66,7 @@ class NominalSelector(SelectorBase):
         return self._attribute_value
 
     def set_descriptions(self, attribute_name, attribute_value, selector_name=None): # pylint: disable=arguments-differ
-        self._hash, self._query, self._string = NominalSelector.compute_descriptions(attribute_name, attribute_value, selector_name=selector_name)
+        self._hash, self._query, self._string = EqualitySelector.compute_descriptions(attribute_name, attribute_value, selector_name=selector_name)
 
     @classmethod
     def compute_descriptions(cls, attribute_name, attribute_value, selector_name):
@@ -121,7 +121,7 @@ class NegatedSelector(SelectorBase):
 
 
 # Including the lower bound, excluding the upper_bound
-class NumericSelector(SelectorBase):
+class IntervalSelector(SelectorBase):
     def __init__(self, attribute_name, lower_bound, upper_bound, selector_name=None):
         self._attribute_name = attribute_name
         self._lower_bound = lower_bound
@@ -166,7 +166,7 @@ class NumericSelector(SelectorBase):
         return (_hash, _query, _string)
 
     def set_descriptions(self, attribute_name, lower_bound, upper_bound, selector_name=None):  # pylint: disable=arguments-differ
-        self._hash, self._query, self._string = NumericSelector.compute_descriptions(attribute_name, lower_bound, upper_bound, selector_name=selector_name)
+        self._hash, self._query, self._string = IntervalSelector.compute_descriptions(attribute_name, lower_bound, upper_bound, selector_name=selector_name)
 
     @classmethod
     def compute_string(cls, attribute_name, lower_bound, upper_bound, rounding_digits):
@@ -212,7 +212,7 @@ class Subgroup():
         return "<<" + repr(self.target) + "; D: " + repr(self.subgroup_description) + ">>"
 
     def covers(self, instance):
-        if hasattr(self.subgroup_description,"representation"):
+        if hasattr(self.subgroup_description, "representation"):
             return self.subgroup_description
         else:
             return self.subgroup_description.covers(instance)
@@ -260,7 +260,7 @@ def create_nominal_selectors(data, ignore=None):
 def create_nominal_selectors_for_attribute(data, attribute_name, dtypes=None):
     nominal_selectors = []
     for val in pd.unique(data[attribute_name]):
-        nominal_selectors.append(NominalSelector(attribute_name, val))
+        nominal_selectors.append(EqualitySelector(attribute_name, val))
     # setting the is_bool flag for selector
     if dtypes is None:
         dtypes = data.dtypes
@@ -286,23 +286,23 @@ def create_numeric_selector_for_attribute(data, attr_name, nbins=5, intervals_on
 
     uniqueValues = np.unique(data_not_null[attr_name])
     if len(data_not_null.index) < len(data.index):
-        numeric_selectors.append(NominalSelector(attr_name, np.nan))
+        numeric_selectors.append(EqualitySelector(attr_name, np.nan))
 
     if len(uniqueValues) <= nbins:
         for val in uniqueValues:
-            numeric_selectors.append(NominalSelector(attr_name, val))
+            numeric_selectors.append(EqualitySelector(attr_name, val))
     else:
         cutpoints = ps.equal_frequency_discretization(data, attr_name, nbins, weighting_attribute)
         if intervals_only:
             old_cutpoint = float("-inf")
             for c in cutpoints:
-                numeric_selectors.append(NumericSelector(attr_name, old_cutpoint, c))
+                numeric_selectors.append(IntervalSelector(attr_name, old_cutpoint, c))
                 old_cutpoint = c
-            numeric_selectors.append(NumericSelector(attr_name, old_cutpoint, float("inf")))
+            numeric_selectors.append(IntervalSelector(attr_name, old_cutpoint, float("inf")))
         else:
             for c in cutpoints:
-                numeric_selectors.append(NumericSelector(attr_name, c, float("inf")))
-                numeric_selectors.append(NumericSelector(attr_name, float("-inf"), c))
+                numeric_selectors.append(IntervalSelector(attr_name, c, float("inf")))
+                numeric_selectors.append(IntervalSelector(attr_name, float("-inf"), c))
 
     return numeric_selectors
 

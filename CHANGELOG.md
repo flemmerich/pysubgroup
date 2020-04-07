@@ -1,4 +1,26 @@
 # Changelog
+## [0.6.2.1] - 2019-20-11
+### Added
+- Apriori now has the option to disable numba using the use_numba flag
+- SimpleSrach now has a progressbar (enabled via the show_progress=True flag)
+- The number of quality function evaluations can now be tracked using the CountCallsInterestingMeasure as a wrapper
+- StandardQfNumeric now offers three different options to calculate the optimistic estimate
+  - 'sum' (default) sums the values larger then the dataset mean (cf. Lemmerich 2014 p. 81 top)
+  - 'average' uses the maximum target values as estimate (cf. Lemmerich 2014 p. 82 center)
+  - 'order' uses ordering based bounds (cf. Lemmerich 2014 p. 89 bottom)
+
+
+### Bugfix
+- Apriori now calculates the constant statistics before using representation
+- DFS now properly works with any quality function
+
+### Improvements
+- Apriori now reuses the compiled numba function
+- Nominal target now uses subgroup.size to access the size of a subgroup representation
+- StaticSpecializationOperator now avoids checking refinements of the same attribute
+- test_algorithms_numeric now checks more algorithms
+
+# Changelog
 ## [0.6.2] - 2019-31-10
 ### Changed
 - **SubgroupDescription** has been replaced with **Conjunction**
