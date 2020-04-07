@@ -5,23 +5,23 @@ import pysubgroup as ps
 
 
 class RepresentationBase():
-    def __init__(self, new_conjunction):
+    def __init__(self, new_conjunction, selectors_to_patch):
         self._new_conjunction = new_conjunction
         self.previous_conjunction = None
+        self.selectors_to_patch = selectors_to_patch
 
     def patch_all_selectors(self):
-        for sel in ps.SelectorBase.__refs__:
+        for sel in self.selectors_to_patch:
             self.patch_selector(sel)
 
     def patch_selector(self, sel):
         raise NotImplementedError
 
     def patch_classes(self):
-        self.previous_conjunction = ps.RepresentationConjunction
         ps.RepresentationConjunction = self._new_conjunction
 
     def undo_patch_classes(self):
-        ps.RepresentationConjunction = self.previous_conjunction
+        pass
 
     def __enter__(self):
         self.patch_classes()
@@ -93,18 +93,13 @@ class BitSetRepresentation(RepresentationBase):
     Disjunction = BitSet_Disjunction
     def __init__(self, df, selectors_to_patch):
         self.df = df
-        self.selectors_to_patch = selectors_to_patch
-        super().__init__(BitSet_Conjunction)
-
-    def patch_all_selectors(self):
-        for sel in self.selectors_to_patch:
-            sel.representation = sel.covers(self.df)
-
+        super().__init__(BitSet_Conjunction, selectors_to_patch)
+    
+    def patch_selector(self, sel):
+        sel.representation = sel.covers(self.df)
     def patch_classes(self):
         BitSet_Conjunction.n_instances = len(self.df)
         super().patch_classes()
-
-RepresentationConjunction = BitSet_Conjunction
 
 
 class Set_Conjunction(ps.Conjunction):
@@ -120,7 +115,7 @@ class Set_Conjunction(ps.Conjunction):
         if not self._selectors:
             return Set_Conjunction.all_set
         # non-empty description
-        return set.intersection(sel.representation for sel in self._selectors)
+        return set.intersection(*[sel.representation for sel in self._selectors])
 
     @property
     def size(self):
@@ -142,9 +137,10 @@ class Set_Conjunction(ps.Conjunction):
 
 
 class SetRepresentation(RepresentationBase):
-    def __init__(self, df):
+    Conjunction = Set_Conjunction
+    def __init__(self, df, selectors_to_patch):
         self.df = df
-        super().__init__(Set_Conjunction)
+        super().__init__(Set_Conjunction, selectors_to_patch)
 
     def patch_selector(self, sel):
         sel.representation = set(*np.nonzero(sel.covers(self.df)))
@@ -155,7 +151,7 @@ class SetRepresentation(RepresentationBase):
 
 
 class NumpySet_Conjunction(ps.Conjunction):
-    all_set = set()
+    all_set = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -165,9 +161,9 @@ class NumpySet_Conjunction(ps.Conjunction):
                 # empty description ==> return a list of all '1's
         if not self._selectors:
             return NumpySet_Conjunction.all_set
-        start = self._selectors[0]
+        start = self._selectors[0].representation
         for sel in self._selectors[1:]:
-            start = np.intersect1d(start, sel.representation, True)
+            start = np.intersect1d(start, sel.representation, assume_unique=True)
         return start
 
     @property
@@ -182,6 +178,8 @@ class NumpySet_Conjunction(ps.Conjunction):
     def append_and(self, to_append):
         super().append_and(to_append)
         #self._selectors.append(to_append)
+        print(self.representation)
+        print(to_append.representation)
         self.representation = np.intersect1d(self.representation, to_append.representation, True)
 
     @property
@@ -190,13 +188,14 @@ class NumpySet_Conjunction(ps.Conjunction):
 
 
 class NumpySetRepresentation(RepresentationBase):
-    def __init__(self, df):
+    Conjunction = NumpySet_Conjunction
+    def __init__(self, df, selectors_to_patch):
         self.df = df
-        super().__init__(NumpySet_Conjunction)
+        super().__init__(NumpySet_Conjunction, selectors_to_patch)
 
     def patch_selector(self, sel):
-        sel.representation = np.nonzero(sel.covers(self.df))
+        sel.representation = np.nonzero(sel.covers(self.df))[0]
 
     def patch_classes(self):
-        NumpySet_Conjunction.all_set = self.df.index.to_numpy()
+        NumpySet_Conjunction.all_set = np.arange(len(self.df))
         super().patch_classes()

@@ -5,23 +5,23 @@ import pysubgroup as ps
 
 
 class TestRelationsMethods(unittest.TestCase):
-    def test_NominalSelector_ordering(self):
-        A1 = ps.NominalSelector("A", 1)
-        A1_clone = ps.NominalSelector("A", 1)
-        A2 = ps.NominalSelector("A", 2, "AA")
-        B1 = ps.NominalSelector("B", 1)
+    def test_EqualitySelector_ordering(self):
+        A1 = ps.EqualitySelector("A", 1)
+        A1_clone = ps.EqualitySelector("A", 1)
+        A2 = ps.EqualitySelector("A", 2, "AA")
+        B1 = ps.EqualitySelector("B", 1)
 
         self.assertTrue(A1_clone is A1)
 
-        B1_clone = ps.NominalSelector("B", 1)
+        B1_clone = ps.EqualitySelector("B", 1)
         self.assertTrue(A1 < B1)
         self.assertTrue(A1 < A2)
         self.assertTrue(A2 < B1)
         self.assertTrue(B1 == B1_clone)
         self.assertTrue(hash(B1) == hash(B1_clone))
 
-        C1 = ps.NominalSelector("checking_status", b"<0")
-        C2 = ps.NominalSelector("checking_status", b"<0")
+        C1 = ps.EqualitySelector("checking_status", b"<0")
+        C2 = ps.EqualitySelector("checking_status", b"<0")
 
         self.assertTrue(C1 == C2)
         self.assertTrue(hash(C1) == hash(C2))
@@ -31,13 +31,13 @@ class TestRelationsMethods(unittest.TestCase):
         self.assertEqual(l.index(A2), 1)
         self.assertEqual(l.index(B1), 2)
 
-    def test_NumericSelector_ordering(self):
-        S1 = ps.NumericSelector("A", 1.2345, 2.0)
-        S1_clone = ps.NumericSelector("A", 1.2345, 2.0)
-        S1_clone = ps.NumericSelector("A", 1.2345, 2.0)
-        S2 = ps.NumericSelector("A", 1.2345, 3.0)
-        S3 = ps.NumericSelector("A", 1.2346, 3.0)
-        S4 = ps.NumericSelector("B", 1.0, 2.0)
+    def test_IntervalSelector_ordering(self):
+        S1 = ps.IntervalSelector("A", 1.2345, 2.0)
+        S1_clone = ps.IntervalSelector("A", 1.2345, 2.0)
+        S1_clone = ps.IntervalSelector("A", 1.2345, 2.0)
+        S2 = ps.IntervalSelector("A", 1.2345, 3.0)
+        S3 = ps.IntervalSelector("A", 1.2346, 3.0)
+        S4 = ps.IntervalSelector("B", 1.0, 2.0)
         self.assertTrue(S1 < S2)
         self.assertTrue(S1 < S3)
         self.assertTrue(S2 < S3)
@@ -50,9 +50,9 @@ class TestRelationsMethods(unittest.TestCase):
         self.assert_class_ordering(ps.Conjunction)
 
     def assert_class_ordering(self, cls):
-        A1 = ps.NominalSelector("A", 1)
-        A2 = ps.NominalSelector("A", 2, "AA")
-        B1 = ps.NominalSelector("B", 1)
+        A1 = ps.EqualitySelector("A", 1)
+        A2 = ps.EqualitySelector("A", 2, "AA")
+        B1 = ps.EqualitySelector("B", 1)
 
         SGD1 = cls([A1, A2])
         SGD1_clone = cls([A1, A2])
@@ -73,16 +73,16 @@ class TestRelationsMethods(unittest.TestCase):
 
     def test_nominal_selector_covers(self):
         A = np.array([0, 0, 1, 1, 0, 0, 1, 1, 1, 1], dtype=bool)
-        A1 = ps.NominalSelector("columnA", True)
-        A0 = ps.NominalSelector("columnA", False)
+        A1 = ps.EqualitySelector("columnA", True)
+        A0 = ps.EqualitySelector("columnA", False)
 
         B = np.array(["A", "B", "C", "C", "B", "A", "D", "A", "A", "A"])
-        BA = ps.NominalSelector("columnB", "A")
-        BC = ps.NominalSelector("columnB", "C")
+        BA = ps.EqualitySelector("columnB", "A")
+        BC = ps.EqualitySelector("columnB", "C")
 
         C = np.array([np.nan, np.nan, 1.1, 1.1, 2, 2, 2, 2, 2, 2])
-        CA = ps.NominalSelector("columnC", 1.1)
-        CNan = ps.NominalSelector("columnC", np.nan)
+        CA = ps.EqualitySelector("columnC", 1.1)
+        CNan = ps.EqualitySelector("columnC", np.nan)
 
         df = pd.DataFrame.from_dict({"columnA": A, "columnB": B, "columnC": C})
 

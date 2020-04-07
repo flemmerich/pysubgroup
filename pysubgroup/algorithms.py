@@ -99,7 +99,7 @@ class Apriori:
     def get_next_level_numba(self, promising_candidates):
 
         from numba import jit
-        if not hasattr(self, 'compiled_func'):
+        if not hasattr(self, 'compiled_func') or self.compiled_func is None:
             @jit
             def getNewCandidates(l, hashes):
                 result = []
@@ -134,7 +134,7 @@ class Apriori:
 
         task.qf.calculate_constant_statistics(task)
         
-        with self.representation_type(task.data) as representation:
+        with self.representation_type(task.data, task.search_space) as representation:
             combine_selectors = getattr(representation.__class__, self.combination_name)
             result = []    
             # init the first level
@@ -150,7 +150,6 @@ class Apriori:
                     promising_candidates = self.get_next_level_candidates_vectorized(task, result, next_level_candidates)
                 else:
                     promising_candidates = self.get_next_level_candidates(task, result, next_level_candidates)
-
 
                 if depth == task.depth:
                     break
@@ -177,12 +176,8 @@ class BestFirstSearch:
         queue = [(float("-inf"), ps.Conjunction([]))]
         operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task)
-        # init the first level
-        for sel in task.search_space:
-            queue.append((float("-inf"), ps.Conjunction([sel])))
-
         while queue:
-            q, candidate_description = heappop(queue)
+            q, old_description = heappop(queue)
             q = -q
             if not (q > ps.minimum_required_quality(result, task)):
                 break
@@ -350,13 +345,11 @@ class SimpleDFS:
             optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
             if not(optimistic_estimate > ps.minimum_required_quality(result, task)):
                 return result
-        if statistics.size < 200:
-            return result
-
+        print("A"+ str(prefix))
         quality = task.qf.evaluate(sg, statistics)
         ps.add_if_required(result, sg, quality, task)
 
-        if len(prefix) < task.depth and statistics.size > 200:
+        if len(prefix) < task.depth:
             new_modification_set = copy.copy(modification_set)
             for sel in modification_set:
                 prefix.append(sel)

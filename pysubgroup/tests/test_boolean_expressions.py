@@ -13,10 +13,10 @@ class TestRelationsMethods(unittest.TestCase):
         np.testing.assert_array_equal(self.df.query(repr(selector)), self.df[result1])
 
     def test_DNF(self):
-        A1 = ps.NominalSelector("A1", 1)
-        A2 = ps.NominalSelector("A2", 1, "AA")
-        B1 = ps.NominalSelector("B1", 1)
-        B2 = ps.NominalSelector("B2", "1")
+        A1 = ps.EqualitySelector("A1", 1)
+        A2 = ps.EqualitySelector("A2", 1, "AA")
+        B1 = ps.EqualitySelector("B1", 1)
+        B2 = ps.EqualitySelector("B2", "1")
 
         dnf1 = ps.DNF()
         dnf1.append_or([A1, A2])
@@ -47,9 +47,9 @@ class TestRelationsMethods(unittest.TestCase):
         self.check_dataframe_query(dnf7, [0, 1, 1, 0, 1, 1, 0, 0, 0, 1])
 
     def test_equality_expressions(self):
-        A1 = ps.NominalSelector("A", 1)
-        A2 = ps.NominalSelector("A", 2, "AA")
-        B1 = ps.NominalSelector("B", 1)
+        A1 = ps.EqualitySelector("A", 1)
+        A2 = ps.EqualitySelector("A", 2, "AA")
+        B1 = ps.EqualitySelector("B", 1)
 
         D1 = ps.Disjunction([A1, A2])
         D1_clone = ps.Disjunction([A1, A2])

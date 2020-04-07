@@ -19,12 +19,12 @@ from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
 class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
     def setUp(self):
-        NS_telephone = ps.NominalSelector("own_telephone", b"yes")
-        NS_foreign_worker = ps.NominalSelector("foreign_worker", b"yes")
-        NS_other_parties = ps.NominalSelector("other_parties", b"none")
-        NS_personal = ps.NominalSelector("personal_status", b'male single')
-        NS_job = ps.NominalSelector("job", b'high qualif/self emp/mgmt')
-        NS_class = ps.NominalSelector("class", b"bad")
+        NS_telephone = ps.EqualitySelector("own_telephone", b"yes")
+        NS_foreign_worker = ps.EqualitySelector("foreign_worker", b"yes")
+        NS_other_parties = ps.EqualitySelector("other_parties", b"none")
+        NS_personal = ps.EqualitySelector("personal_status", b'male single')
+        NS_job = ps.EqualitySelector("job", b'high qualif/self emp/mgmt')
+        NS_class = ps.EqualitySelector("class", b"bad")
 
         o = [[NS_telephone],
              [NS_foreign_worker, NS_telephone],

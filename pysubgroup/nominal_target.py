@@ -260,6 +260,8 @@ class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
 
     @staticmethod
     def standard_qf(a, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+        if not hasattr(instances_subgroup, '__array_interface__') and (instances_subgroup == 0):
+            return np.nan
         p_subgroup = np.divide(positives_subgroup, instances_subgroup)
         #if instances_subgroup == 0:
         #    return 0
