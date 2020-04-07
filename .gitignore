@@ -14,3 +14,5 @@ build
 /pysubgroup/tests/program.prof
 /pysubgroup/tests/tmp.py
 /Untitled.ipynb
+pysubgroup/csv_to_txt.py
+test.ipynb
