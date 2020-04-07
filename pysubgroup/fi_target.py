@@ -57,6 +57,25 @@ class SimpleCountQF(ps.AbstractInterestingnessMeasure):
             cover_arr = subgroup.covers(data)
         return SimpleCountQF.tpl(np.count_nonzero(cover_arr))
 
+    def gp_get_stats(self, row_index):
+        return {"size" : 1}
+    
+    def gp_get_null_vector(self):
+        return {"size":0}
+
+    def gp_merge(self, l, r):
+        l["size"]+=r["size"]
+
+    def gp_get_params(self, _cover_arr, v):
+        return SimpleCountQF.tpl(v['size'])
+    
+    def gp_to_str(self, stats):
+        return str(stats['size'])
+        
+    @property
+    def gp_requires_cover_arr(self):
+        return False
+
 
 class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
     def evaluate(self, subgroup, statistics=None):
@@ -72,6 +91,8 @@ class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
 
     def supports_weights(self):
         return False
+
+
 
 
 class AreaQF(SimpleCountQF):

@@ -51,7 +51,6 @@ class Apriori:
                 print('Apriori: Using numba for speedup')
             except ImportError:
                 pass
-
     def get_next_level_candidates(self, task, result, next_level_candidates):
         promising_candidates = []
         optimistic_estimate_function = getattr(task.qf, self.optimistic_estimate_name)
@@ -178,11 +177,14 @@ class BestFirstSearch:
         queue = [(float("-inf"), ps.Conjunction([]))]
         operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task)
+        # init the first level
+        for sel in task.search_space:
+            queue.append((float("-inf"), ps.Conjunction([sel])))
 
         while queue:
-            neg_estimate, old_description = heappop(queue)
-            estimate = - neg_estimate
-            if not (estimate > ps.minimum_required_quality(result, task)):
+            q, candidate_description = heappop(queue)
+            q = -q
+            if not (q > ps.minimum_required_quality(result, task)):
                 break
             for candidate_description in operator.refinements(old_description):
                 sg = ps.Subgroup(task.target, candidate_description)
@@ -305,11 +307,13 @@ class BeamSearch:
 
 
 class SimpleSearch:
-    def execute(self, task, show_progress=True):
+    def __init__(self, show_progress=True):
+        self.show_progress = show_progress
+    def execute(self, task):
         task.qf.calculate_constant_statistics(task)
         result = []
         all_selectors = chain.from_iterable(combinations(task.search_space, r) for r in range(1, task.depth + 1))
-        if show_progress:
+        if self.show_progress:
             try:
                 from tqdm import tqdm
                 def binomial(x, y):
@@ -346,12 +350,13 @@ class SimpleDFS:
             optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
             if not(optimistic_estimate > ps.minimum_required_quality(result, task)):
                 return result
-
+        if statistics.size < 200:
+            return result
 
         quality = task.qf.evaluate(sg, statistics)
         ps.add_if_required(result, sg, quality, task)
 
-        if len(prefix) < task.depth:
+        if len(prefix) < task.depth and statistics.size > 200:
             new_modification_set = copy.copy(modification_set)
             for sel in modification_set:
                 prefix.append(sel)
@@ -377,7 +382,7 @@ class DFS:
         self.operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task)
         result = []
-        with self.apply_representation(task.data):
+        with self.apply_representation(task.data, task.search_space):
             self.search_internal(task, result, ps.RepresentationConjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
         result = [(quality, ps.Subgroup(task, sgd)) for quality, sgd in result]

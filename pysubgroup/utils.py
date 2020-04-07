@@ -228,10 +228,14 @@ def effective_sample_size(weights):
 
 
 # from https://docs.python.org/3/library/itertools.html#recipes
-def powerset(iterable):
+def powerset(iterable, max_length=None):
     "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
     s = list(iterable)
-    return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)))
+    if max_length is None:
+        max_length = len(s)
+    if max_length < len(s):
+        max_length = len(s)
+    return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(max_length))
 
 
 def overlap(sg, another_sg, data):
