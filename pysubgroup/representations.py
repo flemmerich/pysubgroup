@@ -178,8 +178,6 @@ class NumpySet_Conjunction(ps.Conjunction):
     def append_and(self, to_append):
         super().append_and(to_append)
         #self._selectors.append(to_append)
-        print(self.representation)
-        print(to_append.representation)
         self.representation = np.intersect1d(self.representation, to_append.representation, True)
 
     @property
