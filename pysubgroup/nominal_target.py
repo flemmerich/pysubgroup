@@ -111,7 +111,7 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure): # pylint: disable=ab
     tpl = namedtuple('PositivesQF_parameters', ('size', 'positives_count'))
 
     def __init__(self):
-        self.datatset = None
+        self.datatset_statistics = None
         self.positives = None
         self.has_constant_statistics = False
         self.required_stat_attrs = ('size', 'positives_count')
@@ -119,7 +119,7 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure): # pylint: disable=ab
     def calculate_constant_statistics(self, task):
         data = task.data
         self.positives = task.target.covers(data)
-        self.datatset = SimplePositivesQF.tpl(len(data), np.sum(self.positives))
+        self.datatset_statistics = SimplePositivesQF.tpl(len(data), np.sum(self.positives))
         self.has_constant_statistics = True
 
     def calculate_statistics(self, subgroup, data=None):
@@ -235,7 +235,7 @@ class ChiSquaredQF(SimplePositivesQF):
 
     def evaluate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
-        datatset = self.datatset
+        datatset = self.datatset_statistics
         return ChiSquaredQF.chi_squared_qf(datatset.size, datatset.positives_count, statistics.size, statistics.positives_count, self.min_instances, self.bidirect, self.direction_positive, self.index)
 
     def supports_weights(self):
@@ -282,17 +282,17 @@ class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
 
     def evaluate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
-        datatset = self.datatset
+        datatset = self.datatset_statistics
         return StandardQF.standard_qf(self.a, datatset.size, datatset.positives_count, statistics.size, statistics.positives_count)
 
     def optimistic_estimate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
-        datatset = self.datatset
+        datatset = self.datatset_statistics
         return StandardQF.standard_qf(self.a, datatset.size, datatset.positives_count, statistics.positives_count, statistics.positives_count)
 
     def optimistic_generalisation(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
-        datatset = self.datatset
+        datatset = self.datatset_statistics
         pos_remaining = datatset.positives_count - statistics.positives_count
         return StandardQF.standard_qf(self.a, datatset.size, datatset.positives_count, statistics.size + pos_remaining, datatset.positives_count)
 

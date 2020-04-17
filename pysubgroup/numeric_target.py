@@ -138,7 +138,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             return task.data
 
         def calculate_constant_statistics(self, task):
-            self.indices_greater_mean = np.nonzero(self.qf.all_target_values > self.qf.dataset.mean)[0]
+            self.indices_greater_mean = np.nonzero(self.qf.all_target_values > self.qf.dataset_statistics.mean)[0]
             self.target_values_greater_mean = self.qf.all_target_values[self.indices_greater_mean]
 
         def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, _):
@@ -146,7 +146,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             size_greater_mean = len(larger_than_mean)
             sum_greater_mean = np.sum(larger_than_mean)
 
-            return sum_greater_mean - size_greater_mean * self.qf.dataset.mean
+            return sum_greater_mean - size_greater_mean * self.qf.dataset_statistics.mean
 
 
 
@@ -160,7 +160,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             return task.data
 
         def calculate_constant_statistics(self, task):
-            self.indices_greater_mean = np.nonzero(self.qf.all_target_values > self.qf.dataset.mean)[0]
+            self.indices_greater_mean = np.nonzero(self.qf.all_target_values > self.qf.dataset_statistics.mean)[0]
             self.target_values_greater_mean = self.qf.all_target_values[self.indices_greater_mean]
 
         def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, _):
@@ -168,7 +168,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             size_greater_mean = len(larger_than_mean)
             max_greater_mean = np.sum(larger_than_mean)
 
-            return size_greater_mean ** self.qf.a * (max_greater_mean - self.qf.dataset.mean)
+            return size_greater_mean ** self.qf.a * (max_greater_mean - self.qf.dataset_statistics.mean)
 
 
 
@@ -209,9 +209,9 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
 
         def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, target_values_sg):
             if self.numba_in_place:
-                return self._get_estimate(target_values_sg, self.qf.a, self.qf.dataset.mean)
+                return self._get_estimate(target_values_sg, self.qf.a, self.qf.dataset_statistics.mean)
             else:
-                return self._get_estimate(target_values_sg, self.qf.a, self.qf.dataset.mean)
+                return self._get_estimate(target_values_sg, self.qf.a, self.qf.dataset_statistics.mean)
 
         def get_estimate_numpy(self, values_sg, a, mean_dataset):
             target_values_cs = np.cumsum(values_sg)
