@@ -30,14 +30,13 @@ The basic usage of the gp-growth algorithm is not very different from the usage 
 
 But beware that gp-growth is using an exhaustive search strategy! This can greatly increase the runtime for high search depth.
 You can specify the :code:`mode` argument in the constructor of GpGrowth to run gp-growth either bottom up (:code:`mode='b_u'`) or top down (:code:`mode='b_u'`).
-As gp growth is a generalisation of fp-growth you can also perform standard fp-growth using gp_growth by using the CountQF (TODO LINK) quality function.
+As gp growth is a generalisation of fp-growth you can also perform standard fp-growth using gp_growth by using the CountQF (:ref:`countqf`) quality function.
 
 
-
-Export a gp_tree
-=================
-It is possible to export a gp_tree
-TODO
+.. 
+    Export a gp_tree
+    =================
+    It is possible to export a gp_tree. 
 
 
 
@@ -64,7 +63,7 @@ This can be summarized through the following equation:
 
 Required Methods
 =================
-To make a target and quality function suitable for gp-growth you have to provide several methods (all methods start with :code:`gp_` to indicate that they are used in the gp-growth algorithm). In addition to the standard quality function methods (see TODO) the following methods should be implemented to make a quality funciton usable with gp_growth.
+To make a target and quality function suitable for gp-growth you have to provide several methods (all methods start with :code:`gp_` to indicate that they are used in the gp-growth algorithm). In addition to the standard quality function methods (see :ref:`customtarget`) the following methods should be implemented to make a quality funciton usable with gp_growth.
 
 .. code:: python
 

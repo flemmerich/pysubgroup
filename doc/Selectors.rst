@@ -56,7 +56,7 @@ In addition to the EqualitySelector the pysubgroup package also provides the Int
 
 The outpu shows that the second and third instance in our dataset have an age within the interval :math:`[18,40)`.
 
-Selectors are the building block of all rules generated with the pysubgroup package. If you want to write your own custom selector that is not a problem see TODO for references.
+Selectors are the building block of all rules generated with the pysubgroup package. If you want to write your own custom selector that is not a problem see :ref:`customselector` for references.
 
 Negations
 ################
@@ -108,6 +108,7 @@ The pysubgroup package also provides disjunctions with the :code:`Disjunction` c
 
 We can see that all instances are covered by our conjunction.
 
+.. _customselector
 
 Implementing your own
 ###############################
