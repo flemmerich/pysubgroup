@@ -46,7 +46,7 @@ class Apriori:
         self.compiled_func = None
         if use_numba:
             try:
-                import numba # pylint: disable=unused-import
+                import numba # pylint: disable=unused-import, import-outside-toplevel
                 self.next_level = self.get_next_level_numba
                 print('Apriori: Using numba for speedup')
             except ImportError:

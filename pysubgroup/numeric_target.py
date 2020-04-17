@@ -72,7 +72,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
         self.a = a
         self.invert = invert
         self.required_stat_attrs = ('size', 'mean')
-        self.dataset = None
+        self.dataset_statistics = None
         self.all_target_values = None
         self.has_constant_statistics = False
         if estimator == 'sum':
@@ -92,13 +92,13 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
         self.all_target_values = data[task.target.target_variable].to_numpy()
         target_mean = np.mean(self.all_target_values)
         data_size = len(data)
-        self.dataset = StandardQFNumeric.tpl(data_size, target_mean, None)
+        self.dataset_statistics  = StandardQFNumeric.tpl(data_size, target_mean, None)
         self.estimator.calculate_constant_statistics(task)
         self.has_constant_statistics = True
 
     def evaluate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
-        dataset = self.dataset
+        dataset = self.dataset_statistics
         return StandardQFNumeric.standard_qf_numeric(self.a, dataset.size, dataset.mean, statistics.size, statistics.mean)
 
     def calculate_statistics(self, subgroup, data=None):

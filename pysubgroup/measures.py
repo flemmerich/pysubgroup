@@ -25,7 +25,7 @@ class AbstractInterestingnessMeasure(ABC):
             if subgroup.statistics:
                 statistics = subgroup.statistics
             else:
-                statistics = self.calculate_statistics(subgroup, statistics)
+                statistics = self.calculate_statistics(subgroup, self.data)
         return statistics
 
     #def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None): #pylint: disable=unused-argument
