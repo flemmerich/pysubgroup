@@ -4,6 +4,8 @@ Created on 28.04.2016
 @author: lemmerfn
 '''
 from abc import ABC, abstractmethod
+from collections import namedtuple
+from itertools import combinations
 import numpy as np
 import pysubgroup as ps
 
@@ -22,7 +24,7 @@ class AbstractInterestingnessMeasure(ABC):
         if not self.has_constant_statistics:
             self.calculate_constant_statistics(subgroup.data)
         if any(not hasattr(statistics_or_data, attr) for attr in self.required_stat_attrs):
-            if subgroup.statistics:
+            if getattr(subgroup, 'statistics', False):
                 return subgroup.statistics
             else:
                 return self.calculate_statistics(subgroup, statistics_or_data)
@@ -149,3 +151,58 @@ class CountCallsInterestingMeasure(BoundedInterestingnessMeasure):
 
     def __hasattr__(self, name):
         return hasattr(self.qf, name)
+
+
+#####
+# GeneralizationAware Interestingness Measures
+#####
+class GeneralizationAwareQF(AbstractInterestingnessMeasure):
+    ga_tuple = namedtuple('ga_tuple', ['subgroup_quality', 'generalisation_quality'])
+    def __init__(self, qf):
+        self.qf = qf
+
+        # this cache maps the representation of descriptions to tuples
+        # the first entry is the quality and the second one is
+        # the largest quality of all its predessors
+        self.cache = {}
+        self.has_constant_statistics = False
+        self.required_stat_attrs = ['subgroup_quality', 'generalisation_quality']
+
+    def calculate_constant_statistics(self, task):
+        self.cache = {}
+        self.qf.calculate_constant_statistics(task)
+        self.q0 = self.qf.evaluate(slice(None), task.data)
+        self.has_constant_statistics = self.qf.has_constant_statistics
+
+    def calculate_statistics(self, subgroup, data=None):
+        sg_repr = repr(subgroup)
+        if sg_repr in self.cache:
+            return self.cache[sg_repr]
+        else:
+            (q_sg, q_prev) = self.get_qual_and_previous_qual(subgroup, data)
+            self.cache[sg_repr] = (q_sg, q_prev)
+            return GeneralizationAwareQF.ga_tuple(q_sg, q_prev)
+
+    def get_qual_and_previous_qual(self, subgroup, data):
+        q_subgroup = self.qf.evaluate(subgroup, data)
+        max_q = 0
+        if len(subgroup._selectors) > 0:
+            # compute quality of all generalizations
+            generalizations = combinations(subgroup._selectors, len(subgroup._selectors)-1)
+
+            for sels in generalizations:
+                sgd = ps.Conjunction(list(sels))
+                (q_sg, q_prev) = self.calculate_statistics(sgd, data)
+                max_q = max(max_q, q_sg, q_prev)
+        return (q_subgroup, max_q)
+
+    def evaluate(self, subgroup, statistics_or_data=None):
+        statistics = self.ensure_statistics(subgroup, statistics_or_data)
+        return statistics.subgroup_quality - statistics.generalisation_quality
+
+
+    def is_applicable(self, subgroup):
+        return self.qf.is_applicable(subgroup)
+
+    def supports_weights(self):
+        return self.qf.supports_weights()

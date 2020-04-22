@@ -57,7 +57,6 @@ class SimpleCountQF(ps.AbstractInterestingnessMeasure):
             cover_arr = subgroup
         else:
             cover_arr = subgroup.covers(data)
-        print(cover_arr)
         return SimpleCountQF.tpl(np.count_nonzero(cover_arr))
 
     def gp_get_stats(self, _):

@@ -368,7 +368,7 @@ class GAStandardQF(ps.AbstractInterestingnessMeasure):
         relative_size = (instances_subgroup / instances_dataset)
         return relative_size ** self.a * (p_subgroup - max_target_share)
 
-    def supports_weights(self):
+    def supports_weights(self): 
         return True
 
     def is_applicable(self, subgroup):
