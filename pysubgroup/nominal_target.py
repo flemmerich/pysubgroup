@@ -126,6 +126,11 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure): # pylint: disable=ab
         if hasattr(subgroup, "representation"):
             cover_arr = subgroup
             size = subgroup.size
+        elif isinstance(subgroup, slice):
+            cover_arr = subgroup
+            print(subgroup)
+            # https://stackoverflow.com/questions/36188429/retrieve-length-of-slice-from-slice-object-in-python
+            size = len(range(*subgroup.indices(len(self.positives))))
         else:
             cover_arr = subgroup.covers(data)
             size = np.count_nonzero(cover_arr)
