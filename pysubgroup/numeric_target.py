@@ -225,7 +225,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
 
 
 
-
+# TODO Update to new format
 class GAStandardQFNumeric(ps.AbstractInterestingnessMeasure):
     def __init__(self, a, invert=False):
         self.a = a

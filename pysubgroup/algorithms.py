@@ -60,7 +60,7 @@ class Apriori:
             optimistic_estimate = optimistic_estimate_function(sg, statistics)
 
             if optimistic_estimate >= ps.minimum_required_quality(result, task):
-                promising_candidates.append((optimistic_estimate, list(sg.subgroup_description._selectors)))
+                promising_candidates.append((optimistic_estimate, list(sg._selectors)))
         min_quality = ps.minimum_required_quality(result, task)
         promising_candidates = [selectors for estimate, selectors in promising_candidates if estimate > min_quality]
         return promising_candidates
@@ -82,7 +82,7 @@ class Apriori:
         min_quality = ps.minimum_required_quality(result, task)
         for sg, optimistic_estimate in zip(next_level_candidates, optimistic_estimates):
             if optimistic_estimate >= min_quality:
-                promising_candidates.append(list(sg.subgroup_description._selectors))
+                promising_candidates.append(list(sg._selectors))
         return promising_candidates
 
 
@@ -139,7 +139,7 @@ class Apriori:
             # init the first level
             next_level_candidates = []
             for sel in task.search_space:
-                next_level_candidates.append(ps.Subgroup(task.target, combine_selectors([sel])))
+                next_level_candidates.append(combine_selectors([sel]))
 
             # level-wise search
             depth = 1
@@ -161,7 +161,7 @@ class Apriori:
                 # select those selectors and build a subgroup from them
                 #   for which all subsets of length depth (=candidate length -1) are in the set of promising candidates
                 set_promising_candidates = set(tuple(p) for p in promising_candidates)
-                next_level_candidates = [ps.Subgroup(task.target, combine_selectors(selectors)) for selectors in next_level_candidates_no_pruning
+                next_level_candidates = [combine_selectors(selectors) for selectors in next_level_candidates_no_pruning
                                          if all((subset in set_promising_candidates) for subset in combinations(selectors, depth))]
                 depth = depth + 1
 
@@ -181,7 +181,7 @@ class BestFirstSearch:
             if not (q > ps.minimum_required_quality(result, task)):
                 break
             for candidate_description in operator.refinements(old_description):
-                sg = ps.Subgroup(task.target, candidate_description)
+                sg = candidate_description
                 statistics = task.qf.calculate_statistics(sg, task.data)
                 ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task)
                 optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
@@ -215,7 +215,7 @@ class GeneralisingBFS:
             if q < ps.minimum_required_quality(result, task):
                 break
 
-            sg = ps.Subgroup(task.target, candidate_description)
+            sg = candidate_description
             statistics = task.qf.calculate_statistics(sg, task.data)
             quality = task.qf.evaluate(sg, statistics)
             ps.add_if_required(result, sg, quality, task)
@@ -250,7 +250,7 @@ class GeneralisingBFS:
 
         result.sort(key=lambda x: x[0], reverse=True)
         for qual, sg in result:
-            print("{} {}".format(qual, sg.subgroup_description))
+            print("{} {}".format(qual, sg))
         print("discarded " + str(self.discarded))
         return result
 
@@ -276,7 +276,7 @@ class BeamSearch:
         task.qf.calculate_constant_statistics(task)
 
         # init
-        beam = [(0, ps.Subgroup(task.target, ps.Conjunction([])))]
+        beam = [(0, ps.Conjunction([]))]
         last_beam = None
 
         depth = 0
@@ -287,10 +287,10 @@ class BeamSearch:
                     setattr(last_sg, 'visited', True)
                     for sel in task.search_space:
                         # create a clone
-                        new_selectors = list(last_sg.subgroup_description._selectors)
+                        new_selectors = list(last_sg._selectors)
                         if sel not in new_selectors:
                             new_selectors.append(sel)
-                            sg = ps.Subgroup(task.target, ps.Conjunction(new_selectors))
+                            sg = ps.Conjunction(new_selectors)
                             quality = task.qf.evaluate(sg, task.data)
                             ps.add_if_required(beam, sg, quality, task, check_for_duplicates=True)
             depth += 1
@@ -321,7 +321,7 @@ class SimpleSearch:
             except ImportError:
                 pass
         for selectors in all_selectors:
-            sg = ps.Subgroup(task.target, ps.Conjunction(selectors))
+            sg = ps.Conjunction(selectors)
             statistics = task.qf.calculate_statistics(sg, task.data)
             quality = task.qf.evaluate(sg, statistics)
             ps.add_if_required(result, sg, quality, task)
@@ -337,7 +337,7 @@ class SimpleDFS:
         return result
 
     def search_internal(self, task, prefix, modification_set, result, use_optimistic_estimates):
-        sg = ps.Subgroup(task.target, ps.Conjunction(copy.copy(prefix)))
+        sg = ps.Conjunction(copy.copy(prefix))
 
         statistics = task.qf.calculate_statistics(sg, task.data)
         if use_optimistic_estimates and len(prefix) < task.depth and isinstance(task.qf, ps.BoundedInterestingnessMeasure):
@@ -376,7 +376,7 @@ class DFS:
         with self.apply_representation(task.data, task.search_space) as representation:
             self.search_internal(task, result, representation.Conjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
-        result = [(quality, ps.Subgroup(task, sgd)) for quality, sgd in result]
+        result = [(quality, sgd) for quality, sgd in result]
         return result
 
     def search_internal(self, task, result, sg):
@@ -440,7 +440,7 @@ class DFSNumeric():
         if optimistic_estimate <= ps.minimum_required_quality(result, task):
             return result
 
-        sg = ps.Subgroup(task.target, ps.Conjunction(copy.copy(prefix)))
+        sg = ps.Conjunction(copy.copy(prefix))
 
         quality = qualities[-1]
         ps.add_if_required(result, sg, quality, task)
