@@ -6,12 +6,16 @@ import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_credit_data
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
-task_dummy = namedtuple('task_dummy', ['data'])
+task_dummy = namedtuple('task_dummy', ['data', 'target'])
 
 class TestGeneralisationAwareQf(unittest.TestCase):
     def setUp(self):
         self.qf = ps.CountQF()
         self.ga_qf = ps.GeneralizationAwareQF(self.qf)
+        self.prepare_df()
+    
+
+    def prepare_df(self):
         A = np.array([0, 0, 1, 1, 0, 0, 1, 1, 1, 1], dtype=bool)
         self.A1 = ps.EqualitySelector("columnA", True)
         self.A0 = ps.EqualitySelector("columnA", False)
@@ -24,7 +28,7 @@ class TestGeneralisationAwareQf(unittest.TestCase):
 
     def test_CountTarget1(self):
         df = self.df
-        self.ga_qf.calculate_constant_statistics(task_dummy(df))
+        self.ga_qf.calculate_constant_statistics(task_dummy(df, None))
 
         ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1]), df)
 
@@ -36,7 +40,7 @@ class TestGeneralisationAwareQf(unittest.TestCase):
 
     def test_CountTarget2(self):
         df = self.df
-        self.ga_qf.calculate_constant_statistics(task_dummy(df))
+        self.ga_qf.calculate_constant_statistics(task_dummy(df, None))
 
         ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), df)
 
@@ -44,6 +48,44 @@ class TestGeneralisationAwareQf(unittest.TestCase):
         zero_score = self.qf.evaluate(ps.Conjunction([]), df)
 
         self.assertEqual(ga_score, A_B_score-zero_score)
+
+
+
+class TestGeneralisationAware_StandardQf(unittest.TestCase):
+    def setUp(self):
+        self.df = None
+        self.A1 = None
+        self.BA = None
+        TestGeneralisationAwareQf.prepare_df(self)
+        self.ga_qf = ps.GeneralizationAware_StandardQF(0)
+
+    def test_simple(self):
+        
+        task = task_dummy(self.df, ps.NominalTarget('columnC', 1))
+        qf = ps.StandardQF(0)
+        qf.calculate_constant_statistics(task)
+
+        self.ga_qf.calculate_constant_statistics(task)
+
+        #print(qf.calculate_statistics(self.A1, self.df))
+        #print(qf.calculate_statistics(self.BA, self.df))
+        #print(qf.calculate_statistics(ps.Conjunction([self.A1, self.BA]), self.df))
+        #print(qf.calculate_statistics(slice(None), self.df))
+        ga_stat = self.ga_qf.calculate_statistics(ps.Conjunction([self.A1, self.BA]), self.df)
+
+        self.assertEqual(ga_stat.subgroup_stats, ps.SimplePositivesQF.tpl(3, 2))
+        self.assertEqual(ga_stat.generalisation_stats, ps.SimplePositivesQF.tpl(5, 3))
+        # Ensure cache works properly
+        self.assertEqual(ga_stat, self.ga_qf.calculate_statistics(ps.Conjunction([self.A1, self.BA]), self.df))
+
+        ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), self.df)
+        ga_score2 = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), self.df)
+
+        self.assertEqual(ga_score, ga_score2)
+        self.assertAlmostEqual(ga_score, 0.06666666666666)
+
+
+
 
 
 class TestAlgorithms(TestAlgorithmsBase, unittest.TestCase):
@@ -83,6 +125,12 @@ class TestAlgorithms(TestAlgorithmsBase, unittest.TestCase):
     @unittest.skip
     def test_GA_SimpleDFS(self):
         self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
+
+    @unittest.skip
+    def test_StandardQF_GA_SimpleDFS(self):
+        self.task.qf = ps.GeneralizationAware_StandardQF(0.5)
+        self.runAlgorithm(ps.SimpleDFS(), "Standard_SimpleDFS", self.result, self.qualities, self.task)
+        print(self.task.qf.cache)
 
 
 if __name__ == '__main__':

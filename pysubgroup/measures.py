@@ -167,6 +167,7 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
         self.cache = {}
         self.has_constant_statistics = False
         self.required_stat_attrs = ['subgroup_quality', 'generalisation_quality']
+        self.q0 = 0
 
     def calculate_constant_statistics(self, task):
         self.cache = {}
@@ -186,9 +187,10 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
     def get_qual_and_previous_qual(self, subgroup, data):
         q_subgroup = self.qf.evaluate(subgroup, data)
         max_q = 0
-        if len(subgroup._selectors) > 0:
+        selectors = subgroup._selectors
+        if len(selectors) > 0:
             # compute quality of all generalizations
-            generalizations = combinations(subgroup._selectors, len(subgroup._selectors)-1)
+            generalizations = combinations(selectors, len(selectors)-1)
 
             for sels in generalizations:
                 sgd = ps.Conjunction(list(sels))
@@ -199,6 +201,65 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
     def evaluate(self, subgroup, statistics_or_data=None):
         statistics = self.ensure_statistics(subgroup, statistics_or_data)
         return statistics.subgroup_quality - statistics.generalisation_quality
+
+
+    def is_applicable(self, subgroup):
+        return self.qf.is_applicable(subgroup)
+
+    def supports_weights(self):
+        return self.qf.supports_weights()
+
+
+#####
+# GeneralizationAware Interestingness Measures
+#####
+class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
+    ga_tuple = namedtuple('ga_stats_tuple', ['subgroup_stats', 'generalisation_stats'])
+    def __init__(self, qf):
+        self.qf = qf
+
+        # this cache maps the representation of descriptions to tuples
+        # the first entry is the quality and the second one is
+        # the largest quality of all its predessors
+        self.cache = {}
+        self.has_constant_statistics = False
+        self.required_stat_attrs = GeneralizationAwareQF_stats.ga_tuple._fields
+        self.stats0 = None
+
+    def calculate_constant_statistics(self, task):
+        self.cache = {}
+        self.qf.calculate_constant_statistics(task)
+        self.stats0 = self.qf.calculate_statistics(slice(None), task.data)
+        self.has_constant_statistics = self.qf.has_constant_statistics
+
+    def calculate_statistics(self, subgroup, data=None):
+        sg_repr = repr(subgroup)
+        if sg_repr in self.cache:
+            return GeneralizationAwareQF_stats.ga_tuple(*self.cache[sg_repr])
+        else:
+            (stats_sg, stats_prev) = self.get_stats_and_previous_stats(subgroup, data)
+            self.cache[sg_repr] = (stats_sg, stats_prev)
+            return GeneralizationAwareQF_stats.ga_tuple(stats_sg, stats_prev)
+
+    def get_stats_and_previous_stats(self, subgroup, data):
+        stats_subgroup = self.qf.calculate_statistics(subgroup, data)
+        max_stats = self.stats0
+        selectors = subgroup._selectors
+        if len(selectors) > 0:
+            # compute quality of all generalizations
+            generalizations = combinations(selectors, len(selectors)-1)
+
+            for sels in generalizations:
+                sgd = ps.Conjunction(list(sels))
+                (stats_sg, stats_prev) = self.calculate_statistics(sgd, data)
+                max_stats = self.get_max(max_stats, stats_sg, stats_prev)
+        return (stats_subgroup, max_stats)
+
+    def evaluate(self, subgroup, statistics_or_data=None):
+        raise NotImplementedError
+
+    def get_max(self, *args):
+        raise NotImplementedError
 
 
     def is_applicable(self, subgroup):

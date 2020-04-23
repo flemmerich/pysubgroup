@@ -10,8 +10,7 @@ import scipy.stats
 
 import pysubgroup as ps
 
-from .subgroup import Subgroup, EqualitySelector
-from .boolean_expressions import Conjunction
+from .subgroup import EqualitySelector
 
 
 @total_ordering
@@ -356,38 +355,34 @@ class WRAccQF(StandardQF):
 
 
 
-# TODO Redo Generalization Aware SGD
+
 #####
 # GeneralizationAware Interestingness Measures
 #####
-class GAStandardQF(ps.AbstractInterestingnessMeasure):
+class GeneralizationAware_StandardQF(ps.GeneralizationAwareQF_stats):
     def __init__(self, a):
+        super().__init__(StandardQF(0))
         self.a = a
 
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        (instances_dataset, _, instances_subgroup, positives_subgroup) = subgroup.get_base_statistics(data, weighting_attribute)
-        if instances_subgroup in (0, instances_dataset):
-            return 0
-        p_subgroup = positives_subgroup / instances_subgroup
-        max_target_share = get_max_generalization_target_share(data, subgroup, weighting_attribute)
-        relative_size = (instances_subgroup / instances_dataset)
-        return relative_size ** self.a * (p_subgroup - max_target_share)
 
-    def supports_weights(self): 
-        return True
+    def get_max(self, *args):
+        max_ratio = 0.0
+        max_stats = None
+        for stat in args:
+            if stat.size > 0:
+                ratio = stat.positives_count / stat.size
+                if ratio > max_ratio:
+                    max_ratio = ratio
+                    max_stats = stat
+        return max_stats
 
-    def is_applicable(self, subgroup):
-        return isinstance(subgroup.target, NominalTarget)
-
-
-def get_max_generalization_target_share(data, subgroup, weighting_attribute=None):
-    selectors = subgroup.subgroup_description.selectors
-    generalizations = ps.powerset(selectors)
-    max_target_share = 0
-    for sels in generalizations:
-        sgd = Conjunction(list(sels))
-        sg = Subgroup(subgroup.target, sgd)
-        (_, _, instances_subgroup, positives_subgroup) = sg.get_base_statistics(data, weighting_attribute)
-        target_share = positives_subgroup / instances_subgroup
-        max_target_share = max(max_target_share, target_share)
-    return max_target_share
+    def evaluate(self, subgroup, statistics_or_data=None):
+        statistics = self.ensure_statistics(subgroup, statistics_or_data)
+        sg_stats = statistics.subgroup_stats
+        general_stats = statistics.generalisation_stats
+        if sg_stats.size == 0 or general_stats.size == 0:
+            return np.nan
+        
+        sg_ratio = sg_stats.positives_count / sg_stats.size
+        general_ratio = general_stats.positives_count / general_stats.size
+        return (sg_stats.size / self.stats0.size) ** self.a * (sg_ratio - general_ratio)
