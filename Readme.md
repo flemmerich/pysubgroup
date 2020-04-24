@@ -62,7 +62,7 @@ task = ps.SubgroupDiscoveryTask (
     qf=ps.WRAccQF())
 result = ps.BeamSearch().execute(task)
 ```
-The first two lines imports _pysubgroup_ package.
+The first line imports _pysubgroup_ package.
 The following lines load an example dataset (the popular titanic dataset).
 
 Therafter, we define a target, i.e., the property we are mainly interested in (_'survived'}.
