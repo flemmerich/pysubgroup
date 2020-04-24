@@ -1,4 +1,24 @@
 # Changelog
+## [0.6.2.1] - 2020-04-24
+
+This update prepares pysubgroup for a better future. To do so we had to break backwards compatibility. Many of the classes that you know and love have been renamed so as to make their purpose more clear.
+### Changed:
+- SubgroupDescription is now called Conjunction
+- NominalTarget is now called BinaryTarget
+- algorithms now return a SubgroupDiscoveryResult object
+- the structure of quality functions changed (see documentation for more info)
+
+### Added
+ - pysubgroup now has a bunch of tests
+ - some algorithms and quality functions support numba for just in time compilation
+ - ModelTarget
+ - gp-growth
+ - 3 types of Representations (bitset, set, numpy-set)
+ - Refinement operator
+ - Disjunction
+ - New algorithms
+
+
 ## [0.6.2.1] - 2019-20-11
 ### Added
 - Apriori now has the option to disable numba using the use_numba flag
