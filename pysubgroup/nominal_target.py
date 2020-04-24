@@ -10,7 +10,7 @@ import scipy.stats
 
 import pysubgroup as ps
 
-from .subgroup import EqualitySelector
+from pysubgroup.subgroup import EqualitySelector
 
 
 @total_ordering
@@ -44,65 +44,35 @@ class NominalTarget():
     def get_attributes(self):
         return [self.target_selector.get_attribute_name()]
 
-    @staticmethod
-    def get_base_statistics(data, subgroup, weighting_attribute=None):
+    def get_base_statistics(self, subgroup, data):
 
-        if weighting_attribute is None:
-            sg_instances = subgroup.subgroup_description.covers(data)
-            positives = subgroup.target.covers(data)
-            instances_subgroup = np.sum(sg_instances)
-            positives_dataset = np.sum(positives)
-            instances_dataset = len(data)
-            positives_subgroup = np.sum(np.logical_and(sg_instances, positives))
-            return instances_dataset, positives_dataset, instances_subgroup, positives_subgroup
-        else:
-            weights = data[weighting_attribute]
-            sg_instances = subgroup.subgroup_description.covers(data)
-            positives = subgroup.target.covers(data)
+        sg_instances = subgroup.covers(data)
+        positives = self.covers(data)
+        instances_subgroup = np.sum(sg_instances)
+        positives_dataset = np.sum(positives)
+        instances_dataset = len(data)
+        positives_subgroup = np.sum(np.logical_and(sg_instances, positives))
+        return instances_dataset, positives_dataset, instances_subgroup, positives_subgroup
 
-            instances_dataset = np.sum(weights)
-            instances_subgroup = np.sum(np.dot(sg_instances, weights))
-            positives_dataset = np.sum(np.dot(positives, weights))
-            positives_subgroup = np.sum(np.dot(np.logical_and(sg_instances, positives), weights))
-            return instances_dataset, positives_dataset, instances_subgroup, positives_subgroup
 
-    @staticmethod
-    def calculate_statistics(subgroup, data, weighting_attribute=None):
+    def calculate_statistics(self, subgroup, data):
         (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = \
-            NominalTarget.get_base_statistics(data, subgroup, weighting_attribute)
-        subgroup.statistics['size_sg'] = instances_subgroup
-        subgroup.statistics['size_dataset'] = instances_dataset
-        subgroup.statistics['positives_sg'] = positives_subgroup
-        subgroup.statistics['positives_dataset'] = positives_dataset
-
-        subgroup.statistics['size_complement'] = instances_dataset - instances_subgroup
-        subgroup.statistics['relative_size_sg'] = instances_subgroup / instances_dataset
-        subgroup.statistics['relative_size_complement'] = (instances_dataset - instances_subgroup) / instances_dataset
-        subgroup.statistics['coverage_sg'] = positives_subgroup / positives_dataset
-        subgroup.statistics['coverage_complement'] = (positives_dataset - positives_subgroup) / positives_dataset
-        subgroup.statistics['target_share_sg'] = positives_subgroup / instances_subgroup
-        subgroup.statistics['target_share_complement'] = (positives_dataset - positives_subgroup) / (instances_dataset - instances_subgroup)
-        subgroup.statistics['target_share_dataset'] = positives_dataset / instances_dataset
-        subgroup.statistics['lift'] = (positives_subgroup / instances_subgroup) / (positives_dataset / instances_dataset)
-
-        if weighting_attribute is not None:
-            (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = \
-                NominalTarget.get_base_statistics(data, subgroup, weighting_attribute)
-        subgroup.statistics['size_sg_weighted'] = instances_subgroup
-        subgroup.statistics['size_dataset_weighted'] = instances_dataset
-        subgroup.statistics['positives_sg_weighted'] = positives_subgroup
-        subgroup.statistics['positives_dataset_weighted'] = positives_dataset
-
-        subgroup.statistics['size_complement_weighted'] = instances_dataset - instances_subgroup
-        subgroup.statistics['relative_size_sg_weighted'] = instances_subgroup / instances_dataset
-        subgroup.statistics['relative_size_complement_weighted'] = \
-            (instances_dataset - instances_subgroup) / instances_dataset
-        subgroup.statistics['coverage_sg_weighted'] = positives_subgroup / positives_dataset
-        subgroup.statistics['coverage_complement_weighted'] = (positives_dataset - positives_subgroup) / positives_dataset
-        subgroup.statistics['target_share_sg_weighted'] = positives_subgroup / instances_subgroup
-        subgroup.statistics['target_share_complement_weighted'] = (positives_dataset - positives_subgroup) / (instances_dataset - instances_subgroup)
-        subgroup.statistics['target_share_dataset_weighted'] = positives_dataset / instances_dataset
-        subgroup.statistics['lift_weighted'] = (positives_subgroup / instances_subgroup) / (positives_dataset / instances_dataset)
+            self.get_base_statistics(subgroup, data)
+        statistics = {}
+        statistics['size_sg'] = instances_subgroup
+        statistics['size_dataset'] = instances_dataset
+        statistics['positives_sg'] = positives_subgroup
+        statistics['positives_dataset'] = positives_dataset
+        statistics['size_complement'] = instances_dataset - instances_subgroup
+        statistics['relative_size_sg'] = instances_subgroup / instances_dataset
+        statistics['relative_size_complement'] = (instances_dataset - instances_subgroup) / instances_dataset
+        statistics['coverage_sg'] = positives_subgroup / positives_dataset
+        statistics['coverage_complement'] = (positives_dataset - positives_subgroup) / positives_dataset
+        statistics['target_share_sg'] = positives_subgroup / instances_subgroup
+        statistics['target_share_complement'] = (positives_dataset - positives_subgroup) / (instances_dataset - instances_subgroup)
+        statistics['target_share_dataset'] = positives_dataset / instances_dataset
+        statistics['lift'] = (positives_subgroup / instances_subgroup) / (positives_dataset / instances_dataset)
+        return statistics
 
 
 
@@ -116,6 +86,7 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure): # pylint: disable=ab
         self.required_stat_attrs = ('size', 'positives_count')
 
     def calculate_constant_statistics(self, task):
+        assert isinstance(task.target, NominalTarget)
         data = task.data
         self.positives = task.target.covers(data)
         self.datatset_statistics = SimplePositivesQF.tpl(len(data), np.sum(self.positives))
@@ -127,7 +98,6 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure): # pylint: disable=ab
             size = subgroup.size
         elif isinstance(subgroup, slice):
             cover_arr = subgroup
-            print(subgroup)
             # https://stackoverflow.com/questions/36188429/retrieve-length-of-slice-from-slice-object-in-python
             size = len(range(*subgroup.indices(len(self.positives))))
         else:
@@ -382,7 +352,7 @@ class GeneralizationAware_StandardQF(ps.GeneralizationAwareQF_stats):
         general_stats = statistics.generalisation_stats
         if sg_stats.size == 0 or general_stats.size == 0:
             return np.nan
-        
+
         sg_ratio = sg_stats.positives_count / sg_stats.size
         general_ratio = general_stats.positives_count / general_stats.size
         return (sg_stats.size / self.stats0.size) ** self.a * (sg_ratio - general_ratio)

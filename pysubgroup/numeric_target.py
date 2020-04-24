@@ -40,26 +40,26 @@ class NumericTarget:
         else:
             raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
 
-    def calculate_statistics(self, subgroup, data, weighting_attribute=None):
-        if weighting_attribute is not None:
-            raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
-        sg_instances = subgroup.subgroup_description.covers(data)
+    def calculate_statistics(self, subgroup, data):
+        sg_instances = subgroup.covers(data)
         all_target_values = data[self.target_variable]
         sg_target_values = all_target_values[sg_instances]
-        subgroup.statistics['size_sg'] = len(sg_target_values)
-        subgroup.statistics['size_dataset'] = len(data)
-        subgroup.statistics['mean_sg'] = np.mean(sg_target_values)
-        subgroup.statistics['mean_dataset'] = np.mean(all_target_values)
-        subgroup.statistics['std_sg'] = np.std(sg_target_values)
-        subgroup.statistics['std_dataset'] = np.std(all_target_values)
-        subgroup.statistics['median_sg'] = np.median(sg_target_values)
-        subgroup.statistics['median_dataset'] = np.median(all_target_values)
-        subgroup.statistics['max_sg'] = np.max(sg_target_values)
-        subgroup.statistics['max_dataset'] = np.max(all_target_values)
-        subgroup.statistics['min_sg'] = np.min(sg_target_values)
-        subgroup.statistics['min_dataset'] = np.min(all_target_values)
-        subgroup.statistics['mean_lift'] = subgroup.statistics['mean_sg'] / subgroup.statistics['mean_dataset']
-        subgroup.statistics['median_lift'] = subgroup.statistics['median_sg'] / subgroup.statistics['median_dataset']
+        statistics = {}
+        statistics['size_sg'] = len(sg_target_values)
+        statistics['size_dataset'] = len(data)
+        statistics['mean_sg'] = np.mean(sg_target_values)
+        statistics['mean_dataset'] = np.mean(all_target_values)
+        statistics['std_sg'] = np.std(sg_target_values)
+        statistics['std_dataset'] = np.std(all_target_values)
+        statistics['median_sg'] = np.median(sg_target_values)
+        statistics['median_dataset'] = np.median(all_target_values)
+        statistics['max_sg'] = np.max(sg_target_values)
+        statistics['max_dataset'] = np.max(all_target_values)
+        statistics['min_sg'] = np.min(sg_target_values)
+        statistics['min_dataset'] = np.min(all_target_values)
+        statistics['mean_lift'] = statistics['mean_sg'] / statistics['mean_dataset']
+        statistics['median_lift'] = statistics['median_sg'] / statistics['median_dataset']
+        return statistics
 
 
 class StandardQFNumeric(ps.BoundedInterestingnessMeasure):

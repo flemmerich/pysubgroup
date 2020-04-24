@@ -132,7 +132,7 @@ class Apriori:
             raise RuntimeWarning("Quality function is unbounded, long runtime expected")
 
         task.qf.calculate_constant_statistics(task)
-        
+
         with self.representation_type(task.data, task.search_space) as representation:
             combine_selectors = getattr(representation.__class__, self.combination_name)
             result = []    
@@ -166,7 +166,7 @@ class Apriori:
                 depth = depth + 1
 
         result.sort(key=lambda x: x[0], reverse=True)
-        return result
+        return ps.SubgroupDiscoveryResult(result, task)
 
 
 class BestFirstSearch:
@@ -191,7 +191,7 @@ class BestFirstSearch:
                     heappush(queue, (-optimistic_estimate, candidate_description))
 
         result.sort(key=lambda x: x[0], reverse=True)
-        return result
+        return ps.SubgroupDiscoveryResult(result, task)
 
 
 class GeneralisingBFS:
@@ -224,14 +224,11 @@ class GeneralisingBFS:
             qual = ps.minimum_required_quality(result, task)
 
             if (quality, sg) in result:
-                #print(qual)
-                # print(queue)
                 new_queue = []
                 for q_tmp, c_tmp in queue:
                     if (-q_tmp) > qual:
                         heappush(new_queue, (q_tmp, c_tmp))
                 queue = new_queue
-                # print(queue)
             optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
             # else:
             #    ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)
@@ -252,7 +249,7 @@ class GeneralisingBFS:
         for qual, sg in result:
             print("{} {}".format(qual, sg))
         print("discarded " + str(self.discarded))
-        return result
+        return ps.SubgroupDiscoveryResult(result, task)
 
 
 class BeamSearch:
@@ -297,7 +294,7 @@ class BeamSearch:
 
         result = beam[:task.result_set_size]
         result.sort(key=lambda x: x[0], reverse=True)
-        return result
+        return ps.SubgroupDiscoveryResult(result, task)
 
 
 class SimpleSearch:
@@ -326,7 +323,7 @@ class SimpleSearch:
             quality = task.qf.evaluate(sg, statistics)
             ps.add_if_required(result, sg, quality, task)
         result.sort(key=lambda x: x[0], reverse=True)
-        return result
+        return ps.SubgroupDiscoveryResult(result, task)
 
 
 class SimpleDFS:
@@ -334,7 +331,7 @@ class SimpleDFS:
         task.qf.calculate_constant_statistics(task)
         result = self.search_internal(task, [], task.search_space, [], use_optimistic_estimates)
         result.sort(key=lambda x: x[0], reverse=True)
-        return result
+        return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, prefix, modification_set, result, use_optimistic_estimates):
         sg = ps.Conjunction(copy.copy(prefix))
@@ -377,7 +374,7 @@ class DFS:
             self.search_internal(task, result, representation.Conjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
         result = [(quality, sgd) for quality, sgd in result]
-        return result
+        return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, result, sg):
         statistics = task.qf.calculate_statistics(sg)
@@ -421,7 +418,7 @@ class DFSNumeric():
         result = self.search_internal(task, [], task.search_space, [], np.ones(len(sorted_data), dtype=bool))
         result.sort(key=lambda x: x[0], reverse=True)
 
-        return result
+        return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, prefix, modification_set, result, bitset):
         self.num_calls += 1

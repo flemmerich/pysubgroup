@@ -23,8 +23,8 @@ female=True AND age<50 AND drug_D = True ==> Operation_outcome=SUCCESS
 Computationally, subgroup discovery is challenging since a large number of such conjunctive subgroup descriptions have to be considered. Of course, finding computable criteria, which subgroups are likely interesting to a user is also an eternal struggle. 
 Therefore, a lot of literature has been devoted to the topic of subgroup discovery (including some of my own work). Recent overviews on the topic are for example:
 
-* Herrera, Franciso, et al. "An overview on subgroup discovery: foundations and applications." Knowledge and information systems 29.3 (2011): 495-525.
-* Atzmueller, Martin. "Subgroup discovery." Wiley Interdisciplinary Reviews: Data Mining and Knowledge Discovery 5.1 (2015): 35-49.
+* Herrera, Franciso, et al. ["An overview on subgroup discovery: foundations and applications."](https://scholar.google.de/scholar?q=Herrera%2C+Franciso%2C+et+al.+%E2%80%9CAn+overview+on+subgroup+discovery%3A+foundations+and+applications.%E2%80%9D+Knowledge+and+information+systems+29.3+(2011)%3A+495-525.) Knowledge and information systems 29.3 (2011): 495-525.
+* Atzmueller, Martin. ["Subgroup discovery."](https://scholar.google.de/scholar?q=Atzmueller%2C+Martin.+%E2%80%9CSubgroup+discovery.%E2%80%9D+Wiley+Interdisciplinary+Reviews%3A+Data+Mining+and+Knowledge+Discovery+5.1+(2015)%3A+35-49.) Wiley Interdisciplinary Reviews: Data Mining and Knowledge Discovery 5.1 (2015): 35-49.
 * And of course, my point of view on the topic is [summarized in my dissertation](https://opus.bibliothek.uni-wuerzburg.de/files/9781/Dissertation-Lemmerich.pdf):
 
 ### Prerequisites and Installation
@@ -52,8 +52,13 @@ data = pd.read_csv("C:/data/titanic.csv")
 target = ps.NominalTarget ('survived', True)
 
 searchspace = ps.create_selectors(data, ignore=['survived'])
-task = ps.SubgroupDiscoveryTask (data, target, searchspace, 
-            result_set_size=5, depth=2, qf=ps.ChiSquaredQF())
+task = ps.SubgroupDiscoveryTask (
+            data, 
+            target, 
+            searchspace, 
+            result_set_size=5, 
+            depth=2, 
+            qf=ps.WRAccQF())
 result = ps.BeamSearch().execute(task)
 ```
 he first two lines import the _pandas_ data analysis environment and the _pysubgroup_ package.
@@ -65,23 +70,25 @@ In particular, that comprises the target, the search space, the depth of the sea
 
 The last line executes the defined task by performing a search with an algorithm---in this case beam search. The result is then stored in a list of discovered subgroups associated with their score according to the chosen interestingness measure.
 
-As a result, we obtain a list of tuples (score, subgroup_object):
+As a result, we obtain a SubgroupDiscoveryResult object:
 To just print the result, we could for example do:
 
 ```python
-for (q, sg) in result:
-    print (str(q) + ":\t" + str(sg.subgroup_description)
+print(result.to_dataframe(show_info=False))
 ```
 
 to get:
-```python
-52.30879551820728:	Sex=female
-52.30879551820728:	Sex=male
-36.528775497473646:	Sex=female AND Parch=0
-32.07982038616973:	Sex=female AND SibSp: [0:1[
-31.587048503611975:	Sex=male AND Parch=0
-```
-However, there are also utility functions that allow you to export results to a pandas dataframe, to csv, or directly to latex.
+
+<table border="1" class="dataframe">
+<thead>    <tr style="text-align: right;">      <th></th>      <th>quality</th>      <th>description</th>    </tr>  </thead>
+<tbody>
+    <tr>      <th>0</th>      <td>0.132150</td>      <td>Sex==female</td>    </tr>
+    <tr>      <th>1</th>      <td>0.101331</td>      <td>Parch==0 AND Sex==female</td>    </tr>
+    <tr>      <th>2</th>      <td>0.079142</td>      <td>Sex==female AND SibSp: [0:1[</td>    </tr>
+    <tr>      <th>3</th>      <td>0.077663</td>      <td>Cabin.isnull() AND Sex==female</td>    </tr>
+    <tr>      <th>4</th>      <td>0.071746</td>      <td>Embarked==S AND Sex==female</td>    </tr>
+</tbody></table>
+
 
 ### Key classes
 Admittedly, the documentation of pysubgroup is currently lacking :(

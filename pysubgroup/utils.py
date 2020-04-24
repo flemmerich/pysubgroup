@@ -6,9 +6,12 @@ Created on 02.05.2016
 import itertools
 from functools import partial
 from heapq import heappush, heappop
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
+import pysubgroup as ps
+import matplotlib.pyplot as plt
 
 all_statistics = ('size_sg', 'size_dataset', 'positives_sg', 'positives_dataset', 'size_complement', 'relative_size_sg',
                   'relative_size_complement', 'coverage_sg', 'coverage_complement', 'target_share_sg',
@@ -289,3 +292,48 @@ def intersect_of_ordered_list(list_1, list_2):
             j += 1
             i += 1
     return result
+
+class SubgroupDiscoveryResult:
+    def __init__(self, results, task):
+        self.task = task
+        self.results = results
+        assert(isinstance(results, Iterable))
+
+    def to_descriptions(self):
+        return self.results
+
+    def to_subgroups(self):
+        return [(quality, ps.Subgroup(self.task.target, description)) for quality, description in self.results]
+
+    def to_dataframe(self, include_info=False):
+        qualities = [quality for quality, description in self.results]
+        descriptions = [description for quality, description in self.results]
+        df = pd.DataFrame.from_dict({'quality' : qualities, 'description' : descriptions})
+        if include_info:
+            calc_stats = self.task.target.calculate_statistics
+            data = self.task.data
+            records = [calc_stats(description, data) for quality, description in self.results]
+            df_stats = pd.DataFrame.from_records(records)
+            df = pd.concat([df, df_stats], axis=1)
+        return df
+
+    def supportSetVisualization(self, in_order=True, drop_empty=True):
+        df = self.task.data
+        n_items = len(self.task.data)
+        n_SGDs = len(self.results)
+        covs = np.zeros((n_items, n_SGDs), dtype=bool)
+        for i, (_, r) in enumerate(self.results):
+            covs[:, i] = r.covers(df)
+
+        img_arr = covs.copy()
+
+        sort_inds_x = np.argsort(np.sum(covs, axis=1))[::-1]
+        img_arr = img_arr[sort_inds_x, :]
+        if not in_order:
+            sort_inds_y = np.argsort(np.sum(covs, axis=0))
+            img_arr = img_arr[:, sort_inds_y]
+        if drop_empty:
+            keep_entities = np.sum(img_arr, axis=1) > 0
+            print("Discarding {} entities that are not covered".format(n_items - np.count_nonzero(keep_entities)))
+            img_arr = img_arr[keep_entities, :]
+        return img_arr.T

@@ -1,10 +1,12 @@
 from timeit import default_timer as timer
 import abc
-
+import pysubgroup as ps
 
 class TestAlgorithmsBase(abc.ABC):
     # pylint: disable=no-member
     def evaluate_result(self, algorithm_result, result, qualities):
+        self.assertTrue(isinstance(algorithm_result, ps.SubgroupDiscoveryResult))
+        algorithm_result = algorithm_result.to_descriptions()
         for (q, sg) in algorithm_result:
             print("   " + str(q) + ":\t" + str(sg))
         # compare length such that zip works correctly
@@ -23,7 +25,8 @@ class TestAlgorithmsBase(abc.ABC):
         end = timer()
         print("   Runtime for {}: {}".format(name, end - start))
 
-        if hasattr(self.task.qf,'calls'):
+        if hasattr(self.task.qf, 'calls'):
             print('   Number of call to qf:', self.task.qf.calls)
         print()
         self.evaluate_result(algorithm_result, result, qualities)
+        return algorithm_result
