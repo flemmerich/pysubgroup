@@ -37,6 +37,10 @@ class TestGeneralisationAwareQf(unittest.TestCase):
 
         self.assertEqual(ga_score, A1_score-zero_score)
 
+        ga2_score = self.ga_qf.evaluate(ps.Conjunction([self.A1]), df)
+
+        self.assertEqual(ga2_score, ga_score)
+
 
     def test_CountTarget2(self):
         df = self.df

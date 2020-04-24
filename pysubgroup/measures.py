@@ -178,7 +178,7 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
     def calculate_statistics(self, subgroup, data=None):
         sg_repr = repr(subgroup)
         if sg_repr in self.cache:
-            return self.cache[sg_repr]
+            return GeneralizationAwareQF.ga_tuple(*self.cache[sg_repr])
         else:
             (q_sg, q_prev) = self.get_qual_and_previous_qual(subgroup, data)
             self.cache[sg_repr] = (q_sg, q_prev)
