@@ -99,7 +99,7 @@ Saving a gp_tree
 =================
 
 It is possible to save a gp tree to a txt file for e.g. debugging purpose. You therefor have to implementd the gp_to_str function which takes a valuation basis and returns a string representation.
-It is an intentional choide to not call the  :code:`str` function on the valuastion basis directly.
+It is an intentional choide to not call the  :code:`str` function on the valuation basis directly.
 
 .. code:: python
 

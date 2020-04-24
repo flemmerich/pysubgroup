@@ -38,7 +38,7 @@ pysubgroup is also on PyPI and should be installable using:
 **Note**: Some users complained about the **pip installation not working**.
 If, after the installation, it still doesn't find the package, then do the following steps:
  1. Find where the directory `site-packages` is.
- 2. Copy the folder `pysubgroup`, which contains the source code, into the `site-packages` directory. (WARNING: This is not the main repository folder. The `pysubgroup` folder is inside the main repository folder, at the same level as `pysubgroup.archive` and `pysubgroup.tests`)
+ 2. Copy the folder `pysubgroup`, which contains the source code, into the `site-packages` directory. (WARNING: This is not the main repository folder. The `pysubgroup` folder is inside the main repository folder, at the same level as `doc`)
  3. Now you can import the module with `import pysubgroup`.
 
 ### How to use:
@@ -46,35 +46,36 @@ A simple use case (here using the well known _titanic_ data) can be created in j
 
 ```python
 import pysubgroup as ps
-import pandas as pd
 
-data = pd.read_csv("C:/data/titanic.csv")
-target = ps.NominalTarget ('survived', True)
+# Load the example dataset
+from pysubgroup.tests.DataSets import get_titanic_data
+data = get_titanic_data()
 
-searchspace = ps.create_selectors(data, ignore=['survived'])
+target = ps.NominalTarget ('Survived', True)
+searchspace = ps.create_selectors(data, ignore=['Survived'])
 task = ps.SubgroupDiscoveryTask (
-            data, 
-            target, 
-            searchspace, 
-            result_set_size=5, 
-            depth=2, 
-            qf=ps.WRAccQF())
+    data, 
+    target, 
+    searchspace, 
+    result_set_size=5, 
+    depth=2, 
+    qf=ps.WRAccQF())
 result = ps.BeamSearch().execute(task)
 ```
-he first two lines import the _pandas_ data analysis environment and the _pysubgroup_ package.
-The following line loads the data into a standard pandas DataFrame object. The next three lines specify a subgroup discovery task. 
-First, we define a target, i.e., the property we are mainly interested in (_'survived'}.
-Then, we build a list of basic selectors to build descriptions from. We can create this list manually, or use an utility function.
+The first two lines imports _pysubgroup_ package.
+The following lines load an example dataset (the popular titanic dataset).
+
+Therafter, we define a target, i.e., the property we are mainly interested in (_'survived'}.
+Then, we define the searchspace as a list of basic selectors. Descriptions are built from this searchspace. We can create this list manually, or use an utility function.
 Next, we create a SubgroupDiscoveryTask object that encapsulates what we want to find in our search.
-In particular, that comprises the target, the search space, the depth of the search (maximum numbers of selectors combined in a subgroup description), and the interestingness measure for candidate scoring (here, the $\chi^2$ measure).
+In particular, that comprises the target, the search space, the depth of the search (maximum numbers of selectors combined in a subgroup description), and the interestingness measure for candidate scoring (here, the Weighted Relative Accuracy measure).
 
-The last line executes the defined task by performing a search with an algorithm---in this case beam search. The result is then stored in a list of discovered subgroups associated with their score according to the chosen interestingness measure.
+The last line executes the defined task by performing a search with an algorithm---in this case beam search. The result of this algorithm execution is stored in a SubgroupDiscoveryResults object.
 
-As a result, we obtain a SubgroupDiscoveryResult object:
 To just print the result, we could for example do:
 
 ```python
-print(result.to_dataframe(show_info=False))
+print(result.to_dataframe())
 ```
 
 to get:
@@ -91,12 +92,13 @@ to get:
 
 
 ### Key classes
-Admittedly, the documentation of pysubgroup is currently lacking :(
-Anyways, here is an outline on the most important classes:
-* Subgroup: subgroup objects are the key outcome of any subgroup discovery algorithm. They encapsulate the target of the search, a _SubgroupDescription_, and statistics (size, target proportion, etc...)
-* SubgroupDescription: subgroup descriptions specify, which data instances are covered by the subgroup. It can be seen as the left hand side of a rule. A SubgroupDescription stores a list of _Selectors_, which are interpreted as a conjunction.
+Here is an outline on the most important classes:
 * Selector: A Selector represents an atomic condition over the data, e.g., _age < 50_. There several subtypes of Selectors, i.e., NominalSelector (color==BLUE), NumericSelector (age < 50) and NegatedSelector (a wrapper such as not selector1)
 * SubgroupDiscoveryTask: As mentioned before, encapsulates the specification of how an algorithm should search for interesting subgroups
+* SubgroupDicoveryResult: These are the main outcome of a subgroup disovery run. You can obtain a list of subgroups using the `to_subgroups()` or to a dataframe using `to_dataframe()`
+* Conjunction: A conjunction is the most widely used SubgroupDescription, and indicates which data instances are covered by the subgroup. It can be seen as the left hand side of a rule.
+
+
 
 
 

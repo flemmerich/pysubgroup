@@ -43,14 +43,14 @@ The small :math:`n` represents the number of negative instances and should not b
 Numeric Targets
 ##################
 
-For numeric targets pysubgroup offers the StandardQFNumeric which is defined similar to the StandardQF
+For numeric targets pysubgroup offers the *StandardQFNumeric* which is defined similar to the StandardQF
 
 .. math::
 
     \left ( \frac{N_{SG}}{N}  \right ) ^\alpha \left (\mu_{SG} - \mu \right )
 
 where :math:`\mu_{SG}` and :math:`\mu` are the mean value for the subgroup and entire dataset respectively.
-For the StandardQFNumeric we offer three optimistic estimates:  Average, Summation and Ordering. These are in detail described in Florian Lemmerich's dissertation.
+For the *StandardQFNumeric* we offer three optimistic estimates:  Average, Summation and Ordering. These are in detail described in Florian Lemmerich's dissertation.
 You can choose between the different optimistic estimates by using the keyword argument :code:`estimator` the different options are :code:`'sum'`, :code:`'average'`, and :code:`'order'` 
 
 
