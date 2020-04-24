@@ -195,11 +195,11 @@ class IntervalSelector(SelectorBase):
 @total_ordering
 class Subgroup():
     def __init__(self, target, subgroup_description):
-        # If its already a NominalTarget object, we are fine, otherwise we create a new one
-        # if (isinstance(target, NominalTarget) or isinstance(target, NumericTarget)):
+        # If its already a BinaryTarget object, we are fine, otherwise we create a new one
+        # if (isinstance(target, BinaryTarget) or isinstance(target, NumericTarget)):
         #    self.target = target
         # else:
-        #    self.target = NominalTarget(target)
+        #    self.target = BinaryTarget(target)
 
         # If its already a SubgroupDescription object, we are fine, otherwise we create a new one
         self.target = target

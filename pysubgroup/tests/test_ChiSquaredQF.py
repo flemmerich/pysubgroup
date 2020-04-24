@@ -5,7 +5,7 @@ from pysubgroup.tests.DataSets import get_credit_data
 if __name__ == '__main__':
     data = get_credit_data()
 
-    target = ps.NominalTarget('class', b'bad')
+    target = ps.BinaryTarget('class', b'bad')
     searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
     task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=4, qf=ps.ChiSquaredQF())
 

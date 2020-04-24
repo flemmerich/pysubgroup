@@ -53,7 +53,7 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
                           0.07650000000000001,
                           0.07600000000000001]
         data = get_credit_data()
-        target = ps.NominalTarget('class', b'bad')
+        target = ps.BinaryTarget('class', b'bad')
         searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=3, qf=ps.StandardQF(1.0))
 

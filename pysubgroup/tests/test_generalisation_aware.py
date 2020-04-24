@@ -61,7 +61,7 @@ class TestGeneralisationAware_StandardQf(unittest.TestCase):
 
     def test_simple(self):
         
-        task = task_dummy(self.df, ps.NominalTarget('columnC', 1))
+        task = task_dummy(self.df, ps.BinaryTarget('columnC', 1))
         qf = ps.StandardQF(0)
         qf.calculate_constant_statistics(task)
 
@@ -118,7 +118,7 @@ class TestAlgorithms(TestAlgorithmsBase, unittest.TestCase):
                           0.0452,
                           0.044399999999999995]
         data = get_credit_data()
-        target = ps.NominalTarget('class', b'bad')
+        target = ps.BinaryTarget('class', b'bad')
         searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=3, qf=ps.GeneralizationAwareQF(ps.StandardQF(1.0)))
 

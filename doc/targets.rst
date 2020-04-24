@@ -7,8 +7,8 @@ These scores are used by all the algorithms to determine the most interesting su
 
 .. _countqf:
 
-Frequency Targets
-##################
+Frequent Itemset Targets
+#########################
 
 The most simple target is the *FITarget* with its associated quality functions *CountQF* and *AreaQf*.
 The CountQF simple counts the number of instances covered by the subgroup in question.
@@ -38,6 +38,11 @@ The small :math:`n` represents the number of negative instances and should not b
 | :math:`n_{SG}` | :math:`n-n_{SG}`|
 +----------------+-----------------+
 
+Nominal Targets
+################
+
+Currently pysubgroup only supports nominal targets as binary targets.
+So you can look for deviations of one nominal value with respect to all othe nominal values.
 
 
 Numeric Targets

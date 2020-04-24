@@ -10,7 +10,7 @@ class TestNominalTarget_to_result(unittest.TestCase, TestAlgorithmsBase):
     @classmethod
     def setUpClass(cls):
         data = get_credit_data()
-        target = ps.NominalTarget('class', b'bad')
+        target = ps.BinaryTarget('class', b'bad')
         searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
         cls.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0))
         cls.result = ps.SimpleDFS().execute(cls.task)

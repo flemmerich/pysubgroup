@@ -51,7 +51,7 @@ import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_titanic_data
 data = get_titanic_data()
 
-target = ps.NominalTarget ('Survived', True)
+target = ps.BinaryTarget ('Survived', True)
 searchspace = ps.create_selectors(data, ignore=['Survived'])
 task = ps.SubgroupDiscoveryTask (
     data, 
