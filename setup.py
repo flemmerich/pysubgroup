@@ -4,7 +4,6 @@ setup(
     name='pysubgroup',
     version='0.7.0',
     packages=['pysubgroup', 'pysubgroup.tests'],
-    package_dir={'pysubgroup': 'pysubgroup', 'pysubgroup.tests' : 'pysubgroup/tests'},
     package_data={'pysubgroup': ['data/credit-g.arff', 'data/titanic.csv']},
     url='http://florian.lemmerich.net/pysubgroup',
     license='',
