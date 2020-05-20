@@ -3,9 +3,12 @@ import abc
 import pysubgroup as ps
 
 class TestAlgorithmsBase(abc.ABC):
+
     # pylint: disable=no-member
     def evaluate_result(self, algorithm_result, result, qualities):
         self.assertTrue(isinstance(algorithm_result, ps.SubgroupDiscoveryResult))
+        algorithm_result.to_dataframe()
+        algorithm_result.to_dataframe(include_info=True)
         algorithm_result = algorithm_result.to_descriptions()
         for (q, sg) in algorithm_result:
             print("   " + str(q) + ":\t" + str(sg))
@@ -16,7 +19,8 @@ class TestAlgorithmsBase(abc.ABC):
         for (algorithm_q, algorithm_SG), expected_q, expected_SGD in zip(algorithm_result, qualities, result):
             self.assertEqual(repr(algorithm_SG), repr(expected_SGD))
             self.assertEqual(algorithm_q, expected_q)
-    # pylint: enable=no-member
+
+
     def runAlgorithm(self, algorithm, name, result, qualities, task):
         print()
         print("Running " + name)
@@ -30,3 +34,4 @@ class TestAlgorithmsBase(abc.ABC):
         print()
         self.evaluate_result(algorithm_result, result, qualities)
         return algorithm_result
+    # pylint: enable=no-member

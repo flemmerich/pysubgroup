@@ -19,7 +19,7 @@ class AbstractInterestingnessMeasure(ABC):
     @abstractmethod
     def is_applicable(self, subgroup):
         pass
-
+    # pylint: disable=no-member
     def ensure_statistics(self, subgroup, statistics_or_data):
         if not self.has_constant_statistics:
             self.calculate_constant_statistics(subgroup.data)
@@ -29,7 +29,7 @@ class AbstractInterestingnessMeasure(ABC):
             else:
                 return self.calculate_statistics(subgroup, statistics_or_data)
         return statistics_or_data
-
+    # pylint: enable=no-member
     #def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None): #pylint: disable=unused-argument
     #    return float("inf")
 
@@ -187,7 +187,7 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
     def get_qual_and_previous_qual(self, subgroup, data):
         q_subgroup = self.qf.evaluate(subgroup, data)
         max_q = 0
-        selectors = subgroup._selectors
+        selectors = subgroup.selectors
         if len(selectors) > 0:
             # compute quality of all generalizations
             generalizations = combinations(selectors, len(selectors)-1)
@@ -244,7 +244,7 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
     def get_stats_and_previous_stats(self, subgroup, data):
         stats_subgroup = self.qf.calculate_statistics(subgroup, data)
         max_stats = self.stats0
-        selectors = subgroup._selectors
+        selectors = subgroup.selectors
         if len(selectors) > 0:
             # compute quality of all generalizations
             generalizations = combinations(selectors, len(selectors)-1)

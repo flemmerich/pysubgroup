@@ -2,15 +2,16 @@ from collections import namedtuple
 from scipy.stats import norm
 import numpy as np
 import pysubgroup as ps
-beta_tuple = namedtuple('beta_tuple',['beta','size'])
+beta_tuple = namedtuple('beta_tuple', ['beta', 'size'])
 
 
 class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
-    tpl=namedtuple('EMM_Likelihood', ['model_params','subgroup_likelihood','inverse_likelihood','size'])
+    tpl = namedtuple('EMM_Likelihood', ['model_params', 'subgroup_likelihood', 'inverse_likelihood', 'size'])
     def __init__(self, model):
         self.model = model
         self.has_constant_statistics = False
         self.required_stat_attrs = EMM_Likelihood.tpl._fields
+        self.data_size = None
 
     def calculate_constant_statistics(self, task):
         self.model.calculate_constant_statistics(task)
@@ -18,18 +19,14 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
         self.has_constant_statistics = True
 
     def calculate_statistics(self, subgroup, data=None):
-        if hasattr(subgroup, "__array_interface__"):
-            cover_arr = subgroup
-        else:
-            cover_arr = subgroup.covers(data)
-        sg_size = np.count_nonzero(cover_arr)
+        cover_arr, sg_size = ps.get_cover_array_and_size(subgroup, self.data_size, data)
 
         params = self.model.fit(cover_arr, data)
         return self.get_tuple(sg_size, params, cover_arr)
-    
+
     def get_tuple(self, sg_size, params, cover_arr):
         #numeric stability?
-        all_likelihood = self.model.likelihood(params, np.ones(self.data_size,dtype=bool))
+        all_likelihood = self.model.likelihood(params, np.ones(self.data_size, dtype=bool))
         sg_likelihood_sum = np.sum(all_likelihood[cover_arr])
         total_likelihood_sum = np.sum(all_likelihood)
         dataset_average = np.nan
@@ -40,10 +37,10 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
             sg_average = sg_likelihood_sum/sg_size
         return EMM_Likelihood.tpl(params, sg_average, dataset_average, sg_size)
 
-    def evaluate(self, subgroup, statistics = None):
+    def evaluate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
         #numeric stability?
-        return (statistics.subgroup_likelihood - statistics.inverse_likelihood)
+        return statistics.subgroup_likelihood - statistics.inverse_likelihood
 
     def gp_get_params(self, cover_arr, v):
         params = self.model.gp_get_params(v)
@@ -61,7 +58,7 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
         return getattr(self.model, name)
 
 class PolyRegression_ModelClass:
-    def __init__(self, x_name = 'x', y_name = 'y', degree = 1):
+    def __init__(self, x_name='x', y_name='y', degree=1):
         self.x_name = x_name
         self.y_name = y_name
         if degree != 1:
@@ -106,11 +103,7 @@ class PolyRegression_ModelClass:
         return beta_tuple(np.array([slope, intersept]), v[0])
 
     def fit(self, subgroup, data=None):
-        if hasattr(subgroup, "__array_interface__"):
-            cover_arr = subgroup
-        else:
-            cover_arr = subgroup.covers(data)
-        size = np.count_nonzero(cover_arr)
+        cover_arr, size = ps.get_cover_array_and_size(subgroup, len(self.x), data)
         if size <= self.degree + 1:
             return beta_tuple(np.full(self.degree + 1, np.nan), size)
         return beta_tuple(np.polyfit(self.x[cover_arr], self.y[cover_arr], deg=self.degree), size)
@@ -122,5 +115,3 @@ class PolyRegression_ModelClass:
 
     def loglikelihood(self, stats, sg):
         return norm.logpdf(np.polyval(stats.beta, self.x[sg]) - self.y[sg])
-
-

@@ -45,6 +45,62 @@ class SelectorBase(ABC):
         pass
 
 
+def get_cover_array_and_size(subgroup, data_len=None, data=None):
+    if hasattr(subgroup, "representation"):
+        cover_arr = subgroup
+        size = subgroup.size_sg
+    elif isinstance(subgroup, slice):
+        cover_arr = subgroup
+        if data_len is None:
+            if isinstance(data, pd.DataFrame):
+                data_len = len(data)
+            else:
+                raise ValueError("if you pass a slice, you need to pass either data_len or data")
+        # https://stackoverflow.com/questions/36188429/retrieve-length-of-slice-from-slice-object-in-python
+        size = len(range(*subgroup.indices(data_len)))
+    elif hasattr(subgroup, '__array_interface__'):
+        cover_arr = subgroup
+        type_char = subgroup.__array_interface__['typestr'][1]
+        if type_char == 'b': # boolean indexing is used
+            size = np.count_nonzero(cover_arr)
+        elif type_char == 'u' or type_char == 'i': # integer indexing
+            size = subgroup.__array_interface__['shape'][0]
+        else:
+            print(type_char)
+            raise NotImplementedError(f"Currently a typechar of {type_char} is not supported.")
+    else:
+        assert isinstance(data, pd.DataFrame)
+        cover_arr = subgroup.covers(data)
+        size = np.count_nonzero(cover_arr)
+    return cover_arr, size
+
+
+def get_size(subgroup, data_len=None, data=None):
+    if hasattr(subgroup, "representation"):
+        size = subgroup.size_sg
+    elif isinstance(subgroup, slice):
+        if data_len is None:
+            if isinstance(data, pd.DataFrame):
+                data_len = len(data)
+            else:
+                raise ValueError("if you pass a slice, you need to pass either data_len or data")
+        # https://stackoverflow.com/questions/36188429/retrieve-length-of-slice-from-slice-object-in-python
+        size = len(range(*subgroup.indices(data_len)))
+    elif hasattr(subgroup, '__array_interface__'):
+        type_char = subgroup.__array_interface__['typestr'][1]
+        if type_char == 'b': # boolean indexing is used
+            size = np.count_nonzero(subgroup)
+        elif type_char == 'u' or type_char == 'i': # integer indexing
+            size = subgroup.__array_interface__['shape'][0]
+        else:
+            print(type_char)
+            raise NotImplementedError(f"Currently a typechar of {type_char} is not supported.")
+    else:
+        assert isinstance(data, pd.DataFrame)
+        size = np.count_nonzero(subgroup.covers(data))
+    return size
+
+
 class EqualitySelector(SelectorBase):
     def __init__(self, attribute_name, attribute_value, selector_name=None):
         if attribute_name is None:
@@ -95,6 +151,10 @@ class EqualitySelector(SelectorBase):
     def __str__(self, open_brackets="", closing_brackets=""):
         return open_brackets + self._string + closing_brackets
 
+    @property
+    def selectors(self):
+        return (self,)
+
 
 class NegatedSelector(SelectorBase):
     def __init__(self, selector):
@@ -109,7 +169,7 @@ class NegatedSelector(SelectorBase):
         return self._query
 
     def __str__(self, open_brackets="", closing_brackets=""):
-        return "NOT " + str(self._selector, open_brackets, closing_brackets)
+        return "NOT " + self._selector.__str__(open_brackets, closing_brackets)
 
     def set_descriptions(self, selector):  # pylint: disable=arguments-differ
         self._query = "(not " + repr(selector) + ")"
@@ -118,6 +178,10 @@ class NegatedSelector(SelectorBase):
     @property
     def attribute_name(self):
         return self._selector.attribute_name
+
+    @property
+    def selectors(self):
+        return self._selector.selectors
 
 
 # Including the lower bound, excluding the upper_bound
@@ -191,6 +255,10 @@ class IntervalSelector(SelectorBase):
             repre = attribute_name + ": [" + str(lb) + ":" + str(ub) + "["
         return repre
 
+    @property
+    def selectors(self):
+        return (self,)
+
 
 @total_ordering
 class Subgroup():
@@ -212,10 +280,13 @@ class Subgroup():
         return "<<" + repr(self.target) + "; D: " + repr(self.subgroup_description) + ">>"
 
     def covers(self, instance):
-        if hasattr(self.subgroup_description, "representation"):
-            return self.subgroup_description
+        cover_arr, _ = ps.get_cover_array_and_size(self.subgroup_description, len(instance), instance)
+        if not isinstance(cover_arr, type(np.array)):
+            arr = np.zeros(len(instance), dtype=bool)
+            arr[cover_arr] = True
+            return arr
         else:
-            return self.subgroup_description.covers(instance)
+            return cover_arr
 
     def __getattr__(self, name):
         return getattr(self.subgroup_description, name)
@@ -228,11 +299,11 @@ class Subgroup():
     def __lt__(self, other):
         return repr(self) < repr(other)
 
-    def get_base_statistics(self, data, weighting_attribute=None):
-        return self.target.get_base_statistics(data, self, weighting_attribute)
+    def get_base_statistics(self, data):
+        return self.target.get_base_statistics(self, data)
 
-    def calculate_statistics(self, data, weighting_attribute=None):
-        self.target.calculate_statistics(self, data, weighting_attribute)
+    def calculate_statistics(self, data):
+        return self.target.calculate_statistics(self, data)
 
 
 def create_selectors(data, nbins=5, intervals_only=True, ignore=None):
@@ -275,12 +346,12 @@ def create_numeric_selectors(data, nbins=5, intervals_only=True, weighting_attri
         ignore = []
     numeric_selectors = []
     for attr_name in [x for x in data.select_dtypes(include=['number']).columns.values if x not in ignore]:
-        numeric_selectors.extend(create_numeric_selector_for_attribute(
+        numeric_selectors.extend(create_numeric_selectors_for_attribute(
             data, attr_name, nbins, intervals_only, weighting_attribute))
     return numeric_selectors
 
 
-def create_numeric_selector_for_attribute(data, attr_name, nbins=5, intervals_only=True, weighting_attribute=None):
+def create_numeric_selectors_for_attribute(data, attr_name, nbins=5, intervals_only=True, weighting_attribute=None):
     numeric_selectors = []
     data_not_null = data[data[attr_name].notnull()]
 

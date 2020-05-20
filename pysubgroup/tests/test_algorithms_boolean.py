@@ -1,4 +1,5 @@
 import unittest
+import pytest
 import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_credit_data
 
@@ -39,7 +40,10 @@ class BooleanTargetBase():
     def test_DFS_bitset(self):
         self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS bitset", self.result, self.qualities, self.task)
 
-    @unittest.skipIf(skip_long_running, "as skip_long_running flag is True")
+
+
+
+    @pytest.mark.slow
     @unittest.skipUnless(TestSettings.All or TestSettings.SimpleSearch, 'flag not set')
     def test_SimpleSearch(self):
         self.runAlgorithm(ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task)
@@ -132,11 +136,9 @@ class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
         searchSpace = searchSpace_Nominal + searchSpace_Numeric
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=12, depth=5, qf=ps.StandardQF(1.0))
 
+    @pytest.mark.slow
     def test_DFS_numpy_sets(self):
-        if skip_long_running:
-            self.skipTest("skip_long_running is set")
-        else:
-            super.test_DFS_numpy_sets()
+        super.test_DFS_numpy_sets()
 
 # uses an a=0.5 and result_set_size = 12, is much faster because of that
 
@@ -150,34 +152,32 @@ class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
         NS_job = ps.EqualitySelector("job", b"skilled")
         NS_dependents = ps.EqualitySelector("num_dependents", 1.0)
         self.result = [ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_other_parties, NS_savings_status]),  # AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100'
-                    # 0.113713540226172:    checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled'' AND savings_status=='b'<100''
-                    ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_savings_status]),
-                    ps.Conjunction([NS_checking, NS_foreign_worker, NS_job]),  # checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled''
-                    # checking_status=='b'<0'' AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100''
-                    ps.Conjunction([NS_checking, NS_job, NS_other_parties, NS_savings_status]),
-                    ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_other_parties]),
-                    ps.Conjunction([NS_checking, NS_job, NS_savings_status]),
-                    ps.Conjunction([NS_checking, NS_foreign_worker, NS_other_parties, NS_savings_status]),
-                    ps.Conjunction([NS_checking, NS_foreign_worker, NS_other_parties]),
-                    ps.Conjunction([NS_checking, NS_foreign_worker, NS_savings_status]),
-                    ps.Conjunction([NS_checking, NS_foreign_worker]),
-                    ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_dependents, NS_savings_status]),
-                    ps.Conjunction([NS_checking, NS_job, NS_other_parties]),
-                    ]
+                       # 0.113713540226172:    checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled'' AND savings_status=='b'<100''
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_job]),  # checking_status=='b'<0'' AND foreign_worker=='b'yes'' AND job=='b'skilled''
+                       # checking_status=='b'<0'' AND job=='b'skilled'' AND other_parties=='b'none'' AND savings_status=='b'<100''
+                       ps.Conjunction([NS_checking, NS_job, NS_other_parties, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_job, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_other_parties, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_other_parties]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker]),
+                       ps.Conjunction([NS_checking, NS_foreign_worker, NS_job, NS_dependents, NS_savings_status]),
+                       ps.Conjunction([NS_checking, NS_job, NS_other_parties])]
 
         self.qualities = [0.11457431093955019,
-                        0.113713540226172,
-                        0.11201325679119281,
-                        0.1117538749727658,
-                        0.11161046793076415,
-                        0.11145710640046322,
-                        0.11045259291161472,
-                        0.10929088624672183,
-                        0.10875519439407161,
-                        0.10866138825404954,
-                        0.10832735026213287,
-                        0.10813405094128754,
-                        ]
+                          0.113713540226172,
+                          0.11201325679119281,
+                          0.1117538749727658,
+                          0.11161046793076415,
+                          0.11145710640046322,
+                          0.11045259291161472,
+                          0.10929088624672183,
+                          0.10875519439407161,
+                          0.10866138825404954,
+                          0.10832735026213287,
+                          0.10813405094128754]
         data = get_credit_data()
         target = ps.BinaryTarget('class', b'bad')
         searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['class'])
@@ -185,33 +185,26 @@ class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
         searchSpace = searchSpace_Nominal + searchSpace_Numeric
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=12, depth=5, qf=ps.StandardQF(0.5))
 
+    @pytest.mark.slow
     def test_BestFirstSearch(self):
-        if skip_long_running:
-            self.skipTest("skip_long_running is set")
-        else:
-            super.test_BestFirstSearch()
+        super.test_BestFirstSearch()
 
+    @pytest.mark.slow
     def test_SimpleDFS(self):
-        if skip_long_running:
-            self.skipTest("skip_long_running is set")
-        else:
-            super.test_SimpleDFS()
+        super.test_SimpleDFS()
 
-
+    @pytest.mark.slow
     def test_DFS_numpy_sets(self):
-        if skip_long_running:
-            self.skipTest("skip_long_running is set")
-        else:
-            super.test_DFS_numpy_sets()
+        super.test_DFS_numpy_sets()
 
 
 if __name__ == '__main__':
 
     #unittest.main()
     suites = []
-    suites.append( unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms))
-    suites.append( unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2))
-    suites.append(  unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3))
     complete_suite = unittest.TestSuite(suites)
     unittest.TextTestRunner(verbosity=2).run(complete_suite)
 

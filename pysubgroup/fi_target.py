@@ -5,7 +5,6 @@ Created on 29.09.2017
 '''
 from collections import namedtuple
 from functools import total_ordering
-import numpy as np
 import pysubgroup as ps
 
 
@@ -24,20 +23,17 @@ class FITarget():
     def get_attributes(self):
         return []
 
-    def get_base_statistics(self, data, subgroup, weighting_attribute=None):
-        if weighting_attribute is None:
-            sg_instances = subgroup.covers(data)
-            return sg_instances.sum()
-        else:
-            raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
+    def get_base_statistics(self, subgroup, data):
+        _, size = ps.get_cover_array_and_size(subgroup, len(data), data)
+        return size
 
-    def calculate_statistics(self, subgroup, data, weighting_attribute=None):
-        if weighting_attribute is not None:
-            raise NotImplementedError("Attribute weights with numeric targets are not yet implemented.")
-        sg_instances = subgroup.covers(data)
+    def calculate_statistics(self, subgroup, data):
+        _, size = ps.get_cover_array_and_size(subgroup, len(data), data)
 
-        subgroup.statistics['size_sg'] = len(sg_instances)
-        subgroup.statistics['size_dataset'] = len(data)
+        statistics = {}
+        statistics['size_sg'] = size
+        statistics['size_dataset'] = len(data)
+        return statistics
 
 
 class SimpleCountQF(ps.AbstractInterestingnessMeasure):
@@ -46,18 +42,20 @@ class SimpleCountQF(ps.AbstractInterestingnessMeasure):
     def __init__(self):
         self.required_stat_attrs = ('subgroup_size',)
         self.has_constant_statistics = True
+        self.size_dataset = None
 
     def calculate_constant_statistics(self, task):
-        pass
+        self.size_dataset = len(task.data)
 
     def calculate_statistics(self, subgroup, data=None):
-        if hasattr(subgroup, "representation"):
-            cover_arr = subgroup
-        elif isinstance(subgroup, slice):
-            cover_arr = subgroup
-        else:
-            cover_arr = subgroup.covers(data)
-        return SimpleCountQF.tpl(np.count_nonzero(cover_arr))
+        _, size = ps.get_cover_array_and_size(subgroup, self.size_dataset, data)
+        return SimpleCountQF.tpl(size)
+
+    def is_applicable(self, subgroup):
+        return isinstance(subgroup.target, FITarget)
+
+    def supports_weights(self):
+        return False
 
     def gp_get_stats(self, _):
         return {"subgroup_size" : 1}
@@ -88,9 +86,6 @@ class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
         statistics = self.ensure_statistics(subgroup, statistics)
         return statistics.subgroup_size
 
-    def is_applicable(self, subgroup):
-        return isinstance(subgroup.target, FITarget)
-
     def supports_weights(self):
         return False
 
@@ -101,9 +96,6 @@ class AreaQF(SimpleCountQF):
     def evaluate(self, subgroup, statistics=None):
         statistics = self.ensure_statistics(subgroup, statistics)
         return statistics.subgroup_size * subgroup.depth
-
-    def is_applicable(self, subgroup):
-        return isinstance(subgroup.target, FITarget)
 
     def supports_weights(self):
         return False

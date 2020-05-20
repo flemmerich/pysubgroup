@@ -11,7 +11,7 @@ from collections.abc import Iterable
 import numpy as np
 import pandas as pd
 import pysubgroup as ps
-import matplotlib.pyplot as plt
+
 
 all_statistics = ('size_sg', 'size_dataset', 'positives_sg', 'positives_dataset', 'size_complement', 'relative_size_sg',
                   'relative_size_complement', 'coverage_sg', 'coverage_complement', 'target_share_sg',
@@ -26,15 +26,17 @@ all_statistics_numeric = (
     'max_dataset', 'min_sg', 'min_dataset', 'mean_lift', 'median_lift')
 
 
-def add_if_required(result, sg, quality, task, check_for_duplicates=False):
+def add_if_required(result, sg, quality, task, check_for_duplicates=False, statistics=None):
     if quality > task.min_quality:
-        if check_for_duplicates and (quality, sg) in result:
+        if not ps.constraints_hold(task.constraints, sg, statistics, task.data):
+            return
+        if check_for_duplicates and (quality, sg, statistics) in result:
             return
         if len(result) < task.result_set_size:
-            heappush(result, (quality, sg))
+            heappush(result, (quality, sg, statistics))
         elif quality > result[0][0]:
             heappop(result)
-            heappush(result, (quality, sg))
+            heappush(result, (quality, sg, statistics))
 
 
 def minimum_required_quality(result, task):
@@ -208,8 +210,7 @@ def to_latex(data, result, statistics_to_show):
         'target_share_sg_weighted': perc_formatter,
         'target_share_complement_weighted': perc_formatter,
         'target_share_dataset_weighted': perc_formatter,
-        'lift_weighted': perc_formatter}
-    )
+        'lift_weighted': perc_formatter})
     latex = latex.replace(' AND ', r' $\wedge$ ')
     return latex
 
@@ -297,22 +298,21 @@ class SubgroupDiscoveryResult:
     def __init__(self, results, task):
         self.task = task
         self.results = results
-        assert(isinstance(results, Iterable))
+        assert isinstance(results, Iterable)
 
     def to_descriptions(self):
-        return self.results
+        return [(qual, sgd) for qual, sgd, stats in self.results]
 
     def to_subgroups(self):
-        return [(quality, ps.Subgroup(self.task.target, description)) for quality, description in self.results]
+        return [(quality, ps.Subgroup(self.task.target, description)) for quality, description, stats in self.results]
 
     def to_dataframe(self, include_info=False):
-        qualities = [quality for quality, description in self.results]
-        descriptions = [description for quality, description in self.results]
+        qualities = [quality for quality, description, _ in self.results]
+        descriptions = [description for quality, description, _ in self.results]
         df = pd.DataFrame.from_dict({'quality' : qualities, 'description' : descriptions})
         if include_info:
-            calc_stats = self.task.target.calculate_statistics
             data = self.task.data
-            records = [calc_stats(description, data) for quality, description in self.results]
+            records = [self.task.target.calculate_statistics(description, data) for quality, description, _ in self.results]
             df_stats = pd.DataFrame.from_records(records)
             df = pd.concat([df, df_stats], axis=1)
         return df
@@ -322,7 +322,7 @@ class SubgroupDiscoveryResult:
         n_items = len(self.task.data)
         n_SGDs = len(self.results)
         covs = np.zeros((n_items, n_SGDs), dtype=bool)
-        for i, (_, r) in enumerate(self.results):
+        for i, (_, r, _) in enumerate(self.results):
             covs[:, i] = r.covers(df)
 
         img_arr = covs.copy()

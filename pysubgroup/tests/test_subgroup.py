@@ -95,6 +95,42 @@ class TestRelationsMethods(unittest.TestCase):
         np.testing.assert_array_equal(CA.covers(df), [0, 0, 1, 1, 0, 0, 0, 0, 0, 0])
         np.testing.assert_array_equal(CNan.covers(df), [1, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 
+    def test_str_representations(self):
+        A = ps.EqualitySelector("A", 1)
+        self.assertEqual(str(A), "A==1")
+        self.assertEqual(repr(A), "A==1")
+
+        B = ps.EqualitySelector("BB", 2)
+        self.assertEqual(str(B), "BB==2")
+        self.assertEqual(repr(B), "BB==2")
+
+        C = ps.EqualitySelector("CCC", True)
+        self.assertEqual(str(C), "CCC==True")
+        self.assertEqual(repr(C), "CCC==True")
+
+        NegC = ps.NegatedSelector(ps.EqualitySelector("CCC", True))
+        self.assertEqual(str(NegC), "NOT CCC==True")
+        self.assertEqual(repr(NegC), "(not CCC==True)")
+
+        I1 = ps.IntervalSelector("test", 10, 15)
+        self.assertEqual(str(I1), "test: [10:15[")
+        self.assertEqual(repr(I1), "test: [10:15[")
+
+        I2 = ps.IntervalSelector("test2", np.sqrt(2), np.sqrt(3))
+        self.assertEqual(str(I2), "test2: [1.41:1.73[")
+        self.assertEqual(repr(I2), "test2: [1.4142135623730951:1.7320508075688772[")
+        #self.assertEqual(repr(NegC), "(not CCC==True)")
+
+    def test_create_selectors_with_nan(self):
+        df = pd.DataFrame.from_dict({'A' : np.array([np.nan, np.nan, np.nan]), 'B' : np.array([10, np.nan, np.nan])})
+        result = ps.create_selectors(df)
+        A_null = ps.EqualitySelector('A', np.nan)
+        B_null = ps.EqualitySelector('B', np.nan)
+        B_10 = ps.EqualitySelector('B', 10.)
+        assert A_null in result
+        assert B_null in result
+        assert B_10 in result
+
 
 if __name__ == '__main__':
     unittest.main()
