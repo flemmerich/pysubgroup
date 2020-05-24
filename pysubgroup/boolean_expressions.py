@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import total_ordering
+from itertools import chain
 import copy
 import numpy as np
 from pysubgroup import SelectorBase
@@ -74,8 +75,8 @@ class Conjunction(BooleanExpressionBase):
             return self._hash
 
     def _compute_representations(self):
-        self._repr=self._compute_repr()
-        self._hash=self._compute_hash()
+        self._repr = self._compute_repr()
+        self._hash = self._compute_hash()
 
     def _compute_repr(self):
         if not self._selectors:
@@ -96,7 +97,7 @@ class Conjunction(BooleanExpressionBase):
         if isinstance(to_append, SelectorBase):
             self._selectors.append(to_append)
         elif isinstance(to_append, Conjunction):
-            self._selectors.extend(to_append._selectors)
+            self._selectors.extend(to_append.selectors)
         else:
             try:
                 self._selectors.extend(to_append)
@@ -119,9 +120,14 @@ class Conjunction(BooleanExpressionBase):
         result.__dict__.update(self.__dict__)
         result._selectors = list(self._selectors)
         return result
+
     @property
     def depth(self):
         return len(self._selectors)
+
+    @property
+    def selectors(self):
+        return tuple(chain.from_iterable(sel.selectors for sel in self._selectors))
 
 
 @total_ordering
@@ -178,6 +184,10 @@ class Disjunction(BooleanExpressionBase):
         result.__dict__.update(self.__dict__)
         result._selectors = copy.copy(self._selectors)
         return result
+
+    @property
+    def selectors(self):
+        return tuple(chain.from_iterable(sel.selectors for sel in self._selectors))
 
 class DNF(Disjunction):
     def __init__(self, selectors=None):

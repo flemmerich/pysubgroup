@@ -18,7 +18,7 @@ class SubgroupDiscoveryTask:
     Capsulates all parameters required to perform standard subgroup discovery
     '''
 
-    def __init__(self, data, target, search_space, qf, result_set_size=10, depth=3, min_quality=0, weighting_attribute=None):
+    def __init__(self, data, target, search_space, qf, result_set_size=10, depth=3, min_quality=0, constraints=None):
         self.data = data
         self.target = target
         self.search_space = search_space
@@ -26,9 +26,15 @@ class SubgroupDiscoveryTask:
         self.result_set_size = result_set_size
         self.depth = depth
         self.min_quality = min_quality
-        self.weighting_attribute = weighting_attribute
+        if constraints is None:
+            constraints = []
+        self.constraints = constraints
+        self.constraints_monotone = [constr for constr in constraints if constr.is_monotone]
+        self.constraints_other = [constr for constr in constraints if not constr.is_monotone]
 
 
+def constraints_hold(constraints, subgroup, statistics=None, data=None):
+    return all(constr.holds(subgroup, statistics, data) for constr in constraints)
 
 
 
@@ -51,19 +57,23 @@ class Apriori:
                 print('Apriori: Using numba for speedup')
             except ImportError:
                 pass
+
+
     def get_next_level_candidates(self, task, result, next_level_candidates):
         promising_candidates = []
         optimistic_estimate_function = getattr(task.qf, self.optimistic_estimate_name)
         for sg in next_level_candidates:
             statistics = task.qf.calculate_statistics(sg, task.data)
-            ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task)
+            ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task, statistics=statistics)
             optimistic_estimate = optimistic_estimate_function(sg, statistics)
 
             if optimistic_estimate >= ps.minimum_required_quality(result, task):
-                promising_candidates.append((optimistic_estimate, list(sg._selectors)))
+                if ps.constraints_hold(task.constraints_monotone, sg, statistics, task.data):
+                    promising_candidates.append((optimistic_estimate, sg.selectors))
         min_quality = ps.minimum_required_quality(result, task)
         promising_candidates = [selectors for estimate, selectors in promising_candidates if estimate > min_quality]
         return promising_candidates
+
 
     def get_next_level_candidates_vectorized(self, task, result, next_level_candidates):
         promising_candidates = []
@@ -76,13 +86,13 @@ class Apriori:
         qualities = task.qf.evaluate(None, vec_statistics)
         optimistic_estimates = optimistic_estimate_function(None, vec_statistics)
 
-        for sg, quality in zip(next_level_candidates, qualities):
-            ps.add_if_required(result, sg, quality, task)
+        for sg, quality, stats in zip(next_level_candidates, qualities, statistics):
+            ps.add_if_required(result, sg, quality, task, statistics=stats)
 
         min_quality = ps.minimum_required_quality(result, task)
         for sg, optimistic_estimate in zip(next_level_candidates, optimistic_estimates):
             if optimistic_estimate >= min_quality:
-                promising_candidates.append(list(sg._selectors))
+                promising_candidates.append(sg.selectors)
         return promising_candidates
 
 
@@ -96,8 +106,9 @@ class Apriori:
                                         if all(frozenset(comb) not in unpromising_combinations for comb in combinations(selectors, k)))
         return promising_candidates
 
+
     def get_next_level_numba(self, promising_candidates):
-        from numba import jit
+        from numba import jit # pylint: disable=import-error, import-outside-toplevel
         if not hasattr(self, 'compiled_func') or self.compiled_func is None:
             @jit
             def getNewCandidates(l, hashes):
@@ -120,11 +131,11 @@ class Apriori:
         candidates_int = self.compiled_func(arr, hashes)
         return list((*promising_candidates[i], promising_candidates[j][-1])  for i, j in candidates_int)
 
+
     def get_next_level(self, promising_candidates):
         precomputed_list = list((tuple(sg), sg[-1], hash(tuple(sg[:-1])), tuple(sg[:-1])) for sg in promising_candidates)
         return list((*sg1, new_selector) for (sg1, _, hash_l, selectors_l), (_, new_selector, hash_r, selectors_r) in combinations(precomputed_list, 2)
                     if (hash_l == hash_r) and (selectors_l == selectors_r))
-
 
 
     def execute(self, task):
@@ -135,7 +146,7 @@ class Apriori:
 
         with self.representation_type(task.data, task.search_space) as representation:
             combine_selectors = getattr(representation.__class__, self.combination_name)
-            result = []    
+            result = []
             # init the first level
             next_level_candidates = []
             for sel in task.search_space:
@@ -178,17 +189,19 @@ class BestFirstSearch:
         while queue:
             q, old_description = heappop(queue)
             q = -q
-            if not (q > ps.minimum_required_quality(result, task)):
+            if not q > ps.minimum_required_quality(result, task):
                 break
             for candidate_description in operator.refinements(old_description):
                 sg = candidate_description
                 statistics = task.qf.calculate_statistics(sg, task.data)
-                ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task)
-                optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
+                ps.add_if_required(result, sg, task.qf.evaluate(sg, statistics), task, statistics=statistics)
+                if len(candidate_description) < task.depth:
+                    optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
 
-                # compute refinements and fill the queue
-                if len(candidate_description) < task.depth and optimistic_estimate >= ps.minimum_required_quality(result, task):
-                    heappush(queue, (-optimistic_estimate, candidate_description))
+                    # compute refinements and fill the queue
+                    if optimistic_estimate >= ps.minimum_required_quality(result, task):
+                        if ps.constraints_hold(task.constraints_monotone, candidate_description, statistics, task.data):
+                            heappush(queue, (-optimistic_estimate, candidate_description))
 
         result.sort(key=lambda x: x[0], reverse=True)
         return ps.SubgroupDiscoveryResult(result, task)
@@ -218,7 +231,7 @@ class GeneralisingBFS:
             sg = candidate_description
             statistics = task.qf.calculate_statistics(sg, task.data)
             quality = task.qf.evaluate(sg, statistics)
-            ps.add_if_required(result, sg, quality, task)
+            ps.add_if_required(result, sg, quality, task, statistics=statistics)
 
 
             qual = ps.minimum_required_quality(result, task)
@@ -273,25 +286,26 @@ class BeamSearch:
         task.qf.calculate_constant_statistics(task)
 
         # init
-        beam = [(0, ps.Conjunction([]))]
+        beam = [(0, ps.Conjunction([]), task.qf.calculate_statistics(slice(None), task.data))]
         last_beam = None
 
         depth = 0
         while beam != last_beam and depth < task.depth:
             last_beam = beam.copy()
-            for (_, last_sg) in last_beam:
+            for (_, last_sg, _) in last_beam:
                 if not getattr(last_sg, 'visited', False):
                     setattr(last_sg, 'visited', True)
                     for sel in task.search_space:
                         # create a clone
-                        new_selectors = list(last_sg._selectors)
+                        new_selectors = list(last_sg.selectors)
                         if sel not in new_selectors:
                             new_selectors.append(sel)
                             sg = ps.Conjunction(new_selectors)
-                            quality = task.qf.evaluate(sg, task.data)
-                            ps.add_if_required(beam, sg, quality, task, check_for_duplicates=True)
+                            statistics = task.qf.calculate_statistics(sg, task.data)
+                            quality = task.qf.evaluate(sg, statistics)
+                            ps.add_if_required(beam, sg, quality, task, check_for_duplicates=True, statistics=statistics)
             depth += 1
-
+# TODO make sure there is no bug here
         result = beam[:task.result_set_size]
         result.sort(key=lambda x: x[0], reverse=True)
         return ps.SubgroupDiscoveryResult(result, task)
@@ -306,7 +320,7 @@ class SimpleSearch:
         all_selectors = chain.from_iterable(combinations(task.search_space, r) for r in range(1, task.depth + 1))
         if self.show_progress:
             try:
-                from tqdm import tqdm
+                from tqdm import tqdm   # pylint: disable=import-outside-toplevel
                 def binomial(x, y):
                     try:
                         binom = factorial(x) // factorial(y) // factorial(x - y)
@@ -321,7 +335,7 @@ class SimpleSearch:
             sg = ps.Conjunction(selectors)
             statistics = task.qf.calculate_statistics(sg, task.data)
             quality = task.qf.evaluate(sg, statistics)
-            ps.add_if_required(result, sg, quality, task)
+            ps.add_if_required(result, sg, quality, task, statistics=statistics)
         result.sort(key=lambda x: x[0], reverse=True)
         return ps.SubgroupDiscoveryResult(result, task)
 
@@ -339,11 +353,13 @@ class SimpleDFS:
         statistics = task.qf.calculate_statistics(sg, task.data)
         if use_optimistic_estimates and len(prefix) < task.depth and isinstance(task.qf, ps.BoundedInterestingnessMeasure):
             optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
-            if not(optimistic_estimate > ps.minimum_required_quality(result, task)):
+            if not optimistic_estimate > ps.minimum_required_quality(result, task):
                 return result
-        quality = task.qf.evaluate(sg, statistics)
-        ps.add_if_required(result, sg, quality, task)
 
+        quality = task.qf.evaluate(sg, statistics)
+        ps.add_if_required(result, sg, quality, task, statistics=statistics)
+        if not ps.constraints_hold(task.constraints_monotone, sg, statistics=statistics, data=task.data):
+            return
         if len(prefix) < task.depth:
             new_modification_set = copy.copy(modification_set)
             for sel in modification_set:
@@ -364,7 +380,7 @@ class DFS:
         self.target_bitset = None
         self.apply_representation = apply_representation
         self.operator = None
-        self.params_tpl = namedtuple('StandardQF_parameters', ('size', 'positives_count'))
+        self.params_tpl = namedtuple('StandardQF_parameters', ('size_sg', 'positives_count'))
 
     def execute(self, task):
         self.operator = ps.StaticSpecializationOperator(task.search_space)
@@ -373,30 +389,32 @@ class DFS:
         with self.apply_representation(task.data, task.search_space) as representation:
             self.search_internal(task, result, representation.Conjunction([]))
         result.sort(key=lambda x: x[0], reverse=True)
-        result = [(quality, sgd) for quality, sgd in result]
         return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, result, sg):
         statistics = task.qf.calculate_statistics(sg)
+        if not constraints_hold(task.constraints_monotone, sg, statistics, task.data):
+            return
         optimistic_estimate = task.qf.optimistic_estimate(sg, statistics)
-        if not(optimistic_estimate > ps.minimum_required_quality(result, task)):
+        if not optimistic_estimate > ps.minimum_required_quality(result, task):
             return
         quality = task.qf.evaluate(sg, statistics)
-        ps.add_if_required(result, sg, quality, task)
+        ps.add_if_required(result, sg, quality, task, statistics=statistics)
 
-        if sg.depth < task.depth and statistics.size > 0:
+        if sg.depth < task.depth:
             for new_sg in self.operator.refinements(sg):
                 self.search_internal(task, result, new_sg)
 
 
 class DFSNumeric():
-    tpl = namedtuple('size_mean_parameters', ('size', 'mean'))
+    tpl = namedtuple('size_mean_parameters', ('size_sg', 'mean'))
     def __init__(self):
         self.pop_size = 0
         self.f = None
         self.target_values = None
         self.bitsets = {}
         self.num_calls = 0
+        self.evaluate = None
 
     def execute(self, task):
         if not isinstance(task.qf, ps.StandardQFNumeric):

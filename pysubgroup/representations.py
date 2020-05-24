@@ -48,7 +48,7 @@ class BitSet_Conjunction(ps.Conjunction):
         return np.all([sel.representation for sel in self._selectors], axis=0)
 
     @property
-    def size(self):
+    def size_sg(self):
         return np.count_nonzero(self.representation)
 
     def append_and(self, to_append):
@@ -74,7 +74,7 @@ class BitSet_Disjunction(ps.Disjunction):
         return np.any([sel.representation for sel in self._selectors], axis=0)
 
     @property
-    def size(self):
+    def size_sg(self):
         return np.count_nonzero(self.representation)
 
     def append_or(self, to_append):
@@ -94,9 +94,11 @@ class BitSetRepresentation(RepresentationBase):
     def __init__(self, df, selectors_to_patch):
         self.df = df
         super().__init__(BitSet_Conjunction, selectors_to_patch)
-    
+
     def patch_selector(self, sel):
         sel.representation = sel.covers(self.df)
+        sel.size_sg = np.count_nonzero(sel.representation)
+
     def patch_classes(self):
         BitSet_Conjunction.n_instances = len(self.df)
         super().patch_classes()
@@ -118,7 +120,7 @@ class Set_Conjunction(ps.Conjunction):
         return set.intersection(*[sel.representation for sel in self._selectors])
 
     @property
-    def size(self):
+    def size_sg(self):
         return len(self.representation)
 
     #def __copy__(self):
@@ -144,6 +146,7 @@ class SetRepresentation(RepresentationBase):
 
     def patch_selector(self, sel):
         sel.representation = set(*np.nonzero(sel.covers(self.df)))
+        sel.size_sg = len(sel.representation)
 
     def patch_classes(self):
         Set_Conjunction.all_set = set(self.df.index)
@@ -167,7 +170,7 @@ class NumpySet_Conjunction(ps.Conjunction):
         return start
 
     @property
-    def size(self):
+    def size_sg(self):
         return len(self.representation)
 
     #def __copy__(self):
@@ -193,6 +196,7 @@ class NumpySetRepresentation(RepresentationBase):
 
     def patch_selector(self, sel):
         sel.representation = np.nonzero(sel.covers(self.df))[0]
+        sel.size_sg = len(sel.representation)
 
     def patch_classes(self):
         NumpySet_Conjunction.all_set = np.arange(len(self.df))

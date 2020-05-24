@@ -16,6 +16,23 @@ import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_credit_data
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
+class TestStandardQFNumeric(unittest.TestCase):
+    def test_constructor(self):
+        ps.StandardQFNumeric(0)
+        ps.StandardQFNumeric(1.0)
+        ps.StandardQFNumeric(0, invert=True)
+        ps.StandardQFNumeric(0, invert=False)
+
+        with self.assertRaises(ValueError):
+            ps.StandardQFNumeric('test')
+
+        ps.StandardQFNumeric(0, estimator='sum')
+        ps.StandardQFNumeric(0, estimator='average')
+        ps.StandardQFNumeric(0, estimator='order')
+
+        with self.assertRaises(ValueError):
+            ps.StandardQFNumeric(0, estimator='bla')
+
 
 class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
     def setUp(self):
@@ -71,12 +88,25 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
     def test_DFS_sum(self):
         self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'sum'))
         self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS sum", self.result, self.qualities, self.task)
-    
+
+    def test_BeamSearch_sum(self):
+        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'sum'))
+        self.runAlgorithm(ps.BeamSearch(), "BeamSearch sum", self.result, self.qualities, self.task)
+
+    def test_BeamSearch_average(self):
+        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'average'))
+        self.runAlgorithm(ps.BeamSearch(), "BeamSearch average", self.result, self.qualities, self.task)
+
+    def test_BeamSearch_order(self):
+        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'order'))
+        self.runAlgorithm(ps.BeamSearch(), "BeamSearch order", self.result, self.qualities, self.task)
+
     def test_Apriori_no_numba(self):
         self.runAlgorithm(ps.Apriori(use_numba=False), "Apriori use_numba=False", self.result, self.qualities, self.task)
 
     def test_Apriori_with_numba(self):
         self.runAlgorithm(ps.Apriori(use_numba=True), "Apriori use_numba=True", self.result, self.qualities, self.task)
+
     def test_DFSNumeric(self):
         algo = ps.DFSNumeric()
         self.runAlgorithm(algo, "DFS_numeric", self.result, self.qualities, self.task)

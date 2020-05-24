@@ -31,7 +31,7 @@ class TestCountQF(TestAlgorithmsBase, unittest.TestCase):
 
     def setUp(self):
         NS_cabin = ps.EqualitySelector("Cabin", np.nan)
-        NS_embarked=ps.EqualitySelector("Embarked", 'S')
+        NS_embarked = ps.EqualitySelector("Embarked", 'S')
         NS_male = ps.EqualitySelector("Sex", 'male')
         NS_female = ps.EqualitySelector("Sex", 'female')
         #NS_other_parties = ps.EqualitySelector("other_parties", b"none")
@@ -47,17 +47,15 @@ class TestCountQF(TestAlgorithmsBase, unittest.TestCase):
                        ps.Conjunction([NS_cabin, NS_embarked, NS_male]),
                        ps.Conjunction([NS_female]),
                        ps.Conjunction([NS_cabin, NS_female]),
-                      ps.Conjunction([NS_embarked, NS_female]),
-   #                    ps.Conjunction([NS_checking, NS_job]),
-                       ]
+                       ps.Conjunction([NS_embarked, NS_female])]
 
-        self.qualities = [156,125,110,100,89,82,73,60,56,43,37]
+        self.qualities = [156, 125, 110, 100, 89, 82, 73, 60, 56, 43, 37]
 
         data = get_titanic_data()
         self.qualities2 = [np.count_nonzero(conj.covers(data)) for conj in self.result]
-        self.assertEqual(self.qualities,  self.qualities2)
+        self.assertEqual(self.qualities, self.qualities2)
         searchSpace = ps.create_nominal_selectors(data)
-        self.task = ps.SubgroupDiscoveryTask(data, ps.FITarget, searchSpace, result_set_size=10, depth=5, qf=ps.CountQF())
+        self.task = ps.SubgroupDiscoveryTask(data, ps.FITarget(), searchSpace, result_set_size=10, depth=5, qf=ps.CountQF())
 
 
 
@@ -77,8 +75,8 @@ class TestAreaQF(TestAlgorithmsBase, unittest.TestCase):
    #46:  Cabin.isnull() AND Embarked=='C'
     def setUp(self):
         NS_cabin = ps.EqualitySelector("Cabin", np.nan)
-        NS_embarked=ps.EqualitySelector("Embarked", 'S')
-        NS_embarked2=ps.EqualitySelector("Embarked", 'C')
+        NS_embarked = ps.EqualitySelector("Embarked", 'S')
+        NS_embarked2 = ps.EqualitySelector("Embarked", 'C')
         NS_male = ps.EqualitySelector("Sex", 'male')
         NS_female = ps.EqualitySelector("Sex", 'female')
         #NS_other_parties = ps.EqualitySelector("other_parties", b"none")
@@ -100,9 +98,9 @@ class TestAreaQF(TestAlgorithmsBase, unittest.TestCase):
 
         data = get_titanic_data()
         self.qualities2 = [np.count_nonzero(conj.covers(data))*conj.depth for conj in self.result]
-        self.assertEqual(self.qualities,  self.qualities2)
+        self.assertEqual(self.qualities, self.qualities2)
         searchSpace = ps.create_nominal_selectors(data)
-        self.task = ps.SubgroupDiscoveryTask(data, ps.FITarget, searchSpace, result_set_size=10, depth=2, qf=ps.AreaQF())
+        self.task = ps.SubgroupDiscoveryTask(data, ps.FITarget(), searchSpace, result_set_size=10, depth=2, qf=ps.AreaQF())
 
  #  156: True
  #  125: Cabin.isnull()
@@ -123,5 +121,3 @@ if __name__ == '__main__':
     #suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3)
     complete_suite = unittest.TestSuite([suite1, suite2])
     unittest.TextTestRunner(verbosity=2).run(complete_suite)
-
-

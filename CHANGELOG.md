@@ -1,5 +1,28 @@
 # Changelog
-## [0.6.2.1] - 2020-04-24
+
+## [0.7.1] - 2020-05-20
+
+### Added
+ - you can now additionally provide **constraints** to SubgroupDiscovery
+   - **MinSupportConstraint** added
+ - you can now run the slow tests py passing `--runslow` to pytest
+ - `Conjunction`, `Disjunction` and Selectors now all have the public property `.selectors` that provides all basic selectors involved
+
+ 
+### Removed
+ - support for weights has been removed, it will probably be added in the future as seperate targets and Quality functions.
+
+### Changed
+ - `create_numeric_selector_for_attribute` has been renamed to `create_numeric_selectors_for_attribute` (inserting an `s`) This brings it in lign with the corresponding name shema for nominal.
+
+### Changed internally
+ - statistics are now also store along with score and description
+ - The function `ps.get_cover_array_and_size` was added, it allows for a consistent way to acces a cover array (a.k.a. sth to be thrown into a dataframe or a numpy array)
+ - algorithm tests now also call the `to_subgroups` and `to_dataframe` methods to check they work with that algorithm
+ - the order of `calculate_statistics` and `get_base_statistics` are now in lign with that of quality functions (first subgroup then data)
+ - the size of a subgroup specified in a statistics object is now called `size_sg` uniformly. This avoids confusion with the `size` attribute of numpy arrays etc.
+
+## [0.7.0] - 2020-04-24
 
 This update prepares pysubgroup for a better future. To do so we had to break backwards compatibility. Many of the classes that you know and love have been renamed so as to make their purpose more clear.
 ### Changed:
