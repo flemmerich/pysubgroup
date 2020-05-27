@@ -12,6 +12,11 @@ import pysubgroup as ps
 
 @total_ordering
 class NumericTarget:
+
+    statistic_types = (
+        'size_sg', 'size_dataset', 'mean_sg', 'mean_dataset', 'std_sg', 'std_dataset', 'median_sg', 'median_dataset',
+        'max_sg', 'max_dataset', 'min_sg', 'min_dataset', 'mean_lift', 'median_lift')
+
     def __init__(self, target_variable):
         self.target_variable = target_variable
 
@@ -37,11 +42,18 @@ class NumericTarget:
         mean_dataset = np.mean(all_target_values)
         return (instances_dataset, mean_dataset, instances_subgroup, mean_sg)
 
-    def calculate_statistics(self, subgroup, data):
+    def calculate_statistics(self, subgroup, data, cached_statistics=None):
+        if cached_statistics is None or not isinstance(cached_statistics, dict):
+            statistics = dict()
+        elif all(k in cached_statistics for k in NumericTarget.statistic_types):
+            return cached_statistics
+        else:
+            statistics = cached_statistics
+
         cover_arr, _ = ps.get_cover_array_and_size(subgroup, len(data), data)
         all_target_values = data[self.target_variable].to_numpy()
         sg_target_values = all_target_values[cover_arr]
-        statistics = {}
+
         statistics['size_sg'] = len(sg_target_values)
         statistics['size_dataset'] = len(data)
         statistics['mean_sg'] = np.mean(sg_target_values)
@@ -83,23 +95,21 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
         else:
             raise ValueError('estimator is not one of the following: ' + str(['sum', 'average', 'order']))
 
-    def calculate_constant_statistics(self, task):
-        if not self.is_applicable(task):
-            raise BaseException("Quality measure cannot be used for this target class")
-        data = self.estimator.get_data(task)
-        self.all_target_values = data[task.target.target_variable].to_numpy()
+    def calculate_constant_statistics(self, data, target):
+        data = self.estimator.get_data(data, target)
+        self.all_target_values = data[target.target_variable].to_numpy()
         target_mean = np.mean(self.all_target_values)
         data_size = len(data)
         self.dataset_statistics = StandardQFNumeric.tpl(data_size, target_mean, None)
-        self.estimator.calculate_constant_statistics(task)
+        self.estimator.calculate_constant_statistics(data, target)
         self.has_constant_statistics = True
 
-    def evaluate(self, subgroup, statistics=None):
-        statistics = self.ensure_statistics(subgroup, statistics)
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
         dataset = self.dataset_statistics
         return StandardQFNumeric.standard_qf_numeric(self.a, dataset.size_sg, dataset.mean, statistics.size_sg, statistics.mean)
 
-    def calculate_statistics(self, subgroup, data=None):
+    def calculate_statistics(self, subgroup, target, data, statistics=None):
         cover_arr, sg_size = ps.get_cover_array_and_size(subgroup, len(self.all_target_values), data)
         sg_mean = np.array([0])
         sg_target_values = 0
@@ -112,15 +122,10 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
         return StandardQFNumeric.tpl(sg_size, sg_mean, estimate)
 
 
-    def optimistic_estimate(self, subgroup, statistics=None):
-        statistics = self.ensure_statistics(subgroup, statistics)
+    def optimistic_estimate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
         return statistics.estimate
 
-    def is_applicable(self, subgroup):
-        return isinstance(subgroup.target, NumericTarget)
-
-    def supports_weights(self):
-        return False
 
     class Summation_Estimator:
         def __init__(self, qf):
@@ -128,21 +133,19 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             self.indices_greater_mean = None
             self.target_values_greater_mean = None
 
-        def get_data(self, task):
-            return task.data
+        def get_data(self, data, target):
+            return data
 
-        def calculate_constant_statistics(self, task): # pylint: disable=unused-argument
+        def calculate_constant_statistics(self, data, target):  # pylint: disable=unused-argument
             self.indices_greater_mean = self.qf.all_target_values > self.qf.dataset_statistics.mean
             self.target_values_greater_mean = self.qf.all_target_values#[self.indices_greater_mean]
 
-        def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, _): # pylint: disable=unused-argument
+        def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, _):  # pylint: disable=unused-argument
             larger_than_mean = self.target_values_greater_mean[cover_arr][self.indices_greater_mean[cover_arr]]
             size_greater_mean = len(larger_than_mean)
             sum_greater_mean = np.sum(larger_than_mean)
 
             return sum_greater_mean - size_greater_mean * self.qf.dataset_statistics.mean
-
-
 
     class Average_Estimator:
         def __init__(self, qf):
@@ -150,10 +153,10 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             self.indices_greater_mean = None
             self.target_values_greater_mean = None
 
-        def get_data(self, task):
-            return task.data
+        def get_data(self, data, target):
+            return data
 
-        def calculate_constant_statistics(self, task): # pylint: disable=unused-argument
+        def calculate_constant_statistics(self, data, target): # pylint: disable=unused-argument
             self.indices_greater_mean = self.qf.all_target_values > self.qf.dataset_statistics.mean
             self.target_values_greater_mean = self.qf.all_target_values
 
@@ -174,11 +177,11 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             self.use_numba = True
             self.numba_in_place = False
 
-        def get_data(self, task):
-            task.data = task.data.sort_values(task.target.get_attributes(), ascending=False)
-            return task.data
+        def get_data(self, data, target):
+            data.sort_values(target.get_attributes(), ascending=False, inplace=True)
+            return data
 
-        def calculate_constant_statistics(self, _):
+        def calculate_constant_statistics(self, data, target):
             if self.use_numba and not self.numba_in_place:
                 try:
                     from numba import njit # pylint: disable=unused-import, import-outside-toplevel
@@ -212,7 +215,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             sizes = np.arange(1, len(target_values_cs) + 1)
             mean_values = target_values_cs / sizes
             stats = StandardQFNumeric.tpl(sizes, mean_values, mean_dataset)
-            qualities = self.qf.evaluate(None, stats)
+            qualities = self.qf.evaluate(None, None, None, stats)
             optimistic_estimate = np.max(qualities)
             return optimistic_estimate
 

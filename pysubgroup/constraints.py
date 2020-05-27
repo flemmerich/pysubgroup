@@ -8,7 +8,7 @@ class MinSupportConstraint:
     def is_monotone(self):
         return True
 
-    def holds(self, subgroup, statistics=None, data=None):
+    def is_satisfied(self, subgroup, statistics=None, data=None):
         if hasattr(statistics, 'size'):
             return statistics.size >= self.min_support
         elif hasattr(statistics, 'size_sg'):

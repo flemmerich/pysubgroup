@@ -10,7 +10,9 @@ import pysubgroup as ps
 
 
 @total_ordering
-class FITarget():
+class FITarget:
+    statistic_types = ('size_sg', 'size_dataset')
+
     def __repr__(self):
         return "T: Frequent Itemsets"
 
@@ -27,10 +29,16 @@ class FITarget():
         _, size = ps.get_cover_array_and_size(subgroup, len(data), data)
         return size
 
-    def calculate_statistics(self, subgroup, data):
-        _, size = ps.get_cover_array_and_size(subgroup, len(data), data)
+    def calculate_statistics(self, subgroup_description, data, cached_statistics=None):
+        if cached_statistics is None or not isinstance(cached_statistics, dict):
+            statistics = dict()
+        elif all(k in cached_statistics for k in FITarget.statistic_types):
+            return cached_statistics
+        else:
+            statistics = cached_statistics
 
-        statistics = {}
+        _, size = ps.get_cover_array_and_size(subgroup_description, len(data), data)
+
         statistics['size_sg'] = size
         statistics['size_dataset'] = len(data)
         return statistics
@@ -44,18 +52,12 @@ class SimpleCountQF(ps.AbstractInterestingnessMeasure):
         self.has_constant_statistics = True
         self.size_dataset = None
 
-    def calculate_constant_statistics(self, task):
-        self.size_dataset = len(task.data)
+    def calculate_constant_statistics(self, data, target):
+        self.size_dataset = len(data)
 
-    def calculate_statistics(self, subgroup, data=None):
-        _, size = ps.get_cover_array_and_size(subgroup, self.size_dataset, data)
+    def calculate_statistics(self, subgroup_description, target, data, statistics=None):
+        _, size = ps.get_cover_array_and_size(subgroup_description, self.size_dataset, data)
         return SimpleCountQF.tpl(size)
-
-    def is_applicable(self, subgroup):
-        return isinstance(subgroup.target, FITarget)
-
-    def supports_weights(self):
-        return False
 
     def gp_get_stats(self, _):
         return {"subgroup_size" : 1}
@@ -78,24 +80,17 @@ class SimpleCountQF(ps.AbstractInterestingnessMeasure):
 
 
 class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
-    def evaluate(self, subgroup, statistics=None):
-        statistics = self.ensure_statistics(subgroup, statistics)
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
         return statistics.subgroup_size
 
-    def optimistic_estimate(self, subgroup, statistics=None):
-        statistics = self.ensure_statistics(subgroup, statistics)
+    def optimistic_estimate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
         return statistics.subgroup_size
-
-    def supports_weights(self):
-        return False
-
 
 
 
 class AreaQF(SimpleCountQF):
-    def evaluate(self, subgroup, statistics=None):
-        statistics = self.ensure_statistics(subgroup, statistics)
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
         return statistics.subgroup_size * subgroup.depth
-
-    def supports_weights(self):
-        return False

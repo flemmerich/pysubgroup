@@ -130,3 +130,24 @@ def similarity_dendrogram(result, data):
     linkage_matrix = linkage(dists, "single")
     dendrogram(linkage_matrix, labels=dist_df.index)
     return fig
+
+def supportSetVisualization(result, in_order=True, drop_empty=True):
+    df = result.task.data
+    n_items = len(result.task.data)
+    n_SGDs = len(result.results)
+    covs = np.zeros((n_items, n_SGDs), dtype=bool)
+    for i, (_, r, _) in enumerate(result.to_subgroups):
+        covs[:, i] = r.covers(df)
+
+    img_arr = covs.copy()
+
+    sort_inds_x = np.argsort(np.sum(covs, axis=1))[::-1]
+    img_arr = img_arr[sort_inds_x, :]
+    if not in_order:
+        sort_inds_y = np.argsort(np.sum(covs, axis=0))
+        img_arr = img_arr[:, sort_inds_y]
+    if drop_empty:
+        keep_entities = np.sum(img_arr, axis=1) > 0
+        print("Discarding {} entities that are not covered".format(n_items - np.count_nonzero(keep_entities)))
+        img_arr = img_arr[keep_entities, :]
+    return img_arr.T

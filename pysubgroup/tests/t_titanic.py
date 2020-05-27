@@ -1,6 +1,8 @@
 import pysubgroup as ps
+from pysubgroup.tests.DataSets import get_credit_data
+
 import pandas as pd
-data = pd.read_table("../data/titanic.csv")
+data = ps.tests.DataSets.get_titanic_data()
 target = ps.BinaryTarget('Survived', True)
 
 searchspace = ps.create_selectors(data, ignore=['Survived'])
@@ -13,5 +15,4 @@ task = ps.SubgroupDiscoveryTask(
     qf=ps.ChiSquaredQF())
 result = ps.BeamSearch().execute(task)
 
-for (q, sg) in result:
-    print(str(q) + ":\t" + str(sg.subgroup_description))
+print(result.to_dataframe())
