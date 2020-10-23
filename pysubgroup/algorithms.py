@@ -18,7 +18,7 @@ class SubgroupDiscoveryTask:
     Capsulates all parameters required to perform standard subgroup discovery
     '''
 
-    def __init__(self, data, target, search_space, qf, result_set_size=10, depth=3, min_quality=0, constraints=None):
+    def __init__(self, data, target, search_space, qf, result_set_size=10, depth=3, min_quality=0, constraints=[]):
         self.data = data
         self.target = target
         self.search_space = search_space
@@ -26,8 +26,6 @@ class SubgroupDiscoveryTask:
         self.result_set_size = result_set_size
         self.depth = depth
         self.min_quality = min_quality
-        if constraints is None:
-            constraints = []
         self.constraints = constraints
         self.constraints_monotone = [constr for constr in constraints if constr.is_monotone]
         self.constraints_other = [constr for constr in constraints if not constr.is_monotone]
