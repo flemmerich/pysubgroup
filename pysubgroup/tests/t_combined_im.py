@@ -1,8 +1,10 @@
 import pandas as pd
 import pysubgroup as ps
+from pysubgroup.tests.DataSets import get_titanic_data
 
 
-data = pd.read_table("../data/titanic.csv")
+
+data = get_titanic_data()
 target = ps.BinaryTarget('Survived', 0)
 search_space = ps.create_selectors(data, ignore=['Survived'])
 task = ps.SubgroupDiscoveryTask(data, target, search_space,
