@@ -8,7 +8,7 @@ from collections import namedtuple
 from itertools import combinations
 import numpy as np
 import pysubgroup as ps
-
+import pandas as pd
 
 
 class AbstractInterestingnessMeasure(ABC):
@@ -20,7 +20,9 @@ class AbstractInterestingnessMeasure(ABC):
     def is_applicable(self, subgroup):
         pass
     # pylint: disable=no-member
-    def ensure_statistics(self, subgroup, statistics_or_data):
+    def ensure_statistics(self, subgroup=None, statistics_or_data=None, statistics=None):
+        if not statistics is None and not isinstance(statistics, pd.DataFrame):
+            return statistics
         if not self.has_constant_statistics:
             self.calculate_constant_statistics(subgroup.data)
         if any(not hasattr(statistics_or_data, attr) for attr in self.required_stat_attrs):

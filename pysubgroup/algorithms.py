@@ -333,8 +333,8 @@ class SimpleSearch:
                 pass
         for selectors in all_selectors:
             sg = ps.Conjunction(selectors)
-            statistics = task.qf.calculate_statistics(sg, task.data)
-            quality = task.qf.evaluate(sg, statistics)
+            statistics = task.qf.calculate_statistics(sg, data=task.data)
+            quality = task.qf.evaluate(sg, statistics=statistics)
             ps.add_if_required(result, sg, quality, task, statistics=statistics)
         result.sort(key=lambda x: x[0], reverse=True)
         return ps.SubgroupDiscoveryResult(result, task)
