@@ -221,6 +221,309 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
 
 
 
+class StandardQFNumericMedian(ps.BoundedInterestingnessMeasure):
+    tpl = namedtuple('StandardQFNumericMedian_parameters', ('size_sg', 'median', 'estimate'))
+    @staticmethod
+    def standard_qf_numeric(a, _, median_dataset, instances_subgroup, median_sg):
+        return instances_subgroup ** a * (median_sg - median_dataset)
+
+    def __init__(self, a, invert=False, estimator='sum'):
+        if not isinstance(a, numbers.Number):
+            raise ValueError(f'a is not a number. Received a={a}')
+        self.a = a
+        self.invert = invert
+        self.required_stat_attrs = ('size_sg', 'median')
+        self.dataset_statistics = None
+        self.all_target_values = None
+        self.has_constant_statistics = False
+        if estimator == 'sum':
+            self.estimator = StandardQFNumericMedian.Summation_Estimator(self)
+        elif estimator == 'average':
+            self.estimator = StandardQFNumericMedian.Average_Estimator(self)
+        elif estimator == 'order':
+            self.estimator = StandardQFNumericMedian.Ordering_Estimator(self)
+        else:
+            raise ValueError('estimator is not one of the following: ' + str(['sum', 'average', 'order']))
+
+    def calculate_constant_statistics(self, data, target):
+        data = self.estimator.get_data(data, target)
+        self.all_target_values = data[target.target_variable].to_numpy()
+        target_median = np.median(self.all_target_values)
+        data_size = len(data)
+        self.dataset_statistics = StandardQFNumericMedian.tpl(data_size, target_median, None)
+        self.estimator.calculate_constant_statistics(data, target)
+        self.has_constant_statistics = True
+
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
+        dataset = self.dataset_statistics
+        return StandardQFNumericMedian.standard_qf_numeric(self.a, dataset.size_sg, dataset.median, statistics.size_sg, statistics.median)
+
+    def calculate_statistics(self, subgroup, target, data, statistics=None):
+        cover_arr, sg_size = ps.get_cover_array_and_size(subgroup, len(self.all_target_values), data)
+        sg_median = np.array([0])
+        sg_target_values = 0
+        if sg_size > 0:
+            sg_target_values = self.all_target_values[cover_arr]
+            sg_median = np.median(sg_target_values)
+            estimate = self.estimator.get_estimate(subgroup, sg_size, sg_median, cover_arr, sg_target_values)
+        else:
+            estimate = float('-inf')
+        return StandardQFNumericMedian.tpl(sg_size, sg_median, estimate)
+
+
+    def optimistic_estimate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
+        return statistics.estimate
+
+
+    class Summation_Estimator:
+        def __init__(self, qf):
+            self.qf = qf
+            self.indices_greater_median = None
+            self.target_values_greater_median = None
+
+        def get_data(self, data, target):
+            return data
+
+        def calculate_constant_statistics(self, data, target):  # pylint: disable=unused-argument
+            self.indices_greater_median = self.qf.all_target_values > self.qf.dataset_statistics.median
+            self.target_values_greater_median = self.qf.all_target_values#[self.indices_greater_median]
+
+        def get_estimate(self, subgroup, sg_size, sg_median, cover_arr, _):  # pylint: disable=unused-argument
+            larger_than_median = self.target_values_greater_median[cover_arr][self.indices_greater_median[cover_arr]]
+            size_greater_median = len(larger_than_median)
+            sum_greater_median = np.sum(larger_than_median)
+
+            return sum_greater_median - size_greater_median * self.qf.dataset_statistics.median
+
+    class Average_Estimator:
+        def __init__(self, qf):
+            self.qf = qf
+            self.indices_greater_mean = None
+            self.target_values_greater_mean = None
+
+        def get_data(self, data, target):
+            return data
+
+        def calculate_constant_statistics(self, data, target): # pylint: disable=unused-argument
+            self.indices_greater_mean = self.qf.all_target_values > self.qf.dataset_statistics.mean
+            self.target_values_greater_mean = self.qf.all_target_values
+
+        def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, _): # pylint: disable=unused-argument
+            larger_than_mean = self.target_values_greater_mean[cover_arr][self.indices_greater_mean[cover_arr]]
+            size_greater_mean = len(larger_than_mean)
+            max_greater_mean = np.sum(larger_than_mean)
+
+            return size_greater_mean ** self.qf.a * (max_greater_mean - self.qf.dataset_statistics.mean)
+
+
+
+    class Ordering_Estimator:
+        def __init__(self, qf):
+            self.qf = qf
+            self.indices_greater_mean = None
+            self._get_estimate = self.get_estimate_numpy
+            self.use_numba = True
+            self.numba_in_place = False
+
+        def get_data(self, data, target):
+            data.sort_values(target.get_attributes(), ascending=False, inplace=True)
+            return data
+
+        def calculate_constant_statistics(self, data, target):
+            if self.use_numba and not self.numba_in_place:
+                try:
+                    from numba import njit # pylint: disable=unused-import, import-outside-toplevel
+                    #print('StandardQf_Numeric: Using numba for speedup')
+                except ImportError:
+                    return
+                @njit
+                def estimate_numba(values_sg, a, mean_dataset):
+                    n = 1
+                    sum_values = 0
+                    max_value = -10 ** 10
+                    for val in values_sg:
+                        sum_values += val
+                        mean_sg = sum_values / n
+                        quality = n ** a * (mean_sg - mean_dataset)
+                        if quality > max_value:
+                            max_value = quality
+                        n += 1
+                    return max_value
+                self._get_estimate = estimate_numba
+                self.numba_in_place = True
+
+        def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, target_values_sg):  # pylint: disable=unused-argument
+            if self.numba_in_place:
+                return self._get_estimate(target_values_sg, self.qf.a, self.qf.dataset_statistics.mean)
+            else:
+                return self._get_estimate(target_values_sg, self.qf.a, self.qf.dataset_statistics.mean)
+
+        def get_estimate_numpy(self, values_sg, _, mean_dataset):
+            target_values_cs = np.cumsum(values_sg)
+            sizes = np.arange(1, len(target_values_cs) + 1)
+            mean_values = target_values_cs / sizes
+            stats = StandardQFNumericMedian.tpl(sizes, mean_values, mean_dataset)
+            qualities = self.qf.evaluate(None, None, None, stats)
+            optimistic_estimate = np.max(qualities)
+            return optimistic_estimate
+
+
+class StandardQFNumericTscore(ps.BoundedInterestingnessMeasure):
+    tpl = namedtuple('StandardQFNumericTscore_parameters', ('size_sg', 'mean', 'std' , 'estimate'))
+    @staticmethod
+    def standard_qf_numeric(a, _, mean_dataset, instances_subgroup, mean_sg, std_sg):
+        if std_sg == 0 :
+            return 0
+        else :
+            return (instances_subgroup ** 0.5 * (mean_sg - mean_dataset)) / std_sg 
+
+    def __init__(self, a, invert=False, estimator='sum'):
+        if not isinstance(a, numbers.Number):
+            raise ValueError(f'a is not a number. Received a={a}')
+        self.a = a
+        self.invert = invert
+        self.required_stat_attrs = ('size_sg', 'mean', 'std')
+        self.dataset_statistics = None
+        self.all_target_values = None
+        self.has_constant_statistics = False
+        if estimator == 'sum':
+            self.estimator = StandardQFNumericTscore.Summation_Estimator(self)
+        elif estimator == 'average':
+            self.estimator = StandardQFNumericTscore.Average_Estimator(self)
+        elif estimator == 'order':
+            self.estimator = StandardQFNumericTscore.Ordering_Estimator(self)
+        else:
+            raise ValueError('estimator is not one of the following: ' + str(['sum', 'average', 'order']))
+
+    def calculate_constant_statistics(self, data, target):
+        data = self.estimator.get_data(data, target)
+        self.all_target_values = data[target.target_variable].to_numpy()
+        target_mean = np.mean(self.all_target_values)
+        target_std = np.std(self.all_target_values)
+        data_size = len(data)
+        self.dataset_statistics = StandardQFNumericTscore.tpl(data_size, target_mean, target_std, None)
+        self.estimator.calculate_constant_statistics(data, target)
+        self.has_constant_statistics = True
+
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
+        dataset = self.dataset_statistics
+        return StandardQFNumericTscore.standard_qf_numeric(self.a, dataset.size_sg, dataset.mean, statistics.size_sg, statistics.mean, statistics.std)
+
+    def calculate_statistics(self, subgroup, target, data, statistics=None):
+        cover_arr, sg_size = ps.get_cover_array_and_size(subgroup, len(self.all_target_values), data)
+        sg_mean = np.array([0])
+        sg_std = np.array([0])
+        sg_target_values = 0
+        if sg_size > 0:
+            sg_target_values = self.all_target_values[cover_arr]
+            sg_mean = np.mean(sg_target_values)
+            sg_std = np.std(sg_target_values)
+            estimate = self.estimator.get_estimate(subgroup, sg_size, sg_mean, cover_arr, sg_target_values)
+        else:
+            estimate = float('-inf')
+        return StandardQFNumericTscore.tpl(sg_size, sg_mean, sg_std, estimate)
+
+
+    def optimistic_estimate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
+        return statistics.estimate
+
+
+    class Summation_Estimator:
+        def __init__(self, qf):
+            self.qf = qf
+            self.indices_greater_mean = None
+            self.target_values_greater_mean = None
+
+        def get_data(self, data, target):
+            return data
+
+        def calculate_constant_statistics(self, data, target):  # pylint: disable=unused-argument
+            self.indices_greater_mean = self.qf.all_target_values > self.qf.dataset_statistics.mean
+            self.target_values_greater_mean = self.qf.all_target_values#[self.indices_greater_mean]
+
+        def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, _):  # pylint: disable=unused-argument
+            larger_than_mean = self.target_values_greater_mean[cover_arr][self.indices_greater_mean[cover_arr]]
+            size_greater_mean = len(larger_than_mean)
+            sum_greater_mean = np.sum(larger_than_mean)
+
+            return sum_greater_mean - size_greater_mean * self.qf.dataset_statistics.mean
+
+    class Average_Estimator:
+        def __init__(self, qf):
+            self.qf = qf
+            self.indices_greater_mean = None
+            self.target_values_greater_mean = None
+
+        def get_data(self, data, target):
+            return data
+
+        def calculate_constant_statistics(self, data, target): # pylint: disable=unused-argument
+            self.indices_greater_mean = self.qf.all_target_values > self.qf.dataset_statistics.mean
+            self.target_values_greater_mean = self.qf.all_target_values
+
+        def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, _): # pylint: disable=unused-argument
+            larger_than_mean = self.target_values_greater_mean[cover_arr][self.indices_greater_mean[cover_arr]]
+            size_greater_mean = len(larger_than_mean)
+            max_greater_mean = np.sum(larger_than_mean)
+
+            return size_greater_mean ** self.qf.a * (max_greater_mean - self.qf.dataset_statistics.mean)
+
+
+
+    class Ordering_Estimator:
+        def __init__(self, qf):
+            self.qf = qf
+            self.indices_greater_mean = None
+            self._get_estimate = self.get_estimate_numpy
+            self.use_numba = True
+            self.numba_in_place = False
+
+        def get_data(self, data, target):
+            data.sort_values(target.get_attributes(), ascending=False, inplace=True)
+            return data
+
+        def calculate_constant_statistics(self, data, target):
+            if self.use_numba and not self.numba_in_place:
+                try:
+                    from numba import njit # pylint: disable=unused-import, import-outside-toplevel
+                    #print('StandardQf_Numeric: Using numba for speedup')
+                except ImportError:
+                    return
+                @njit
+                def estimate_numba(values_sg, a, mean_dataset):
+                    n = 1
+                    sum_values = 0
+                    max_value = -10 ** 10
+                    for val in values_sg:
+                        sum_values += val
+                        mean_sg = sum_values / n
+                        quality = n ** a * (mean_sg - mean_dataset)
+                        if quality > max_value:
+                            max_value = quality
+                        n += 1
+                    return max_value
+                self._get_estimate = estimate_numba
+                self.numba_in_place = True
+
+        def get_estimate(self, subgroup, sg_size, sg_mean, cover_arr, target_values_sg):  # pylint: disable=unused-argument
+            if self.numba_in_place:
+                return self._get_estimate(target_values_sg, self.qf.a, self.qf.dataset_statistics.mean)
+            else:
+                return self._get_estimate(target_values_sg, self.qf.a, self.qf.dataset_statistics.mean)
+
+        def get_estimate_numpy(self, values_sg, _, mean_dataset):
+            target_values_cs = np.cumsum(values_sg)
+            sizes = np.arange(1, len(target_values_cs) + 1)
+            mean_values = target_values_cs / sizes
+            stats = StandardQFNumericTscore.tpl(sizes, mean_values, mean_dataset)
+            qualities = self.qf.evaluate(None, None, None, stats)
+            optimistic_estimate = np.max(qualities)
+            return optimistic_estimate
+
 
 # TODO Update to new format
 #class GAStandardQFNumeric(ps.AbstractInterestingnessMeasure):
