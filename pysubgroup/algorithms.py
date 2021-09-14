@@ -18,7 +18,7 @@ class SubgroupDiscoveryTask:
     Capsulates all parameters required to perform standard subgroup discovery
     '''
 
-    def __init__(self, data, target, search_space, qf, result_set_size=10, depth=3, min_quality=0, constraints=None):
+    def __init__(self, data, target, search_space, qf, result_set_size=10, depth=3, min_quality=float("-inf"), constraints=None):
         self.data = data
         self.target = target
         self.search_space = search_space

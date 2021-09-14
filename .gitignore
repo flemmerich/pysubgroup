@@ -21,3 +21,4 @@ test.ipynb
 .project
 .pydevproject
 env/*
+.eggs
