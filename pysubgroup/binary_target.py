@@ -102,6 +102,13 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):  # pylint: disable=a
         cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, len(self.positives), data)
         return SimplePositivesQF.tpl(size_sg, np.count_nonzero(self.positives[cover_arr]))
 
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
+        dataset = self.dataset_statistics
+        return (statistics.positives_count / dataset.positives_count)
+
+
+        
 
 # TODO Make ChiSquared useful for real nominal data not just binary
 # TODO Introduce Enum for direction
