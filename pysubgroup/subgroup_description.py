@@ -15,19 +15,37 @@ import numpy as np
 
 @total_ordering
 class SelectorBase(ABC):
+
+    # selector cache
     __refs__ = weakref.WeakSet()
+
     def __new__(cls, *args, **kwargs):
+        """Ensures that each selector only exists once."""
 
+        # create temporary selector
         tmp = super().__new__(cls)
-
         tmp.set_descriptions(*args, **kwargs)
+
+        # save original arguments
+        # NOTE: this is a fix for pickle; so we can call `__getnewargs_ex__` with the right arguments
+        # TODO: this may have unintended side effects if args, kwargs are large or volatile (I don't think we have that yet though)
+        tmp.__new_args__ = args, kwargs
+
+        # check if selector is already in cache (__refs__)
+        # if so, return cached instance
         if tmp in SelectorBase.__refs__:
             for ref in SelectorBase. __refs__:
                 if ref == tmp:
                     return ref
+        # if not return
         return tmp
 
+    def __getnewargs_ex__(self):
+        return self.__new_args__
+
     def __init__(self):
+        # add selector to cache
+        # TODO: why not do this in `__new__`, then it would be all together in one function?
         SelectorBase.__refs__.add(self)
 
     def __eq__(self, other):
@@ -108,10 +126,13 @@ class EqualitySelector(SelectorBase):
             raise TypeError()
         if attribute_value is None:
             raise TypeError()
+        
+        # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._attribute_name = attribute_name
         self._attribute_value = attribute_value
         self._selector_name = selector_name
         self.set_descriptions(self._attribute_name, self._attribute_value, self._selector_name)
+        
         super().__init__()
 
     @property
@@ -159,8 +180,11 @@ class EqualitySelector(SelectorBase):
 
 class NegatedSelector(SelectorBase):
     def __init__(self, selector):
+        
+        # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._selector = selector
         self.set_descriptions(selector)
+        
         super().__init__()
 
     def covers(self, data_instance):
@@ -188,11 +212,14 @@ class NegatedSelector(SelectorBase):
 # Including the lower bound, excluding the upper_bound
 class IntervalSelector(SelectorBase):
     def __init__(self, attribute_name, lower_bound, upper_bound, selector_name=None):
+        
+        # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._attribute_name = attribute_name
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
         self.selector_name = selector_name
         self.set_descriptions(attribute_name, lower_bound, upper_bound, selector_name)
+        
         super().__init__()
 
     @property
