@@ -7,7 +7,7 @@ setup(
     package_data={'pysubgroup': ['data/credit-g.arff', 'data/titanic.csv']},
     url='http://florian.lemmerich.net/pysubgroup',
     license='',
-    author='Florian Lemmerich, Martin Becker, Felix Stamm',
+    author='Florian Lemmerich, Felix Stamm, Martin Becker',
     author_email='florian@lemmerich.net',
     description='pysubgroup is a Python library for the data analysis task of subgroup discovery.',
     install_requires=[
