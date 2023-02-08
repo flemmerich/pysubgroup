@@ -107,6 +107,29 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):  # pylint: disable=a
         dataset = self.dataset_statistics
         return (statistics.positives_count / dataset.positives_count)
 
+# <<< GpGrowth >>> 
+    def gp_get_stats(self, row_index):
+        return np.array([1, self.positives[row_index]], dtype=int)
+
+    def gp_get_null_vector(self):
+        return np.zeros(2)
+
+    def gp_merge(self, l, r):
+        l += r
+
+    def gp_get_params(self, _cover_arr, v):
+        return SimplePositivesQF.tpl(v[0], v[1])
+
+    def gp_to_str(self, stats):
+         return " ".join(map(str, stats))
+
+    def gp_subgroup_size(self, stats):
+        return stats[0]
+
+    @property
+    def gp_requires_cover_arr(self):
+        return False
+
 
         
 

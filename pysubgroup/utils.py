@@ -32,6 +32,12 @@ def minimum_required_quality(result, task):
     else:
         return result[0][0]
 
+def prepare_subgroup_discovery_result(result, task):
+    result_filtered = [tpl for tpl in result if tpl[0]>task.min_quality]
+    result_filtered.sort(key=lambda x: x[0], reverse=True)
+    result_filtered = result_filtered[:task.result_set_size]
+    return result_filtered
+
 
 # Returns the cutpoints for discretization
 def equal_frequency_discretization(data, attribute_name, nbins=5, weighting_attribute=None):
@@ -218,11 +224,11 @@ class SubgroupDiscoveryResult:
             table.append(row)
         for (q, sg, stats) in self.results:
             stats = self.task.target.calculate_statistics(sg, self.task.data, stats)
-            row = [str(q), str(sg)]
+            row = [q, sg]
             if include_target:
-                row.append(str(self.task.target))
+                row.append(self.task.target)
             for stat in statistics_to_show:
-                row.append(str(stats[stat]))
+                row.append(stats[stat])
             table.append(row)
         return table
 
@@ -231,7 +237,7 @@ class SubgroupDiscoveryResult:
             statistics_to_show = type(self.task.target).statistic_types
         res = self.to_table(statistics_to_show, True, include_target)
         headers = res.pop(0)
-        df = pd.DataFrame(res, columns=headers, dtype=np.float64)
+        df = pd.DataFrame(res, columns=headers)
         if autoround:
             df = results_df_autoround(df)
         return df

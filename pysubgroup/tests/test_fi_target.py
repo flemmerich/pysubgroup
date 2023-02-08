@@ -22,12 +22,19 @@ from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 #for (q, sg) in result:
 #    print(str(q) + ":\t" + str(sg.subgroup_description))
 
+#df_test1 = pd.DataFrame.from_records([[1,1,1],[0,0,1],[0,0,1]], columns=["A", "B", "C"])
+
+
+
 class TestCountQF(TestAlgorithmsBase, unittest.TestCase):
     def test_Apriori(self):
         self.runAlgorithm(ps.Apriori(), "Apriori", self.result[1:], self.qualities[1:], self.task)
 
     def test_DFS(self):
         self.runAlgorithm(ps.SimpleDFS(), "DFS", self.result[:-1], self.qualities[:-1], self.task)
+
+    def test_gp_growth(self):
+        self.runAlgorithm(ps.GpGrowth(), "GpGrowth", self.result[1:], self.qualities[1:], self.task)
 
     def setUp(self):
         NS_cabin = ps.EqualitySelector("Cabin", np.nan)

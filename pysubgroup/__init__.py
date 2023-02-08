@@ -12,3 +12,4 @@ from pysubgroup.refinement_operator import *
 from pysubgroup.representations import *
 
 from pysubgroup.constraints import *
+from pysubgroup.gp_growth import GpGrowth

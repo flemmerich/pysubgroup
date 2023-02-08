@@ -68,7 +68,7 @@ class Apriori:
             optimistic_estimate = optimistic_estimate_function(sg, task.target, task.data, statistics)
 
             if optimistic_estimate >= ps.minimum_required_quality(result, task):
-                if ps.constraints_hold(task.constraints_monotone, sg, statistics, task.data):
+                if ps.constraints_satisfied(task.constraints_monotone, sg, statistics, task.data):
                     promising_candidates.append((optimistic_estimate, sg.selectors))
         min_quality = ps.minimum_required_quality(result, task)
         promising_candidates = [selectors for estimate, selectors in promising_candidates if estimate > min_quality]
@@ -148,7 +148,9 @@ class Apriori:
             # init the first level
             next_level_candidates = []
             for sel in task.search_space:
-                next_level_candidates.append(combine_selectors([sel]))
+                sg = combine_selectors([sel])
+                if all(constraint.is_satisfied(sg, None, task.data) for constraint in task.constraints_monotone):
+                    next_level_candidates.append(sg)
 
             # level-wise search
             depth = 1
@@ -174,7 +176,7 @@ class Apriori:
                                          if all((subset in set_promising_candidates) for subset in combinations(selectors, depth))]
                 depth = depth + 1
 
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
 
@@ -201,7 +203,7 @@ class BestFirstSearch:
                         if ps.constraints_satisfied(task.constraints_monotone, candidate_description, statistics, task.data):
                             heappush(queue, (-optimistic_estimate, candidate_description))
 
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
 
@@ -304,7 +306,7 @@ class BeamSearch:
             depth += 1
 # TODO make sure there is no bug here
         result = beam[:task.result_set_size]
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
 
@@ -333,7 +335,7 @@ class SimpleSearch:
             statistics = task.qf.calculate_statistics(sg, task.target, task.data)
             quality = task.qf.evaluate(sg, task.target, task.data, statistics)
             ps.add_if_required(result, sg, quality, task, statistics=statistics)
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
 
@@ -341,7 +343,7 @@ class SimpleDFS:
     def execute(self, task, use_optimistic_estimates=True):
         task.qf.calculate_constant_statistics(task.data, task.target)
         result = self.search_internal(task, [], task.search_space, [], use_optimistic_estimates)
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, prefix, modification_set, result, use_optimistic_estimates):
@@ -385,7 +387,7 @@ class DFS:
         result = []
         with self.apply_representation(task.data, task.search_space) as representation:
             self.search_internal(task, result, representation.Conjunction([]))
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, result, sg):
@@ -430,8 +432,8 @@ class DFSNumeric:
             # generate bitset
             self.bitsets[sel] = sel.covers(sorted_data)
         result = self.search_internal(task, [], task.search_space, [], np.ones(len(sorted_data), dtype=bool))
-        result.sort(key=lambda x: x[0], reverse=True)
-
+        
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, prefix, modification_set, result, bitset):

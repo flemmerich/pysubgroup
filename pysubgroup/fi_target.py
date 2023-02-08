@@ -74,6 +74,9 @@ class SimpleCountQF(ps.AbstractInterestingnessMeasure):
     def gp_to_str(self, stats):
         return str(stats['subgroup_size'])
 
+    def gp_subgroup_size(self, stats):
+        return stats['subgroup_size']
+
     @property
     def gp_requires_cover_arr(self):
         return False
