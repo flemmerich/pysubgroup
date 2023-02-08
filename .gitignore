@@ -1,5 +1,7 @@
 __pycache__
 .idea
+.eggs
+dist
 doc/_build
 .ipynb_checkpoints
 build

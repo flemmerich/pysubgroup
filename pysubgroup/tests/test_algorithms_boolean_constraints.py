@@ -54,7 +54,7 @@ class BooleanTargetBase(TestAlgorithmsBase):
         self.runAlgorithm(ps.DFS(ps.NumpySetRepresentation), "DFS numpyset", self.result, self.qualities, self.task)
 
     def evaluate_result(self, algorithm_result, result, qualities):
-        df = algorithm_result.to_dataframe(include_info=True)
+        df = algorithm_result.to_dataframe()
         self.assertTrue(all(algorithm_result.task.constraints[0].min_support <= df['size_sg']))
         TestAlgorithmsBase.evaluate_result(self, algorithm_result, result, qualities)
     # pylint: enable=no-member

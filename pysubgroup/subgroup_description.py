@@ -6,27 +6,46 @@ Created on 28.04.2016
 from abc import ABC, abstractmethod
 import weakref
 from functools import total_ordering
-import numpy as np
 import pandas as pd
 import pysubgroup as ps
-
+from itertools import chain
+import copy
+import numpy as np
 
 
 @total_ordering
 class SelectorBase(ABC):
+
+    # selector cache
     __refs__ = weakref.WeakSet()
+
     def __new__(cls, *args, **kwargs):
+        """Ensures that each selector only exists once."""
 
+        # create temporary selector
         tmp = super().__new__(cls)
-
         tmp.set_descriptions(*args, **kwargs)
+
+        # save original arguments
+        # NOTE: this is a fix for pickle; so we can call `__getnewargs_ex__` with the right arguments
+        # TODO: this may have unintended side effects if args, kwargs are large or volatile (I don't think we have that yet though)
+        tmp.__new_args__ = args, kwargs
+
+        # check if selector is already in cache (__refs__)
+        # if so, return cached instance
         if tmp in SelectorBase.__refs__:
             for ref in SelectorBase. __refs__:
                 if ref == tmp:
                     return ref
+        # if not return
         return tmp
 
+    def __getnewargs_ex__(self):
+        return self.__new_args__
+
     def __init__(self):
+        # add selector to cache
+        # TODO: why not do this in `__new__`, then it would be all together in one function?
         SelectorBase.__refs__.add(self)
 
     def __eq__(self, other):
@@ -107,10 +126,13 @@ class EqualitySelector(SelectorBase):
             raise TypeError()
         if attribute_value is None:
             raise TypeError()
+        
+        # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._attribute_name = attribute_name
         self._attribute_value = attribute_value
         self._selector_name = selector_name
         self.set_descriptions(self._attribute_name, self._attribute_value, self._selector_name)
+        
         super().__init__()
 
     @property
@@ -158,8 +180,11 @@ class EqualitySelector(SelectorBase):
 
 class NegatedSelector(SelectorBase):
     def __init__(self, selector):
+        
+        # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._selector = selector
         self.set_descriptions(selector)
+        
         super().__init__()
 
     def covers(self, data_instance):
@@ -187,11 +212,14 @@ class NegatedSelector(SelectorBase):
 # Including the lower bound, excluding the upper_bound
 class IntervalSelector(SelectorBase):
     def __init__(self, attribute_name, lower_bound, upper_bound, selector_name=None):
+        
+        # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._attribute_name = attribute_name
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
         self.selector_name = selector_name
         self.set_descriptions(attribute_name, lower_bound, upper_bound, selector_name)
+        
         super().__init__()
 
     @property
@@ -208,7 +236,7 @@ class IntervalSelector(SelectorBase):
 
     def covers(self, data_instance):
         val = data_instance[self.attribute_name].to_numpy()
-        return np.logical_and(val >= self.lower_bound, val < self.upper_bound)
+        return np.logical_and((val >= self.lower_bound), (val < self.upper_bound))
 
     def __repr__(self):
         return self._query
@@ -258,52 +286,6 @@ class IntervalSelector(SelectorBase):
     @property
     def selectors(self):
         return (self,)
-
-
-@total_ordering
-class Subgroup():
-    def __init__(self, target, subgroup_description):
-        # If its already a BinaryTarget object, we are fine, otherwise we create a new one
-        # if (isinstance(target, BinaryTarget) or isinstance(target, NumericTarget)):
-        #    self.target = target
-        # else:
-        #    self.target = BinaryTarget(target)
-
-        # If its already a SubgroupDescription object, we are fine, otherwise we create a new one
-        self.target = target
-        self.subgroup_description = subgroup_description
-
-        # initialize empty cache for statistics
-        self.statistics = {}
-
-    def __repr__(self):
-        return "<<" + repr(self.target) + "; D: " + repr(self.subgroup_description) + ">>"
-
-    def covers(self, instance):
-        cover_arr, _ = ps.get_cover_array_and_size(self.subgroup_description, len(instance), instance)
-        if not isinstance(cover_arr, type(np.array)):
-            arr = np.zeros(len(instance), dtype=bool)
-            arr[cover_arr] = True
-            return arr
-        else:
-            return cover_arr
-
-    def __getattr__(self, name):
-        return getattr(self.subgroup_description, name)
-
-    def __eq__(self, other):
-        if other is None:
-            return False
-        return self.__dict__ == other.__dict__
-
-    def __lt__(self, other):
-        return repr(self) < repr(other)
-
-    def get_base_statistics(self, data):
-        return self.target.get_base_statistics(self, data)
-
-    def calculate_statistics(self, data):
-        return self.target.calculate_statistics(self, data)
 
 
 def create_selectors(data, nbins=5, intervals_only=True, ignore=None):
@@ -384,3 +366,235 @@ def remove_target_attributes(selectors, target):
         if not sel.get_attribute_name() in target.get_attributes():
             result.append(sel)
     return result
+
+
+##############
+# Boolean expressions
+##############
+class BooleanExpressionBase(ABC):
+    def __or__(self, other):
+        tmp = copy.copy(self)
+        tmp.append_or(other)
+        return tmp
+
+    def __and__(self, other):
+        tmp = self.__copy__()
+        tmp.append_and(other)
+        return tmp
+
+    @abstractmethod
+    def append_and(self, to_append):
+        pass
+
+    @abstractmethod
+    def append_or(self, to_append):
+        pass
+
+    @abstractmethod
+    def __copy__(self):
+        pass
+
+@total_ordering
+class Conjunction(BooleanExpressionBase):
+    def __init__(self, selectors):
+        try:
+            it = iter(selectors)
+            self._selectors = list(it)
+        except TypeError:
+            self._selectors = [selectors]
+
+    def covers(self, instance):
+        # empty description ==> return a list of all '1's
+        if not self._selectors:
+            return np.full(len(instance), True, dtype=bool)
+        # non-empty description
+        return np.all([sel.covers(instance) for sel in self._selectors], axis=0)
+
+    def __len__(self):
+        return len(self._selectors)
+
+    def __str__(self, open_brackets="", closing_brackets="", and_term=" AND "):
+        if not self._selectors:
+            return "Dataset"
+        attrs = sorted(str(sel) for sel in self._selectors)
+        return "".join((open_brackets, and_term.join(attrs), closing_brackets))
+
+    def __repr__(self):
+        if hasattr(self, "_repr"):
+            return self._repr
+        else:
+            self._repr = self._compute_repr()
+            return self._repr
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
+    def __lt__(self, other):
+        return repr(self) < repr(other)
+
+    def __hash__(self):
+        if hasattr(self, "_hash"):
+            return self._hash
+        else:
+            self._hash = self._compute_hash()
+            return self._hash
+
+    def _compute_representations(self):
+        self._repr = self._compute_repr()
+        self._hash = self._compute_hash()
+
+    def _compute_repr(self):
+        if not self._selectors:
+            return "True"
+        reprs = sorted(repr(sel) for sel in self._selectors)
+        return "".join(("(", " and ".join(reprs), ")"))
+
+    def _compute_hash(self):
+        return hash(repr(self))
+
+    def _invalidate_representations(self):
+        if hasattr(self, '_repr'):
+            delattr(self, '_repr')
+        if hasattr(self, '_hash'):
+            delattr(self, '_hash')
+
+    def append_and(self, to_append):
+        if isinstance(to_append, SelectorBase):
+            self._selectors.append(to_append)
+        elif isinstance(to_append, Conjunction):
+            self._selectors.extend(to_append.selectors)
+        else:
+            try:
+                self._selectors.extend(to_append)
+            except TypeError:
+                self._selectors.append(to_append)
+        self._invalidate_representations()
+
+    def append_or(self, to_append):
+        raise RuntimeError("Or operations are not supported by a pure Conjunction. Consider using DNF.")
+
+    def pop_and(self):
+        return self._selectors.pop()
+
+    def pop_or(self):
+        raise RuntimeError("Or operations are not supported by a pure Conjunction. Consider using DNF.")
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result._selectors = list(self._selectors)
+        return result
+
+    @property
+    def depth(self):
+        return len(self._selectors)
+
+    @property
+    def selectors(self):
+        return tuple(chain.from_iterable(sel.selectors for sel in self._selectors))
+
+
+@total_ordering
+class Disjunction(BooleanExpressionBase):
+    def __init__(self, selectors):
+        if isinstance(selectors, (list, tuple)):
+            self._selectors = selectors
+        else:
+            self._selectors = [selectors]
+
+    def covers(self, instance):
+        # empty description ==> return a list of all '1's
+        if not self._selectors:
+            return np.full(len(instance), False, dtype=bool)
+        # non-empty description
+        return np.any([sel.covers(instance) for sel in self._selectors], axis=0)
+
+    def __len__(self):
+        return len(self._selectors)
+
+    def __str__(self, open_brackets="", closing_brackets="", or_term=" OR "):
+        if not self._selectors:
+            return "Dataset"
+        attrs = sorted(str(sel) for sel in self._selectors)
+        return "".join((open_brackets, or_term.join(attrs), closing_brackets))
+
+    def __repr__(self):
+        if not self._selectors:
+            return "True"
+        reprs = sorted(repr(sel) for sel in self._selectors)
+        return "".join(("(", " or ".join(reprs), ")"))
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
+    def __lt__(self, other):
+        return repr(self) < repr(other)
+
+    def __hash__(self):
+        return hash(repr(self))
+
+    def append_and(self, to_append):
+        raise RuntimeError("And operations are not supported by a pure Conjunction. Consider using DNF.")
+
+    def append_or(self, to_append):
+        try:
+            self._selectors.extend(to_append)
+        except TypeError:
+            self._selectors.append(to_append)
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result._selectors = copy.copy(self._selectors)
+        return result
+
+    @property
+    def selectors(self):
+        return tuple(chain.from_iterable(sel.selectors for sel in self._selectors))
+
+
+class DNF(Disjunction):
+    def __init__(self, selectors=None):
+        if selectors is None:
+            selectors = []
+        super().__init__([])
+        self.append_or(selectors)
+
+    @staticmethod
+    def _ensure_pure_conjunction(to_append):
+        if isinstance(to_append, Conjunction):
+            return to_append
+        elif isinstance(to_append, SelectorBase):
+            return Conjunction(to_append)
+        else:
+            it = iter(to_append)
+            if all(isinstance(sel, SelectorBase) for sel in to_append):
+                return Conjunction(it)
+            else:
+                raise ValueError("DNFs only accept an iterable of pure Selectors")
+
+    def append_or(self, to_append):
+        try:
+            it = iter(to_append)
+            conjunctions = [DNF._ensure_pure_conjunction(part) for part in it]
+        except TypeError:
+            conjunctions = DNF._ensure_pure_conjunction(to_append)
+        super().append_or(conjunctions)
+
+    def append_and(self, to_append):
+        conj = DNF._ensure_pure_conjunction(to_append)
+        if len(self._selectors) > 0:
+            for conjunction in self._selectors:
+                conjunction.append_and(conj)
+        else:
+            self._selectors.append(conj)
+
+    def pop_and(self):
+        out_list = [s.pop_and() for s in self._selectors]
+        return_val = out_list[0]
+        if all(x == return_val for x in out_list):
+            return return_val
+        else:
+            raise RuntimeError("pop_and failed as the result was inconsistent")
