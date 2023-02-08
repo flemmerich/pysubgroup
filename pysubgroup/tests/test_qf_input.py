@@ -23,19 +23,21 @@ class TestQFInputs(unittest.TestCase):
 #        pass
 
     def test_CountQf(self):
-        task = ps.SubgroupDiscoveryTask(self.data, ps.FITarget, None, None)
+        target = ps.FITarget()
+        #task = ps.SubgroupDiscoveryTask(self.data, ps.FITarget(), None, None)
+
         qf = ps.CountQF()
-        qf.calculate_constant_statistics(task)
+        qf.calculate_constant_statistics(self.data, target)
         sel = ps.EqualitySelector('checking_status', b'no checking')
         print(self.data.columns)
         print(self.data.checking_status.value_counts())
-        size = qf.evaluate(sel, self.data)
+        size = qf.evaluate(sel, target, self.data)
         self.assertEqual(size, 394)
-        size = qf.evaluate(slice(None))
+        size = qf.evaluate(slice(None), target, self.data)
         self.assertEqual(size, len(self.data))
-        size = qf.evaluate(slice(0, 10))
+        size = qf.evaluate(slice(0, 10), target, self.data)
         self.assertEqual(size, 10)
-        size = qf.evaluate(np.array([1, 3, 5, 7, 11], dtype=int))
+        size = qf.evaluate(np.array([1, 3, 5, 7, 11], dtype=int), target, self.data)
         self.assertEqual(size, 5)
 
 if __name__ == '__main__':

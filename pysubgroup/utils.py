@@ -13,22 +13,9 @@ import pandas as pd
 import pysubgroup as ps
 
 
-all_statistics = ('size_sg', 'size_dataset', 'positives_sg', 'positives_dataset', 'size_complement', 'relative_size_sg',
-                  'relative_size_complement', 'coverage_sg', 'coverage_complement', 'target_share_sg',
-                  'target_share_complement', 'target_share_dataset', 'lift')
-all_statistics_weighted = all_statistics + (
-    'size_sg_weighted', 'size_dataset_weighted', 'positives_sg_weighted', 'positives_dataset_weighted',
-    'size_complement_weighted', 'relative_size_sg_weighted', 'relative_size_complement_weighted', 'coverage_sg_weighted',
-    'coverage_complement_weighted', 'target_share_sg_weighted', 'target_share_complement_weighted',
-    'target_share_dataset_weighted', 'lift_weighted')
-all_statistics_numeric = (
-    'size_sg', 'size_dataset', 'mean_sg', 'mean_dataset', 'std_sg', 'std_dataset', 'median_sg', 'median_dataset', 'max_sg',
-    'max_dataset', 'min_sg', 'min_dataset', 'mean_lift', 'median_lift')
-
-
 def add_if_required(result, sg, quality, task, check_for_duplicates=False, statistics=None):
     if quality > task.min_quality:
-        if not ps.constraints_hold(task.constraints, sg, statistics, task.data):
+        if not ps.constraints_satisfied(task.constraints, sg, statistics, task.data):
             return
         if check_for_duplicates and (quality, sg, statistics) in result:
             return
@@ -87,55 +74,6 @@ def equal_frequency_discretization(data, attribute_name, nbins=5, weighting_attr
     return cutpoints
 
 
-def print_result_set(data, result, statistics_to_show, weighting_attribute=None, print_header=True,
-                     include_target=False):
-    if print_header:
-        s = "Quality\tSubgroup"
-        for stat in statistics_to_show:
-            s += "\t" + stat
-        print(s)
-    for (q, sg) in result:
-        sg.calculate_statistics(data, weighting_attribute)
-        s = str(q) + ":\t" + str(sg.subgroup_description)
-        if include_target:
-            s += str(sg.target)
-        for stat in statistics_to_show:
-            s += "\t" + str(sg.statistics[stat])
-        print(s)
-
-
-def result_as_table(data, result, statistics_to_show, weighting_attribute=None, print_header=True,
-                    include_target=False):
-    table = []
-    if print_header:
-        row = ["quality", "subgroup"]
-        for stat in statistics_to_show:
-            row.append(stat)
-        table.append(row)
-    for (q, sg) in result:
-        sg.calculate_statistics(data, weighting_attribute)
-        row = [str(q), str(sg.subgroup_description)]
-        if include_target:
-            row.append(str(sg.target))
-        for stat in statistics_to_show:
-            row.append(str(sg.statistics[stat]))
-        table.append(row)
-    return table
-
-
-def results_as_df(data, result, statistics_to_show=all_statistics, autoround=False, weighting_attribute=None,
-                  include_target=False):
-    res = result_as_table(data, result, statistics_to_show, weighting_attribute, True, include_target)
-    headers = res.pop(0)
-    df = pd.DataFrame(res, columns=headers, dtype=np.float64)
-    if autoround:
-        df = results_df_autoround(df)
-    return df
-
-
-as_df = results_as_df
-
-
 def conditional_invert(val, invert):
     return - 2 * (invert - 0.5) * val
 
@@ -178,41 +116,6 @@ def perc_formatter(x):
 
 def float_formatter(x, digits=2):
     return ("{0:." + str(digits) + "f}").format(x)
-
-
-def to_latex(data, result, statistics_to_show):
-    df = results_as_df(data, result)[statistics_to_show]
-    latex = df.to_latex(index=False, col_space=10, formatters={
-        'quality': partial(float_formatter, digits=3),
-        'size_sg': partial(float_formatter, digits=0),
-        'size_dataset': partial(float_formatter, digits=0),
-        'positives_sg': partial(float_formatter, digits=0),
-        'positives_dataset': partial(float_formatter, digits=0),
-        'size_complement': partial(float_formatter, digits=0),
-        'relative_size_sg': perc_formatter,
-        'relative_size_complement': perc_formatter,
-        'coverage_sg': perc_formatter,
-        'coverage_complement': perc_formatter,
-        'target_share_sg': perc_formatter,
-        'target_share_complement': perc_formatter,
-        'target_share_dataset': perc_formatter,
-        'lift': partial(float_formatter, digits=1),
-
-        'size_sg_weighted': partial(float_formatter, digits=1),
-        'size_dataset_weighted': partial(float_formatter, digits=1),
-        'positives_sg_weighted': partial(float_formatter, digits=1),
-        'positives_dataset_weighted': partial(float_formatter, digits=1),
-        'size_complement_weighted': partial(float_formatter, digits=1),
-        'relative_size_sg_weighted': perc_formatter,
-        'relative_size_complement_weighted': perc_formatter,
-        'coverage_sg_weighted': perc_formatter,
-        'coverage_complement_weighted': perc_formatter,
-        'target_share_sg_weighted': perc_formatter,
-        'target_share_complement_weighted': perc_formatter,
-        'target_share_dataset_weighted': perc_formatter,
-        'lift_weighted': perc_formatter})
-    latex = latex.replace(' AND ', r' $\wedge$ ')
-    return latex
 
 
 def is_categorical_attribute(data, attribute_name):
@@ -294,6 +197,7 @@ def intersect_of_ordered_list(list_1, list_2):
             i += 1
     return result
 
+
 class SubgroupDiscoveryResult:
     def __init__(self, results, task):
         self.task = task
@@ -303,37 +207,53 @@ class SubgroupDiscoveryResult:
     def to_descriptions(self):
         return [(qual, sgd) for qual, sgd, stats in self.results]
 
-    def to_subgroups(self):
-        return [(quality, ps.Subgroup(self.task.target, description)) for quality, description, stats in self.results]
+    def to_table(self, statistics_to_show=None, print_header=True, include_target=False):
+        if statistics_to_show is None:
+            statistics_to_show = type(self.task.target).statistic_types
+        table = []
+        if print_header:
+            row = ["quality", "subgroup"]
+            for stat in statistics_to_show:
+                row.append(stat)
+            table.append(row)
+        for (q, sg, stats) in self.results:
+            stats = self.task.target.calculate_statistics(sg, self.task.data, stats)
+            row = [str(q), str(sg)]
+            if include_target:
+                row.append(str(self.task.target))
+            for stat in statistics_to_show:
+                row.append(str(stats[stat]))
+            table.append(row)
+        return table
 
-    def to_dataframe(self, include_info=False):
-        qualities = [quality for quality, description, _ in self.results]
-        descriptions = [description for quality, description, _ in self.results]
-        df = pd.DataFrame.from_dict({'quality' : qualities, 'description' : descriptions})
-        if include_info:
-            data = self.task.data
-            records = [self.task.target.calculate_statistics(description, data) for quality, description, _ in self.results]
-            df_stats = pd.DataFrame.from_records(records)
-            df = pd.concat([df, df_stats], axis=1)
+    def to_dataframe(self, statistics_to_show=None, autoround=False, include_target=False):
+        if statistics_to_show is None:
+            statistics_to_show = type(self.task.target).statistic_types
+        res = self.to_table(statistics_to_show, True, include_target)
+        headers = res.pop(0)
+        df = pd.DataFrame(res, columns=headers, dtype=np.float64)
+        if autoround:
+            df = results_df_autoround(df)
         return df
 
-    def supportSetVisualization(self, in_order=True, drop_empty=True):
-        df = self.task.data
-        n_items = len(self.task.data)
-        n_SGDs = len(self.results)
-        covs = np.zeros((n_items, n_SGDs), dtype=bool)
-        for i, (_, r, _) in enumerate(self.results):
-            covs[:, i] = r.covers(df)
-
-        img_arr = covs.copy()
-
-        sort_inds_x = np.argsort(np.sum(covs, axis=1))[::-1]
-        img_arr = img_arr[sort_inds_x, :]
-        if not in_order:
-            sort_inds_y = np.argsort(np.sum(covs, axis=0))
-            img_arr = img_arr[:, sort_inds_y]
-        if drop_empty:
-            keep_entities = np.sum(img_arr, axis=1) > 0
-            print("Discarding {} entities that are not covered".format(n_items - np.count_nonzero(keep_entities)))
-            img_arr = img_arr[keep_entities, :]
-        return img_arr.T
+    def to_latex(self, statistics_to_show=None):
+        if statistics_to_show is None:
+            statistics_to_show = type(self.task.target).statistic_types
+        df = self.to_dataframe(statistics_to_show)
+        latex = df.to_latex(index=False, col_space=10, formatters={
+            'quality': partial(float_formatter, digits=3),
+            'size_sg': partial(float_formatter, digits=0),
+            'size_dataset': partial(float_formatter, digits=0),
+            'positives_sg': partial(float_formatter, digits=0),
+            'positives_dataset': partial(float_formatter, digits=0),
+            'size_complement': partial(float_formatter, digits=0),
+            'relative_size_sg': perc_formatter,
+            'relative_size_complement': perc_formatter,
+            'coverage_sg': perc_formatter,
+            'coverage_complement': perc_formatter,
+            'target_share_sg': perc_formatter,
+            'target_share_complement': perc_formatter,
+            'target_share_dataset': perc_formatter,
+            'lift': partial(float_formatter, digits=1)})
+        latex = latex.replace(' AND ', r' $\wedge$ ')
+        return latex
