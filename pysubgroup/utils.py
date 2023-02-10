@@ -203,6 +203,10 @@ def intersect_of_ordered_list(list_1, list_2):
             i += 1
     return result
 
+class BaseTarget:
+    def all_statistics_present(self, cached_statistics):
+        if isinstance(cached_statistics, dict) and all(expected_value in cached_statistics for expected_value in self.__class__.statistic_types):       
+            return True
 
 class SubgroupDiscoveryResult:
     def __init__(self, results, task):

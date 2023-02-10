@@ -14,7 +14,7 @@ from pysubgroup.subgroup_description import EqualitySelector
 
 
 @total_ordering
-class BinaryTarget:
+class BinaryTarget(ps.BaseTarget):
 
     statistic_types = ('size_sg', 'size_dataset', 'positives_sg', 'positives_dataset', 'size_complement',
                       'relative_size_sg', 'relative_size_complement', 'coverage_sg', 'coverage_complement',
@@ -27,10 +27,10 @@ class BinaryTarget:
         """
         if target_attribute is not None and target_value is not None:
             if target_selector is not None:
-                raise BaseException("BinaryTarget is to be constructed EITHER by a selector OR by attribute/value pair")
+                raise ValueError("BinaryTarget is to be constructed EITHER by a selector OR by attribute/value pair")
             target_selector = EqualitySelector(target_attribute, target_value)
         if target_selector is None:
-            raise BaseException("No target selector given")
+            raise ValueError("No target selector given")
         self.target_selector = target_selector
 
     def __repr__(self):
@@ -58,15 +58,12 @@ class BinaryTarget:
         return instances_dataset, positives_dataset, instances_subgroup, positives_subgroup
 
     def calculate_statistics(self, subgroup, data, cached_statistics=None):
-        if cached_statistics is None or not isinstance(cached_statistics, dict):
-            statistics = dict()
-        elif all(k in cached_statistics for k in BinaryTarget.statistic_types):
+        if self.all_statistics_present(cached_statistics):
             return cached_statistics
-        else:
-            statistics = cached_statistics
 
         (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = \
             self.get_base_statistics(subgroup, data)
+        statistics = dict()
         statistics['size_sg'] = instances_subgroup
         statistics['size_dataset'] = instances_dataset
         statistics['positives_sg'] = positives_subgroup
@@ -98,7 +95,7 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):  # pylint: disable=a
         self.dataset_statistics = SimplePositivesQF.tpl(len(data), np.sum(self.positives))
         self.has_constant_statistics = True
 
-    def calculate_statistics(self, subgroup, target, data, statistics=None):
+    def calculate_statistics(self, subgroup, target, data, statistics=None): # pylint: disable=unused-argument
         cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, len(self.positives), data)
         return SimplePositivesQF.tpl(size_sg, np.count_nonzero(self.positives[cover_arr]))
 
@@ -121,9 +118,9 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):  # pylint: disable=a
         return SimplePositivesQF.tpl(v[0], v[1])
 
     def gp_to_str(self, stats):
-         return " ".join(map(str, stats))
+        return " ".join(map(str, stats))
 
-    def gp_subgroup_size(self, stats):
+    def gp_size_sg(self, stats):
         return stats[0]
 
     @property

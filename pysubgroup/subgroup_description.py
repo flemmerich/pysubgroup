@@ -85,7 +85,6 @@ def get_cover_array_and_size(subgroup, data_len=None, data=None):
         elif type_char == 'u' or type_char == 'i': # integer indexing
             size = subgroup.__array_interface__['shape'][0]
         else:
-            print(type_char)
             raise NotImplementedError(f"Currently a typechar of {type_char} is not supported.")
     else:
         assert isinstance(data, pd.DataFrame)
@@ -112,7 +111,6 @@ def get_size(subgroup, data_len=None, data=None):
         elif type_char == 'u' or type_char == 'i': # integer indexing
             size = subgroup.__array_interface__['shape'][0]
         else:
-            print(type_char)
             raise NotImplementedError(f"Currently a typechar of {type_char} is not supported.")
     else:
         assert isinstance(data, pd.DataFrame)
@@ -150,6 +148,8 @@ class EqualitySelector(SelectorBase):
     def compute_descriptions(cls, attribute_name, attribute_value, selector_name):
         if isinstance(attribute_value, (str, bytes)):
             query = str(attribute_name) + "==" + "'" + str(attribute_value) + "'"
+        elif attribute_value is None:
+            query = str(attribute_name) + " is None"
         elif np.isnan(attribute_value):
             query = attribute_name + ".isnull()"
         else:
@@ -274,7 +274,7 @@ class IntervalSelector(SelectorBase):
             lb = formatter.format(lb)
 
         if lower_bound == float("-inf") and upper_bound == float("inf"):
-            repre = attribute_name + "= anything"
+            repre = attribute_name + " = anything"
         elif lower_bound == float("-inf"):
             repre = attribute_name + "<" + str(ub)
         elif upper_bound == float("inf"):
@@ -497,9 +497,11 @@ class Conjunction(BooleanExpressionBase):
 
 @total_ordering
 class Disjunction(BooleanExpressionBase):
-    def __init__(self, selectors):
+    def __init__(self, selectors=None):
         if isinstance(selectors, (list, tuple)):
             self._selectors = selectors
+        elif selectors is None:
+            self._selectors=[]
         else:
             self._selectors = [selectors]
 

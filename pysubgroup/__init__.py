@@ -13,3 +13,4 @@ from pysubgroup.representations import *
 
 from pysubgroup.constraints import *
 from pysubgroup.gp_growth import GpGrowth
+from pysubgroup.model_target import EMM_Likelihood, PolyRegression_ModelClass

@@ -2,7 +2,7 @@ from collections import namedtuple
 from scipy.stats import norm
 import numpy as np
 import pysubgroup as ps
-beta_tuple = namedtuple('beta_tuple', ['beta', 'size'])
+beta_tuple = namedtuple('beta_tuple', ['beta', 'size_sg'])
 
 
 class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
@@ -18,7 +18,7 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
         self.data_size = len(data)
         self.has_constant_statistics = True
 
-    def calculate_statistics(self, subgroup, target, data, statistics=None):
+    def calculate_statistics(self, subgroup, target, data, statistics=None): # pylint: disable=unused-argument
         cover_arr, sg_size = ps.get_cover_array_and_size(subgroup, self.data_size, data)
         params = self.model.fit(cover_arr, data)
         return self.get_tuple(sg_size, params, cover_arr)
@@ -43,7 +43,7 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
 
     def gp_get_params(self, cover_arr, v):
         params = self.model.gp_get_params(v)
-        sg_size = params.size
+        sg_size = params.size_sg
         return self.get_tuple(sg_size, params, cover_arr)
 
 
@@ -72,7 +72,7 @@ class PolyRegression_ModelClass:
         self.has_constant_statistics = True
         super().__init__()
 
-    def calculate_constant_statistics(self, data, target):
+    def calculate_constant_statistics(self, data, target): # pylint: disable=unused-argument
         self.x = data[self.x_name].to_numpy()
         self.y = data[self.y_name].to_numpy()
         self.has_constant_statistics = True
@@ -107,7 +107,7 @@ class PolyRegression_ModelClass:
     def gp_to_str(self, stats):
         return " ".join(map(str, stats))
 
-    def gp_subgroup_size(self, stats):
+    def gp_size_sg(self, stats):
         return stats[0]
 
     @property

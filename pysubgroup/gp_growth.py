@@ -16,7 +16,7 @@ class GpGrowth:
         self.tqdm = identity
         self.depth = 0
         self.mode = mode  #specify eihther b_u (bottom up) or t_d (top down)
-        self.constraints = []
+        self.constraints_monotone = []
         # Future: There also is the option of a stable mode which never creates the prefix trees
 
 
@@ -26,7 +26,7 @@ class GpGrowth:
             cov_arr = selector.covers(data)
             l.append((np.count_nonzero(cov_arr), selector, cov_arr))
 
-        l = [(size, selector, arr) for size, selector, arr in l if all(constraint.is_satisfied(arr, None, data) for constraint in self.constraints)]
+        l = [(size, selector, arr) for size, selector, arr in l if all(constraint.is_satisfied(arr, None, data) for constraint in self.constraints_monotone)]
         s = sorted(l, reverse=True)
         selectors_sorted = [selector for size, selector, arr in s]
         if len(selectors_sorted)==0:
@@ -52,8 +52,8 @@ class GpGrowth:
 
     def setup_constraints(self, constraints, qf):
 
-        self.constraints = constraints
-        for constraint in self.constraints:
+        self.constraints_monotone = constraints
+        for constraint in self.constraints_monotone:
             constraint.gp_prepare(qf)
 
         if len(constraints)==1:
@@ -61,24 +61,34 @@ class GpGrowth:
 
     
     def check_constraints(self, node): #pylint: disable=method-hidden
-        return all(constraint.gp_is_satisfied(node) for constraint in self.constraints)
+        return all(constraint.gp_is_satisfied(node) for constraint in self.constraints_monotone)
 
-    def execute(self, task):
-        assert self.mode in ('b_u', 't_d')
+
+    def setup(self, task):
         task.qf.calculate_constant_statistics(task.data, task.target)
         self.depth = task.depth
-        self.setup_constraints(task.constraints, task.qf)
+        self.setup_constraints(task.constraints_monotone, task.qf)
 
         self.setup_from_quality_function(task.qf)
-        selectors_sorted, arrs = self.prepare_selectors(task.search_space, task.data)
-
-
+        
+    def create_initial_tree(self, arrs):
         # Create tree
         root = self.GP_node(-1, -1, None, {}, self.get_null_vector())
         nodes = []
         for row_index, row in self.tqdm(enumerate(arrs), 'creating tree', total=len(arrs)):
             self.normal_insert(root, nodes, self.get_stats(row_index), np.nonzero(row)[0])
         nodes.append(root)
+        return root, nodes
+
+
+    def execute(self, task):
+        assert self.mode in ('b_u', 't_d')
+        self.setup(task)
+
+        selectors_sorted, arrs = self.prepare_selectors(task.search_space, task.data)
+        root, nodes = self.create_initial_tree(arrs)
+
+
 
         # mine tree
         cls_nodes = self.nodes_to_cls_nodes(nodes)
@@ -336,8 +346,7 @@ class GpGrowth:
         return path
 
     def to_file(self, task, path):
-        task.qf.calculate_constant_statistics(task.data, task.target)
-        self.depth = task.depth
+        self.setup(task)
         _, arrs = self.prepare_selectors(task.search_space, task.data)
 
         # Create tree
@@ -345,4 +354,4 @@ class GpGrowth:
         with open(path, 'w', encoding="utf-8") as f:
             for row_index, row in self.tqdm(enumerate(arrs), 'creating tree', total=len(arrs)):
                 #print(np.nonzero(row)[0])
-                f.write(" ".join(map(str, np.nonzero(row)[0])) + " "+ to_str(self.get_stats(row_index))+"\r\n")
+                f.write(" ".join(map(str, np.nonzero(row)[0])) + " "+ to_str(self.get_stats(row_index))+"\n")

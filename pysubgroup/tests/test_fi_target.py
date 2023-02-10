@@ -24,6 +24,21 @@ from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
 #df_test1 = pd.DataFrame.from_records([[1,1,1],[0,0,1],[0,0,1]], columns=["A", "B", "C"])
 
+class TestFITarget(TestAlgorithmsBase, unittest.TestCase):
+    def test_fi_target(self):
+        target = ps.FITarget()
+        self.assertEqual(target.get_attributes(), [])
+
+        df = get_titanic_data()
+        NS_embarked = ps.EqualitySelector("Embarked", 'S')
+        self.assertEqual(target.get_base_statistics(NS_embarked, df), 110)
+
+        statistics = target.calculate_statistics(NS_embarked, df)
+        self.assertDictEqual(statistics, {"size_sg" : 110, "size_dataset":156})
+        statistics2 = target.calculate_statistics(NS_embarked, df, cached_statistics=statistics)
+        self.assertIs(statistics2, statistics)
+
+
 
 
 class TestCountQF(TestAlgorithmsBase, unittest.TestCase):
@@ -34,7 +49,9 @@ class TestCountQF(TestAlgorithmsBase, unittest.TestCase):
         self.runAlgorithm(ps.SimpleDFS(), "DFS", self.result[:-1], self.qualities[:-1], self.task)
 
     def test_gp_growth(self):
+        self.task.constraints_monotone.append(ps.MinSupportConstraint(20))
         self.runAlgorithm(ps.GpGrowth(), "GpGrowth", self.result[1:], self.qualities[1:], self.task)
+        self.task.constraints_monotone.pop(-1)
 
     def setUp(self):
         NS_cabin = ps.EqualitySelector("Cabin", np.nan)
@@ -123,8 +140,9 @@ class TestAreaQF(TestAlgorithmsBase, unittest.TestCase):
 
 if __name__ == '__main__':
     #unittest.main()
-    suite1 = unittest.TestLoader().loadTestsFromTestCase(TestCountQF)
-    suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAreaQF)
+    #suite1 = unittest.TestLoader().loadTestsFromTestCase(TestCountQF)
+    #suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAreaQF)
+    suite3 = unittest.TestLoader().loadTestsFromTestCase(TestFITarget)
     #suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3)
-    complete_suite = unittest.TestSuite([suite1, suite2])
+    complete_suite = unittest.TestSuite([suite3])
     unittest.TextTestRunner(verbosity=2).run(complete_suite)

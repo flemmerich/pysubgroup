@@ -43,9 +43,9 @@ class BooleanTargetBase():
 
     @unittest.skipUnless(TestSettings.All or TestSettings.GpGrowth, 'flag not set')
     def test_gp_growth(self):
-        self.task.constraints.append(ps.MinSupportConstraint(20))
+        self.task.constraints_monotone.append(ps.MinSupportConstraint(20))
         self.runAlgorithm(ps.GpGrowth(), "GpGrowth", self.result, self.qualities, self.task)
-        self.task.constraints.pop(-1)
+        self.task.constraints_monotone.pop(-1)
 
 
     @pytest.mark.slow

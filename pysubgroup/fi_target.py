@@ -10,7 +10,7 @@ import pysubgroup as ps
 
 
 @total_ordering
-class FITarget:
+class FITarget(ps.BaseTarget):
     statistic_types = ('size_sg', 'size_dataset')
 
     def __repr__(self):
@@ -30,52 +30,49 @@ class FITarget:
         return size
 
     def calculate_statistics(self, subgroup_description, data, cached_statistics=None):
-        if cached_statistics is None or not isinstance(cached_statistics, dict):
-            statistics = dict()
-        elif all(k in cached_statistics for k in FITarget.statistic_types):
+        if self.all_statistics_present(cached_statistics):
             return cached_statistics
-        else:
-            statistics = cached_statistics
 
+        
         _, size = ps.get_cover_array_and_size(subgroup_description, len(data), data)
-
+        statistics={}
         statistics['size_sg'] = size
         statistics['size_dataset'] = len(data)
         return statistics
 
 
 class SimpleCountQF(ps.AbstractInterestingnessMeasure):
-    tpl = namedtuple('CountQF_parameters', ('subgroup_size'))
+    tpl = namedtuple('CountQF_parameters', ('size_sg'))
 
     def __init__(self):
-        self.required_stat_attrs = ('subgroup_size',)
+        self.required_stat_attrs = ('size_sg',)
         self.has_constant_statistics = True
         self.size_dataset = None
 
-    def calculate_constant_statistics(self, data, target):
+    def calculate_constant_statistics(self, data, target):# pylint: disable=unused-argument
         self.size_dataset = len(data)
 
-    def calculate_statistics(self, subgroup_description, target, data, statistics=None):
+    def calculate_statistics(self, subgroup_description, target, data, statistics=None): # pylint: disable=unused-argument
         _, size = ps.get_cover_array_and_size(subgroup_description, self.size_dataset, data)
         return SimpleCountQF.tpl(size)
 
     def gp_get_stats(self, _):
-        return {"subgroup_size" : 1}
+        return {"size_sg" : 1}
 
     def gp_get_null_vector(self):
-        return {"subgroup_size":0}
+        return {"size_sg":0}
 
     def gp_merge(self, l, r):
-        l["subgroup_size"] += r["subgroup_size"]
+        l["size_sg"] += r["size_sg"]
 
     def gp_get_params(self, _cover_arr, v):
-        return SimpleCountQF.tpl(v['subgroup_size'])
+        return SimpleCountQF.tpl(v['size_sg'])
 
     def gp_to_str(self, stats):
-        return str(stats['subgroup_size'])
+        return str(stats['size_sg'])
 
-    def gp_subgroup_size(self, stats):
-        return stats['subgroup_size']
+    def gp_size_sg(self, stats):
+        return stats['size_sg']
 
     @property
     def gp_requires_cover_arr(self):
@@ -85,15 +82,15 @@ class SimpleCountQF(ps.AbstractInterestingnessMeasure):
 class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
     def evaluate(self, subgroup, target, data, statistics=None):
         statistics = self.ensure_statistics(subgroup, target, data, statistics)
-        return statistics.subgroup_size
+        return statistics.size_sg
 
     def optimistic_estimate(self, subgroup, target, data, statistics=None):
         statistics = self.ensure_statistics(subgroup, target, data, statistics)
-        return statistics.subgroup_size
+        return statistics.size_sg
 
 
 
 class AreaQF(SimpleCountQF):
     def evaluate(self, subgroup, target, data, statistics=None):
         statistics = self.ensure_statistics(subgroup, target, data, statistics)
-        return statistics.subgroup_size * subgroup.depth
+        return statistics.size_sg * subgroup.depth

@@ -23,17 +23,24 @@ class TestRepresentation(unittest.TestCase):
 
     def test_BitSet(self):
         with ps.BitSetRepresentation(self.df, [self.A1, self.A0, self.BA, self.BC, self.CA, self.CNan]) as representation:
-            np.testing.assert_array_equal(self.A1.representation, self.A)  # pylint: disable=no-member
-            np.testing.assert_array_equal(self.A0.representation, np.logical_not(self.A))   # pylint: disable=no-member
+            # pylint: disable=no-member
+            np.testing.assert_array_equal(self.A1.representation, self.A)
+            np.testing.assert_array_equal(self.A0.representation, np.logical_not(self.A))
 
-            np.testing.assert_array_equal(self.BA.representation, [1, 0, 0, 0, 0, 1, 0, 1, 1, 1])   # pylint: disable=no-member
-            np.testing.assert_array_equal(self.BC.representation, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0])   # pylint: disable=no-member
+            np.testing.assert_array_equal(self.BA.representation, [1, 0, 0, 0, 0, 1, 0, 1, 1, 1])
+            np.testing.assert_array_equal(self.BC.representation, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0])
 
-            np.testing.assert_array_equal(self.CA.representation, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0])   # pylint: disable=no-member
-            np.testing.assert_array_equal(self.CNan.representation, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0])   # pylint: disable=no-member
+            np.testing.assert_array_equal(self.CA.representation, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0])
+            np.testing.assert_array_equal(self.CNan.representation, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 
-            np.testing.assert_array_equal(representation.Conjunction([self.BA, self.CNan]).representation, [1, 0, 0, 0, 0, 0, 0, 0, 0, 0])  # pylint: disable=no-member
-            np.testing.assert_array_equal(representation.Disjunction([self.BA, self.BC]).representation, [1, 0, 1, 1, 0, 1, 0, 1, 1, 1])  # pylint: disable=no-member
+            np.testing.assert_array_equal(representation.Conjunction([self.BA, self.CNan]).representation, [1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+            np.testing.assert_array_equal(representation.Disjunction([self.BA, self.BC]).representation, [1, 0, 1, 1, 0, 1, 0, 1, 1, 1])
+
+            np.testing.assert_array_equal(representation.Disjunction().representation, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+            tmp_disjunction = representation.Disjunction(self.BA)
+            tmp_disjunction.append_or(self.BC)
+            np.testing.assert_array_equal(tmp_disjunction.representation, [1, 0, 1, 1, 0, 1, 0, 1, 1, 1])
+            # pylint: enable=no-member
 
 
     def test_Set(self):
