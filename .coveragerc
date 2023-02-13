@@ -1,0 +1,12 @@
+[report]
+exclude_lines =
+        pragma: no cover
+        if __name__ == .__main__.:
+        def __repr__
+        def __eq__
+        def __lt__
+        raise RuntimeWarning
+        except ImportError:
+
+omit =
+        pysubgroup/tests/*

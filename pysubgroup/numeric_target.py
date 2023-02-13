@@ -178,7 +178,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             self.numba_in_place = False
 
         def get_data(self, data, target):
-            data.sort_values(target.get_attributes(), ascending=False, inplace=True)
+            data.sort_values(target.get_attributes()[0], ascending=False, inplace=True)
             return data
 
         def calculate_constant_statistics(self, data, target):
@@ -328,7 +328,7 @@ class StandardQFNumericMedian(ps.BoundedInterestingnessMeasure):
             self.numba_in_place = False
 
         def get_data(self, data, target):
-            data.sort_values(target.get_attributes(), ascending=False, inplace=True)
+            data.sort_values(target.get_attributes()[0], ascending=False, inplace=True)
             return data
 
         def calculate_constant_statistics(self, data, target):
@@ -377,7 +377,7 @@ class StandardQFNumericTscore(ps.BoundedInterestingnessMeasure):
         if std_sg == 0 :
             return 0
         else :
-            return (instances_subgroup ** 0.5 * (mean_sg - mean_dataset)) / std_sg 
+            return (instances_subgroup ** 0.5 * (mean_sg - mean_dataset)) / std_sg
 
     def __init__(self, a, invert=False, estimator='sum'):
         if not isinstance(a, numbers.Number):
@@ -483,7 +483,7 @@ class StandardQFNumericTscore(ps.BoundedInterestingnessMeasure):
             self.numba_in_place = False
 
         def get_data(self, data, target):
-            data.sort_values(target.get_attributes(), ascending=False, inplace=True)
+            data.sort_values(target.get_attributes()[0], ascending=False, inplace=True)
             return data
 
         def calculate_constant_statistics(self, data, target):

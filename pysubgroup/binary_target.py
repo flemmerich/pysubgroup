@@ -46,7 +46,7 @@ class BinaryTarget(ps.BaseTarget):
         return self.target_selector.covers(instance)
 
     def get_attributes(self):
-        return [self.target_selector.get_attribute_name()]
+        return (self.target_selector.attribute_name,)
 
     def get_base_statistics(self, subgroup, data):
         cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, len(data), data)
@@ -104,7 +104,7 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):  # pylint: disable=a
         dataset = self.dataset_statistics
         return (statistics.positives_count / dataset.positives_count)
 
-# <<< GpGrowth >>> 
+# <<< GpGrowth >>>
     def gp_get_stats(self, row_index):
         return np.array([1, self.positives[row_index]], dtype=int)
 
@@ -128,12 +128,12 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):  # pylint: disable=a
         return False
 
 
-        
+
 
 # TODO Make ChiSquared useful for real nominal data not just binary
 # TODO Introduce Enum for direction
 # TODO Maybe it is possible to give a optimistic estimate for ChiSquared
-class ChiSquaredQF(SimplePositivesQF):
+class ChiSquaredQF(SimplePositivesQF): # pragma: no cover
     """
     ChiSquaredQF which test for statistical independence of a subgroup against it's complement
 

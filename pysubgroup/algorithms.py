@@ -7,7 +7,7 @@ import copy
 from math import factorial
 from itertools import combinations, chain
 from heapq import heappush, heappop
-from collections import Counter, namedtuple
+from collections import Counter, namedtuple, defaultdict
 import warnings
 import numpy as np
 import pysubgroup as ps
@@ -46,7 +46,6 @@ class Apriori:
             representation_type = ps.BitSetRepresentation
         self.representation_type = representation_type
         self.use_vectorization = True
-        self.use_repruning = False
         self.optimistic_estimate_name = 'optimistic_estimate'
         self.next_level = self.get_next_level
         self.compiled_func = None
@@ -95,21 +94,11 @@ class Apriori:
                 promising_candidates.append(sg.selectors)
         return promising_candidates
 
-    def reprune_lower_levels(self, promising_candidates, depth):
-        for k in range(1, depth):
-            promising_candidates_k = (combinations(selectors, k) for selectors in promising_candidates)
-            combination_counter = Counter(chain.from_iterable(promising_candidates_k))
-            d = depth + 1 - k
-            unpromising_combinations = set(frozenset(sel) for sel, count in combination_counter.items() if count < d)
-            promising_candidates = list(selectors for selectors in promising_candidates
-                                        if all(frozenset(comb) not in unpromising_combinations for comb in combinations(selectors, k)))
-        return promising_candidates
-
 
     def get_next_level_numba(self, promising_candidates):
-        from numba import jit # pylint: disable=import-error, import-outside-toplevel
+        from numba import njit # pylint: disable=import-error, import-outside-toplevel
         if not hasattr(self, 'compiled_func') or self.compiled_func is None:
-            @jit
+            @njit
             def getNewCandidates(l, hashes):
                 result = []
                 for i in range(len(l)-1):
@@ -132,9 +121,12 @@ class Apriori:
 
 
     def get_next_level(self, promising_candidates):
-        precomputed_list = list((tuple(sg), sg[-1], hash(tuple(sg[:-1])), tuple(sg[:-1])) for sg in promising_candidates)
-        return list((*sg1, new_selector) for (sg1, _, hash_l, selectors_l), (_, new_selector, hash_r, selectors_r) in combinations(precomputed_list, 2)
-                    if (hash_l == hash_r) and (selectors_l == selectors_r))
+        by_prefix_dict = defaultdict(list)
+        for sg in promising_candidates:
+            by_prefix_dict[tuple(sg[:-1])].append(sg[-1])
+        return [prefix + real_suffix
+                for prefix, suffixes in by_prefix_dict.items()
+                    for real_suffix in combinations(sorted(suffixes), 2)]
 
     def execute(self, task):
         if not isinstance(task.qf, ps.BoundedInterestingnessMeasure):
@@ -149,7 +141,7 @@ class Apriori:
             next_level_candidates = []
             for sel in task.search_space:
                 sg = combine_selectors([sel])
-                if all(constraint.is_satisfied(sg, None, task.data) for constraint in task.constraints_monotone):
+                if ps.constraints_satisfied(task.constraints_monotone, sg, None, task.data):
                     next_level_candidates.append(sg)
 
             # level-wise search
@@ -163,9 +155,6 @@ class Apriori:
 
                 if depth == task.depth:
                     break
-
-                if self.use_repruning:
-                    promising_candidates = self.reprune_lower_levels(promising_candidates, depth)
 
                 next_level_candidates_no_pruning = self.next_level(promising_candidates)
 
@@ -207,7 +196,7 @@ class BestFirstSearch:
         return ps.SubgroupDiscoveryResult(result, task)
 
 
-class GeneralisingBFS:
+class GeneralisingBFS: # pragma: no cover
     def __init__(self):
         self.alpha = 1.10
         self.discarded = [0, 0, 0, 0, 0, 0, 0]
@@ -319,7 +308,7 @@ class SimpleSearch:
         all_selectors = chain.from_iterable(combinations(task.search_space, r) for r in range(1, task.depth + 1))
         if self.show_progress:
             try:
-                from tqdm import tqdm   # pylint: disable=import-outside-toplevel
+                from tqdm.auto import tqdm   # pylint: disable=import-outside-toplevel
                 def binomial(x, y):
                     try:
                         binom = factorial(x) // factorial(y) // factorial(x - y)
@@ -329,7 +318,7 @@ class SimpleSearch:
                 total = sum(binomial(len(task.search_space), k) for k in range(1, task.depth + 1))
                 all_selectors = tqdm(all_selectors, total=total)
             except ImportError:
-                pass
+                warnings.warn("tqdm not installed but show_progress=True", ImportWarning)
         for selectors in all_selectors:
             sg = ps.Conjunction(selectors)
             statistics = task.qf.calculate_statistics(sg, task.target, task.data)
@@ -417,9 +406,9 @@ class DFSNumeric:
 
     def execute(self, task):
         if not isinstance(task.qf, ps.StandardQFNumeric):
-            warnings.warn("BSD_numeric so far is only implemented for StandardQFNumeric")
+            raise RuntimeError("BSD_numeric so far is only implemented for StandardQFNumeric")
         self.pop_size = len(task.data)
-        sorted_data = task.data.sort_values(task.target.get_attributes(), ascending=False)
+        sorted_data = task.data.sort_values(task.target.get_attributes()[0], ascending=False)
 
         # generate target bitset
         self.target_values = sorted_data[task.target.get_attributes()[0]].to_numpy()
@@ -442,7 +431,8 @@ class DFSNumeric:
             return result
         target_values_sg = self.target_values[bitset]
 
-        target_values_cs = np.cumsum(target_values_sg)
+        target_values_cs = np.cumsum(target_values_sg, dtype=np.float64)
+
         sizes = np.arange(1, len(target_values_cs) + 1)
         mean_values_cs = target_values_cs / sizes
         tpl = DFSNumeric.tpl(sizes, mean_values_cs)
