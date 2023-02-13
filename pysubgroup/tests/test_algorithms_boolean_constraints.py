@@ -24,7 +24,7 @@ class BooleanTargetBase(TestAlgorithmsBase):
     def test_Apriori(self):
         self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
 
-    @unittest.skipUnless(TestSettings.SimpleDFS, 'flag not set')
+    @unittest.skipUnless(TestSettings.All or TestSettings.SimpleDFS, 'flag not set')
     def test_SimpleDFS(self):
         self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
 
@@ -62,6 +62,10 @@ class BooleanTargetBase(TestAlgorithmsBase):
         self.assertTrue(all(algorithm_result.task.constraints[0].min_support <= df['size_sg']))
         TestAlgorithmsBase.evaluate_result(self, algorithm_result, result, qualities)
     # pylint: enable=no-member
+
+
+
+
 class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.EqualitySelector("checking_status", b"<0")

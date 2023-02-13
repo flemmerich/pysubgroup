@@ -25,6 +25,17 @@ class BooleanTargetBase():
     def test_Apriori(self):
         self.runAlgorithm(ps.Apriori(), "Apriori", self.result, self.qualities, self.task)
 
+
+    @unittest.skipUnless(TestSettings.All or TestSettings.Apriori, 'flag not set')
+    def test_Apriori_no_numba(self):
+        self.runAlgorithm(ps.Apriori(use_numba=False), "Apriori", self.result, self.qualities, self.task)
+
+    @unittest.skipUnless(TestSettings.All or TestSettings.Apriori, 'flag not set')
+    def test_Apriori_no_vector(self):
+        alg = ps.Apriori()
+        alg.use_vectorization = False
+        self.runAlgorithm(alg, "Apriori", self.result, self.qualities, self.task)
+
     @unittest.skipUnless(TestSettings.All or TestSettings.SimpleDFS, 'flag not set')
     def test_SimpleDFS(self):
         self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
@@ -43,9 +54,15 @@ class BooleanTargetBase():
 
     @unittest.skipUnless(TestSettings.All or TestSettings.GpGrowth, 'flag not set')
     def test_gp_growth(self):
-        self.task.constraints_monotone.append(ps.MinSupportConstraint(20))
+        self.task.constraints_monotone.append(ps.MinSupportConstraint(60))
         self.runAlgorithm(ps.GpGrowth(), "GpGrowth", self.result, self.qualities, self.task)
         self.task.constraints_monotone.pop(-1)
+
+ #   @unittest.skipUnless(TestSettings.All or TestSettings.GpGrowth, 'flag not set')
+ #   def test_gp_growth_top_down(self):
+ #       self.task.constraints_monotone.append(ps.MinSupportConstraint(60))
+ #       self.runAlgorithm(ps.GpGrowth(mode="t_d"), "GpGrowth", self.result, self.qualities, self.task)
+ #       self.task.constraints_monotone.pop(-1)
 
 
     @pytest.mark.slow
