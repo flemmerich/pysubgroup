@@ -14,8 +14,8 @@ class RepresentationBase():
         for sel in self.selectors_to_patch:
             self.patch_selector(sel)
 
-    def patch_selector(self, sel):
-        raise NotImplementedError
+    def patch_selector(self, sel): # pragma: no cover
+        raise NotImplementedError()  # pragma: no cover
 
     def patch_classes(self):
         pass

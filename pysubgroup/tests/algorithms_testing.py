@@ -8,7 +8,6 @@ class TestAlgorithmsBase(abc.ABC):
     def evaluate_result(self, algorithm_result, result, qualities):
         self.assertTrue(isinstance(algorithm_result, ps.SubgroupDiscoveryResult))
         algorithm_result.to_dataframe()
-        algorithm_result.to_dataframe(include_info=True)
         algorithm_result = algorithm_result.to_descriptions()
         for (q, sg) in algorithm_result:
             print("   " + str(q) + ":\t" + str(sg))

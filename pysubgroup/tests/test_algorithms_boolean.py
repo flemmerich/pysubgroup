@@ -15,6 +15,7 @@ class TestSettings:
     DFS_set = False
     DFS_numpyset = False
     SimpleSearch = False
+    GpGrowth = False
 
 skip_long_running = True
 class BooleanTargetBase():
@@ -40,7 +41,11 @@ class BooleanTargetBase():
     def test_DFS_bitset(self):
         self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS bitset", self.result, self.qualities, self.task)
 
-
+    @unittest.skipUnless(TestSettings.All or TestSettings.GpGrowth, 'flag not set')
+    def test_gp_growth(self):
+        self.task.constraints_monotone.append(ps.MinSupportConstraint(20))
+        self.runAlgorithm(ps.GpGrowth(), "GpGrowth", self.result, self.qualities, self.task)
+        self.task.constraints_monotone.pop(-1)
 
 
     @pytest.mark.slow
@@ -138,7 +143,7 @@ class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
 
     @pytest.mark.slow
     def test_DFS_numpy_sets(self):
-        super.test_DFS_numpy_sets()
+        super().test_DFS_numpy_sets()
 
 # uses an a=0.5 and result_set_size = 12, is much faster because of that
 
@@ -187,15 +192,15 @@ class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
 
     @pytest.mark.slow
     def test_BestFirstSearch(self):
-        super.test_BestFirstSearch()
+        super().test_BestFirstSearch()
 
     @pytest.mark.slow
     def test_SimpleDFS(self):
-        super.test_SimpleDFS()
+        super().test_SimpleDFS()
 
     @pytest.mark.slow
     def test_DFS_numpy_sets(self):
-        super.test_DFS_numpy_sets()
+        super().test_DFS_numpy_sets()
 
 
 if __name__ == '__main__':

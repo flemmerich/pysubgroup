@@ -8,10 +8,14 @@ class MinSupportConstraint:
     def is_monotone(self):
         return True
 
-    def holds(self, subgroup, statistics=None, data=None):
-        if hasattr(statistics, 'size'):
-            return statistics.size >= self.min_support
-        elif hasattr(statistics, 'size_sg'):
+    def is_satisfied(self, subgroup, statistics=None, data=None):
+        if hasattr(statistics, 'size_sg'):
             return statistics.size_sg >= self.min_support
         else:
             return ps.get_size(subgroup, len(data), data) >= self.min_support
+
+    def gp_prepare(self, qf):
+        self.get_size_sg = qf.gp_size_sg # pylint: disable=attribute-defined-outside-init
+
+    def gp_is_satisfied(self, node):
+        return self.get_size_sg(node) >= self.min_support

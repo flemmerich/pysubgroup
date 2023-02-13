@@ -8,29 +8,21 @@ from collections import namedtuple
 from itertools import combinations
 import numpy as np
 import pysubgroup as ps
-import pandas as pd
+
 
 
 class AbstractInterestingnessMeasure(ABC):
-    @abstractmethod
-    def supports_weights(self):
-        pass
 
-    @abstractmethod
-    def is_applicable(self, subgroup):
-        pass
     # pylint: disable=no-member
-    def ensure_statistics(self, subgroup=None, statistics_or_data=None, statistics=None):
-        if not statistics is None and not isinstance(statistics, pd.DataFrame):
-            return statistics
+    def ensure_statistics(self, subgroup, target, data, statistics=None):
         if not self.has_constant_statistics:
-            self.calculate_constant_statistics(subgroup.data)
-        if any(not hasattr(statistics_or_data, attr) for attr in self.required_stat_attrs):
+            self.calculate_constant_statistics(data, target)
+        if any(not hasattr(statistics, attr) for attr in self.required_stat_attrs):
             if getattr(subgroup, 'statistics', False):
                 return subgroup.statistics
             else:
-                return self.calculate_statistics(subgroup, statistics_or_data)
-        return statistics_or_data
+                return self.calculate_statistics(subgroup, target, data, statistics)
+        return statistics
     # pylint: enable=no-member
     #def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None): #pylint: disable=unused-argument
     #    return float("inf")
@@ -43,37 +35,40 @@ class BoundedInterestingnessMeasure(AbstractInterestingnessMeasure):
     #    pass
 
 
+
+#####
+# FIX ME: This is currently not working anymore
+#####
 class CombinedInterestingnessMeasure(BoundedInterestingnessMeasure):
     def __init__(self, measures, weights=None):
         self.measures = measures
 
         if weights is None:
             weights = [1] * len(measures)
+        assert len(weights) == len(measures)
         self.weights = weights
 
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        if not self.is_applicable(subgroup):
-            raise BaseException("Quality measure cannot be used for this target class")
-        return np.dot([m.evaluate_from_dataset(data, subgroup, weighting_attribute) for m in self.measures], self.weights)
+    def calculate_constant_statistics(self, data, target):
+        pass
 
-    def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        if not self.is_applicable(subgroup):
-            raise BaseException("Quality measure cannot be used for this target class")
-        return np.dot([m.optimistic_estimate_from_dataset(data, subgroup) for m in self.measures], self.weights)
+    def calculate_statistics(self, subgroup, target, data, cached_statistics=None):
+        pass
+
+    def evaluate(self, subgroup, target, data, statistics=None):
+        #FIX USE of constant statistics
+        return np.dot([m.evaluate(subgroup, target, data, None) for m in self.measures], self.weights)
+
+    def optimistic_estimate(self, subgroup, target, data, statistics=None):
+        # FIX USE of constant statistics
+        return np.dot([m.optimistic_estimate(subgroup, target, data, None) for m in self.measures], self.weights)
 
     def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
         return np.dot([m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures], self.weights)
 
-    def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        return np.dot(
-            [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures],
-            self.weights)
-
-    def is_applicable(self, subgroup):
-        return all([x.is_applicable(subgroup) for x in self.measures])
-
-    def supports_weights(self):
-        return all([x.supports_weights() for x in self.measures])
+    #def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+    #    return np.dot(
+    #        [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures],
+    #        self.weights)
 
 
 ##########
@@ -138,15 +133,9 @@ class CountCallsInterestingMeasure(BoundedInterestingnessMeasure):
         self.qf = qf
         self.calls = 0
 
-    def supports_weights(self):
-        return self.qf.supports_weights
-
-    def is_applicable(self, subgroup):
-        return self.qf.is_applicable(subgroup)
-
-    def calculate_statistics(self, sg, data=None):
+    def calculate_statistics(self, sg, target, data, statistics=None):
         self.calls += 1
-        return self.qf.calculate_statistics(sg, data)
+        return self.qf.calculate_statistics(sg, target, data, statistics)
 
     def __getattr__(self, name):
         return getattr(self.qf, name)
@@ -171,23 +160,23 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
         self.required_stat_attrs = ['subgroup_quality', 'generalisation_quality']
         self.q0 = 0
 
-    def calculate_constant_statistics(self, task):
+    def calculate_constant_statistics(self, data, target):
         self.cache = {}
-        self.qf.calculate_constant_statistics(task)
-        self.q0 = self.qf.evaluate(slice(None), task.data)
+        self.qf.calculate_constant_statistics(data, target)
+        self.q0 = self.qf.evaluate(slice(None), target, data)
         self.has_constant_statistics = self.qf.has_constant_statistics
 
-    def calculate_statistics(self, subgroup, data=None):
+    def calculate_statistics(self, subgroup, target, data, statistics=None):
         sg_repr = repr(subgroup)
         if sg_repr in self.cache:
             return GeneralizationAwareQF.ga_tuple(*self.cache[sg_repr])
         else:
-            (q_sg, q_prev) = self.get_qual_and_previous_qual(subgroup, data)
+            (q_sg, q_prev) = self.get_qual_and_previous_qual(subgroup, target, data)
             self.cache[sg_repr] = (q_sg, q_prev)
             return GeneralizationAwareQF.ga_tuple(q_sg, q_prev)
 
-    def get_qual_and_previous_qual(self, subgroup, data):
-        q_subgroup = self.qf.evaluate(subgroup, data)
+    def get_qual_and_previous_qual(self, subgroup, target, data):
+        q_subgroup = self.qf.evaluate(subgroup, target, data)
         max_q = 0
         selectors = subgroup.selectors
         if len(selectors) > 0:
@@ -196,20 +185,13 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
 
             for sels in generalizations:
                 sgd = ps.Conjunction(list(sels))
-                (q_sg, q_prev) = self.calculate_statistics(sgd, data)
+                (q_sg, q_prev) = self.calculate_statistics(sgd, target, data)
                 max_q = max(max_q, q_sg, q_prev)
         return (q_subgroup, max_q)
 
-    def evaluate(self, subgroup, statistics_or_data=None):
-        statistics = self.ensure_statistics(subgroup, statistics_or_data)
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
         return statistics.subgroup_quality - statistics.generalisation_quality
-
-
-    def is_applicable(self, subgroup):
-        return self.qf.is_applicable(subgroup)
-
-    def supports_weights(self):
-        return self.qf.supports_weights()
 
 
 #####
@@ -222,29 +204,29 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
 
         # this cache maps the representation of descriptions to tuples
         # the first entry is the quality and the second one is
-        # the largest quality of all its predessors
+        # the largest quality of all its predecessors
         self.cache = {}
         self.has_constant_statistics = False
         self.required_stat_attrs = GeneralizationAwareQF_stats.ga_tuple._fields
         self.stats0 = None
 
-    def calculate_constant_statistics(self, task):
+    def calculate_constant_statistics(self, data, target):
         self.cache = {}
-        self.qf.calculate_constant_statistics(task)
-        self.stats0 = self.qf.calculate_statistics(slice(None), task.data)
+        self.qf.calculate_constant_statistics(data, target)
+        self.stats0 = self.qf.calculate_statistics(slice(None), target, data)
         self.has_constant_statistics = self.qf.has_constant_statistics
 
-    def calculate_statistics(self, subgroup, data=None):
+    def calculate_statistics(self, subgroup, target, data, statistics=None):
         sg_repr = repr(subgroup)
         if sg_repr in self.cache:
             return GeneralizationAwareQF_stats.ga_tuple(*self.cache[sg_repr])
         else:
-            (stats_sg, stats_prev) = self.get_stats_and_previous_stats(subgroup, data)
+            (stats_sg, stats_prev) = self.get_stats_and_previous_stats(subgroup, target, data)
             self.cache[sg_repr] = (stats_sg, stats_prev)
             return GeneralizationAwareQF_stats.ga_tuple(stats_sg, stats_prev)
 
-    def get_stats_and_previous_stats(self, subgroup, data):
-        stats_subgroup = self.qf.calculate_statistics(subgroup, data)
+    def get_stats_and_previous_stats(self, subgroup, target, data):
+        stats_subgroup = self.qf.calculate_statistics(subgroup, target, data)
         max_stats = self.stats0
         selectors = subgroup.selectors
         if len(selectors) > 0:
@@ -253,7 +235,7 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
 
             for sels in generalizations:
                 sgd = ps.Conjunction(list(sels))
-                (stats_sg, stats_prev) = self.calculate_statistics(sgd, data)
+                (stats_sg, stats_prev) = self.calculate_statistics(sgd, target, data)
                 max_stats = self.get_max(max_stats, stats_sg, stats_prev)
         return (stats_subgroup, max_stats)
 
@@ -262,10 +244,3 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
 
     def get_max(self, *args):
         raise NotImplementedError
-
-
-    def is_applicable(self, subgroup):
-        return self.qf.is_applicable(subgroup)
-
-    def supports_weights(self):
-        return self.qf.supports_weights()

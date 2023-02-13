@@ -1,34 +1,38 @@
-from collections import  namedtuple, defaultdict
+from collections import namedtuple, defaultdict
 from itertools import combinations
 import numpy as np
 import pysubgroup as ps
-from tqdm import tqdm
-from copy import copy
 import itertools
+
+def identity(x, *args, **kwargs):#pylint: disable=unused-argument
+    return x
+
+
 class GpGrowth:
 
     def __init__(self, mode='b_u' ):
         self.GP_node = namedtuple('GP_node', ['cls', 'id', 'parent', 'children', 'stats'])
         self.minSupp = 10
-        self.tqdm = tqdm
+        self.tqdm = identity
         self.depth = 0
         self.mode = mode  #specify eihther b_u (bottom up) or t_d (top down)
+        self.constraints_monotone = []
         # Future: There also is the option of a stable mode which never creates the prefix trees
 
-    def prepare_selectors(self, search_space):
-        
-        self.get_stats = task.qf.gp_get_stats
-        self.get_null_vector = task.qf.gp_get_null_vector
-        self.merge = task.qf.gp_merge
+
+    def prepare_selectors(self, search_space, data):
         l = []
         for selector in search_space:
             cov_arr = selector.covers(data)
             l.append((np.count_nonzero(cov_arr), selector, cov_arr))
-        l = [(size, selector, arr) for size, selector, arr in l if size > self.minSupp]
 
+        l = [(size, selector, arr) for size, selector, arr in l if all(constraint.is_satisfied(arr, None, data) for constraint in self.constraints_monotone)]
         s = sorted(l, reverse=True)
         selectors_sorted = [selector for size, selector, arr in s]
-        arrs = np.vstack([arr for size, selector, arr in s]).T
+        if len(selectors_sorted)==0:
+            arrs = np.empty((0,0),dtype=np.bool_)
+        else:
+            arrs = np.vstack([arr for size, selector, arr in s]).T
         return selectors_sorted, arrs
 
     def nodes_to_cls_nodes(self, nodes):
@@ -38,19 +42,53 @@ class GpGrowth:
         return cls_nodes
 
 
-    def execute(self, task):
-        assert(self.mode in ('b_u', 't_d'))
-        task.qf.calculate_constant_statistics(task)
-        self.depth = task.depth
-        selectors_sorted, arrs = self.prepare_selectors(task.search_space)
-        self.requires_cover_arr = task.qf.gp_requires_cover_arr
+    def setup_from_quality_function(self, qf):
+        # pylint: disable=attribute-defined-outside-init
+        self.get_stats = qf.gp_get_stats
+        self.get_null_vector = qf.gp_get_null_vector
+        self.merge = qf.gp_merge
+        self.requires_cover_arr = qf.gp_requires_cover_arr
+        # pylint: enable=attribute-defined-outside-init
 
+    def setup_constraints(self, constraints, qf):
+
+        self.constraints_monotone = constraints
+        for constraint in self.constraints_monotone:
+            constraint.gp_prepare(qf)
+
+        if len(constraints)==1:
+            self.check_constraints = constraints[0].gp_is_satisfied
+
+    
+    def check_constraints(self, node): #pylint: disable=method-hidden
+        return all(constraint.gp_is_satisfied(node) for constraint in self.constraints_monotone)
+
+
+    def setup(self, task):
+        task.qf.calculate_constant_statistics(task.data, task.target)
+        self.depth = task.depth
+        self.setup_constraints(task.constraints_monotone, task.qf)
+
+        self.setup_from_quality_function(task.qf)
+        
+    def create_initial_tree(self, arrs):
         # Create tree
         root = self.GP_node(-1, -1, None, {}, self.get_null_vector())
         nodes = []
         for row_index, row in self.tqdm(enumerate(arrs), 'creating tree', total=len(arrs)):
             self.normal_insert(root, nodes, self.get_stats(row_index), np.nonzero(row)[0])
         nodes.append(root)
+        return root, nodes
+
+
+    def execute(self, task):
+        assert self.mode in ('b_u', 't_d')
+        self.setup(task)
+
+        selectors_sorted, arrs = self.prepare_selectors(task.search_space, task.data)
+        root, nodes = self.create_initial_tree(arrs)
+
+
 
         # mine tree
         cls_nodes = self.nodes_to_cls_nodes(nodes)
@@ -62,9 +100,12 @@ class GpGrowth:
             raise RuntimeError('mode needs to be either b_u or t_d')
 
         # compute quality functions
-        return self.calculate_quality_function_for_patterns(patterns, selectors_sorted, arrs)
+        result = self.calculate_quality_function_for_patterns(task, patterns, selectors_sorted, arrs)
+        
+        result = ps.prepare_subgroup_discovery_result(result, task)
+        return ps.SubgroupDiscoveryResult(result, task)
 
-    def calculate_quality_function_for_patterns(self, patterns, selectors_sorted, arrs):
+    def calculate_quality_function_for_patterns(self, task, patterns, selectors_sorted, arrs):
         out = []
         for indices, gp_params in self.tqdm(patterns, 'computing quality function',):
             if len(indices) > 0:
@@ -72,12 +113,16 @@ class GpGrowth:
                 #print(selectors, stats)
                 sg = ps.Conjunction(selectors)
                 if self.requires_cover_arr:
-                    statistics = task.qf.gp_get_params(np.all([arrs[i] for i in indices]), gp_params)
+                    if len(indices)==1:
+                        cover_arr = arrs[:,indices[0]]
+                    else:
+                        cover_arr = np.all([arrs[:,i] for i in indices])
+                    statistics = task.qf.gp_get_params(cover_arr, gp_params)
                 else:
                     statistics = task.qf.gp_get_params(None, gp_params)
                 #qual1 = task.qf.evaluate(sg, task.qf.calculate_statistics(sg, task.data))
-                qual2 = task.qf.evaluate(sg, statistics)
-                out.append((qual2, sg))
+                qual2 = task.qf.evaluate(sg, task.target, task.data, statistics)
+                out.append((qual2, sg, statistics))
         return out
 
     def normal_insert(self, root, nodes, new_stats, classes):
@@ -109,11 +154,6 @@ class GpGrowth:
                     node.children[cls] = new_child
                     self.merge(node.stats, new_stats)
 
-
-    def check_constraints(self, node):
-        #return node[0] >= self.minSupp
-        return node['size'] >= self.minSupp
-
     def recurse(self, cls_nodes, prefix, is_single_path=False):
         if len(cls_nodes) == 0:
             raise RuntimeError
@@ -122,15 +162,18 @@ class GpGrowth:
         results.append((prefix, cls_nodes[-1][0].stats))
         if len(prefix) >= self.depth:
             return results
-        
+
         stats_dict = self.get_stats_for_class(cls_nodes)
         if is_single_path:
-            root_stats = cls_nodes[-1][0].stats
-            del stats_dict[-1]
-            all_combinations = ps.powerset(stats_dict.keys(), max_length=self.depth - len(prefix))
-            
+            if len(cls_nodes)==1 and -1 in cls_nodes:
+                return results
+            del stats_dict[-1] # remove root node
+            all_combinations = ps.powerset(stats_dict.keys(), max_length=self.depth - len(prefix)+1)
             for comb in all_combinations:
-                results.append((prefix+comb, root_stats))
+                # it might still be, that stats_dict[comb[-1]] is wrong if that is the case then
+                # stats_dict[comb[0]] is correct
+                if len(comb)>0:
+                    results.append((prefix+comb, stats_dict[comb[-1]]))
         else:
             for cls, nodes in cls_nodes.items():
                 if cls >= 0:
@@ -160,7 +203,7 @@ class GpGrowth:
         curr_depth = depth_in
         while True:
             if root.cls == -1:
-               pass
+                pass
             else:
                 alpha.append(root.cls)
             if len(root.children) == 1 and curr_depth <= self.depth:
@@ -248,7 +291,7 @@ class GpGrowth:
                 self.create_copy_of_tree_top_down(other_root.children[cls], nodes, mutable_root)
             else:
                 self.merge_trees_top_down(nodes, mutable_root.children[cls], other_root.children[cls])
-        
+
 
     def get_stats_for_class(self, cls_nodes):
         out = {}
@@ -303,73 +346,12 @@ class GpGrowth:
         return path
 
     def to_file(self, task, path):
-        task.qf.calculate_constant_statistics(task)
-        self.depth = task.depth
-        selectors_sorted, arrs = self.prepare_selectors(task.search_space)
+        self.setup(task)
+        _, arrs = self.prepare_selectors(task.search_space, task.data)
 
         # Create tree
-        root = self.GP_node(-1, -1, None, {}, self.get_null_vector())
-        nodes = []
-        with open(path, 'w') as f:
+        to_str = task.qf.gp_to_str
+        with open(path, 'w', encoding="utf-8") as f:
             for row_index, row in self.tqdm(enumerate(arrs), 'creating tree', total=len(arrs)):
                 #print(np.nonzero(row)[0])
-                f.write(" ".join(map(str, np.nonzero(row)[0])) + " "+ task.qf.gp_to_str(self.get_stats(row_index))+"\r\n")
-        
-
-if __name__ == '__main__':
-    from pysubgroup.tests.DataSets import get_credit_data
-    from pysubgroup import model_target
-
-    data = get_credit_data()
-    #warnings.filterwarnings("error")
-    print(data.columns)
-    searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['duration', 'credit_amount'])
-    searchSpace_Numeric = ps.create_numeric_selectors(data, ignore=['duration', 'credit_amount'])
-    searchSpace = searchSpace_Nominal + searchSpace_Numeric
-    target = ps.FITarget()
-    #QF=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration', y_name='credit_amount'))
-    QF=ps.CountQF()
-    task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=200, depth=4, qf=QF)
-    GpGrowth(mode='b_u').to_file(task,'E:/tmp/gp_credit.txt')
-
-    import time
-    start_time = time.time()
-    gp = GpGrowth(mode='b_u').execute(task)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    #gp = [(qual, sg) for qual, sg in gp if sg.depth <= task.depth]
-    gp = sorted(gp)
-    quit()
-
-    start_time = time.time()
-    dfs1 = ps.SimpleDFS().execute(task)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    dfs = [(qual, sg.subgroup_description) for qual, sg in dfs1]
-    dfs = sorted(dfs, reverse=True)
-    gp = sorted(gp, reverse=True)
-
-    def better_sorted(l):
-        the_dict=defaultdict(list)
-        prev_key=l[0][0]
-        for key, val in l:
-            
-            if abs(prev_key-key)<10**-11:
-                the_dict[prev_key].append(val)
-            else:
-                the_dict[key].append(val)
-                prev_key = key
-        print(len(the_dict))
-        result = []
-        for key, vals in the_dict.items():
-            for val in sorted(vals):
-                result.append((key, val))
-        return result
-    dfs = better_sorted(dfs)
-    gp = better_sorted(gp)
-    gp = gp[:task.result_set_size]
-
-    for i, (l, r) in enumerate(zip(gp, dfs)):
-        print(i)
-        print('gp:', l)
-        print('df:', r)
-        assert(abs(l[0]-r[0]) < 10 ** -7)
-        assert(l[1] == r[1])
+                f.write(" ".join(map(str, np.nonzero(row)[0])) + " "+ to_str(self.get_stats(row_index))+"\n")

@@ -6,8 +6,6 @@ import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_credit_data
 from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
-task_dummy = namedtuple('task_dummy', ['data', 'target'])
-
 class TestGeneralisationAwareQf(unittest.TestCase):
     def setUp(self):
         self.qf = ps.CountQF()
@@ -28,28 +26,30 @@ class TestGeneralisationAwareQf(unittest.TestCase):
 
     def test_CountTarget1(self):
         df = self.df
-        self.ga_qf.calculate_constant_statistics(task_dummy(df, None))
+        target = ps.FITarget()
+        self.ga_qf.calculate_constant_statistics(df, target)
 
-        ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1]), df)
+        ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1]), target, df)
 
-        A1_score = self.qf.evaluate(ps.Conjunction([self.A1]), df)
-        zero_score = self.qf.evaluate(ps.Conjunction([]), df)
+        A1_score = self.qf.evaluate(ps.Conjunction([self.A1]), target, df)
+        zero_score = self.qf.evaluate(ps.Conjunction([]), target, df)
 
         self.assertEqual(ga_score, A1_score-zero_score)
 
-        ga2_score = self.ga_qf.evaluate(ps.Conjunction([self.A1]), df)
+        ga2_score = self.ga_qf.evaluate(ps.Conjunction([self.A1]), target, df)
 
         self.assertEqual(ga2_score, ga_score)
 
 
     def test_CountTarget2(self):
         df = self.df
-        self.ga_qf.calculate_constant_statistics(task_dummy(df, None))
+        target = ps.FITarget()
+        self.ga_qf.calculate_constant_statistics(df, None)
 
-        ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), df)
+        ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), target,  df)
 
-        A_B_score = self.qf.evaluate(ps.Conjunction([self.A1, self.BA]), df)
-        zero_score = self.qf.evaluate(ps.Conjunction([]), df)
+        A_B_score = self.qf.evaluate(ps.Conjunction([self.A1, self.BA]), target, df)
+        zero_score = self.qf.evaluate(ps.Conjunction([]), target, df)
 
         self.assertEqual(ga_score, A_B_score-zero_score)
 
@@ -64,32 +64,28 @@ class TestGeneralisationAware_StandardQf(unittest.TestCase):
         self.ga_qf = ps.GeneralizationAware_StandardQF(0)
 
     def test_simple(self):
-        
-        task = task_dummy(self.df, ps.BinaryTarget('columnC', 1))
+        target = ps.BinaryTarget('columnC', 1)
         qf = ps.StandardQF(0)
-        qf.calculate_constant_statistics(task)
+        qf.calculate_constant_statistics(self.df, target)
 
-        self.ga_qf.calculate_constant_statistics(task)
+        self.ga_qf.calculate_constant_statistics(self.df, target)
 
         #print(qf.calculate_statistics(self.A1, self.df))
         #print(qf.calculate_statistics(self.BA, self.df))
         #print(qf.calculate_statistics(ps.Conjunction([self.A1, self.BA]), self.df))
         #print(qf.calculate_statistics(slice(None), self.df))
-        ga_stat = self.ga_qf.calculate_statistics(ps.Conjunction([self.A1, self.BA]), self.df)
+        ga_stat = self.ga_qf.calculate_statistics(ps.Conjunction([self.A1, self.BA]), target, self.df)
 
         self.assertEqual(ga_stat.subgroup_stats, ps.SimplePositivesQF.tpl(3, 2))
         self.assertEqual(ga_stat.generalisation_stats, ps.SimplePositivesQF.tpl(5, 3))
         # Ensure cache works properly
-        self.assertEqual(ga_stat, self.ga_qf.calculate_statistics(ps.Conjunction([self.A1, self.BA]), self.df))
+        self.assertEqual(ga_stat, self.ga_qf.calculate_statistics(ps.Conjunction([self.A1, self.BA]), target, self.df))
 
-        ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), self.df)
-        ga_score2 = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), self.df)
+        ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), target, self.df)
+        ga_score2 = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), target, self.df)
 
         self.assertEqual(ga_score, ga_score2)
         self.assertAlmostEqual(ga_score, 0.06666666666666)
-
-
-
 
 
 class TestAlgorithms(TestAlgorithmsBase, unittest.TestCase):

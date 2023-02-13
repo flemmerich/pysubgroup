@@ -16,15 +16,9 @@ class TestNominalTarget_to_result(unittest.TestCase, TestAlgorithmsBase):
         cls.result = ps.SimpleDFS().execute(cls.task)
 
     def test_to_dataframe(self):
-        df = self.__class__.result.to_dataframe(include_info=True)
+        df = self.__class__.result.to_dataframe()
         self.assertEqual(len(df), 10)
         self.assertEqual(len(df.columns), 15)
-
-
-    def test_to_dataframe2(self):
-        df = self.__class__.result.to_dataframe(include_info=False)
-        self.assertEqual(len(df), 10)
-        self.assertEqual(len(df.columns), 2)
 
     def test_to_descriptions(self):
         l = self.__class__.result.to_descriptions()
@@ -34,20 +28,12 @@ class TestNominalTarget_to_result(unittest.TestCase, TestAlgorithmsBase):
             self.assertTrue(isinstance(tpl[0], float))
             self.assertTrue(isinstance(tpl[1], ps.Conjunction))
 
-    def test_to_subgroups(self):
-        l = self.__class__.result.to_subgroups()
-        self.assertEqual(len(l), 10)
-        for tpl in l:
-            self.assertEqual(len(tpl), 2)
-            self.assertTrue(isinstance(tpl[1], ps.Subgroup))
-            self.assertTrue(isinstance(tpl[0], float))
-
-    def test_supportSetVisualization(self):
-        img = self.__class__.result.supportSetVisualization()
-        self.assertEqual(img.shape, (10, 274))
-        if show_plots:
-            plt.matshow(img)
-            plt.show()
+    #def test_supportSetVisualization(self):
+    #    img = self.__class__.result.supportSetVisualization()
+    #    self.assertEqual(img.shape, (10, 274))
+    #    if show_plots:
+    #        plt.matshow(img)
+    #        plt.show()
 
 class TestNumericTarget_to_result(unittest.TestCase, TestAlgorithmsBase):
     @classmethod
@@ -59,14 +45,9 @@ class TestNumericTarget_to_result(unittest.TestCase, TestAlgorithmsBase):
         cls.result = ps.SimpleDFS().execute(cls.task)
 
     def test_to_dataframe(self):
-        df = self.__class__.result.to_dataframe(include_info=True)
+        df = self.__class__.result.to_dataframe()
         self.assertEqual(len(df), 10)
         self.assertEqual(len(df.columns), 16)
-
-    def test_to_dataframe2(self):
-        df = self.__class__.result.to_dataframe(include_info=False)
-        self.assertEqual(len(df), 10)
-        self.assertEqual(len(df.columns), 2)
 
     def test_to_descriptions(self):
         l = self.__class__.result.to_descriptions()
@@ -76,20 +57,13 @@ class TestNumericTarget_to_result(unittest.TestCase, TestAlgorithmsBase):
             self.assertTrue(isinstance(tpl[0], float))
             self.assertTrue(isinstance(tpl[1], ps.Conjunction))
 
-    def test_to_subgroups(self):
-        l = self.__class__.result.to_subgroups()
-        self.assertEqual(len(l), 10)
-        for tpl in l:
-            self.assertEqual(len(tpl), 2)
-            self.assertTrue(isinstance(tpl[1], ps.Subgroup))
-            self.assertTrue(isinstance(tpl[0], float))
 
-    def test_supportSetVisualization(self):
-        img = self.__class__.result.supportSetVisualization()
-        self.assertEqual(img.shape, (10, 425))
-        if show_plots:
-            plt.matshow(img)
-            plt.show()
+    #def test_supportSetVisualization(self):
+    #    img = self.__class__.result.supportSetVisualization()
+    #    self.assertEqual(img.shape, (10, 425))
+    #    if show_plots:
+    #        plt.matshow(img)
+    #        plt.show()
 
 
 if __name__ == '__main__':

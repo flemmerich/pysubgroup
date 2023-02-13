@@ -1,5 +1,7 @@
 __pycache__
 .idea
+.eggs
+dist
 doc/_build
 .ipynb_checkpoints
 build
@@ -21,3 +23,7 @@ test.ipynb
 .project
 .pydevproject
 env/*
+.coverage
+test_gp_binary.txt
+test_gp_fi.txt
+test_gp_model.txt
