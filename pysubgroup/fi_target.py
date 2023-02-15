@@ -33,7 +33,7 @@ class FITarget(ps.BaseTarget):
         if self.all_statistics_present(cached_statistics):
             return cached_statistics
 
-        
+
         _, size = ps.get_cover_array_and_size(subgroup_description, len(data), data)
         statistics={}
         statistics['size_sg'] = size
@@ -43,6 +43,7 @@ class FITarget(ps.BaseTarget):
 
 class SimpleCountQF(ps.AbstractInterestingnessMeasure):
     tpl = namedtuple('CountQF_parameters', ('size_sg'))
+    gp_requires_cover_arr = False
 
     def __init__(self):
         self.required_stat_attrs = ('size_sg',)
@@ -73,10 +74,6 @@ class SimpleCountQF(ps.AbstractInterestingnessMeasure):
 
     def gp_size_sg(self, stats):
         return stats['size_sg']
-
-    @property
-    def gp_requires_cover_arr(self):
-        return False
 
 
 class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):

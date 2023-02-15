@@ -54,15 +54,20 @@ class BooleanTargetBase():
 
     @unittest.skipUnless(TestSettings.All or TestSettings.GpGrowth, 'flag not set')
     def test_gp_growth(self):
-        self.task.constraints_monotone.append(ps.MinSupportConstraint(60))
+        self.task.constraints_monotone.append(ps.MinSupportConstraint(100)) # constraint added to speed up tests
         self.runAlgorithm(ps.GpGrowth(), "GpGrowth", self.result, self.qualities, self.task)
         self.task.constraints_monotone.pop(-1)
 
- #   @unittest.skipUnless(TestSettings.All or TestSettings.GpGrowth, 'flag not set')
- #   def test_gp_growth_top_down(self):
- #       self.task.constraints_monotone.append(ps.MinSupportConstraint(60))
- #       self.runAlgorithm(ps.GpGrowth(mode="t_d"), "GpGrowth", self.result, self.qualities, self.task)
- #       self.task.constraints_monotone.pop(-1)
+    @pytest.mark.slow
+    @unittest.skipUnless(TestSettings.All or TestSettings.GpGrowth, 'flag not set')
+    def test_gp_growth_long(self):
+        self.runAlgorithm(ps.GpGrowth(), "GpGrowth", self.result, self.qualities, self.task)
+
+    @unittest.skipUnless(TestSettings.All or TestSettings.GpGrowth, 'flag not set')
+    def test_gp_growth_top_down(self):
+        self.task.constraints_monotone.append(ps.MinSupportConstraint(100))
+        self.runAlgorithm(ps.GpGrowth(mode="t_d"), "GpGrowth", self.result, self.qualities, self.task)
+        self.task.constraints_monotone.pop(-1)
 
 
     @pytest.mark.slow
@@ -226,7 +231,7 @@ if __name__ == '__main__':
     suites = []
     suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3))
+    #suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3))
     complete_suite = unittest.TestSuite(suites)
     unittest.TextTestRunner(verbosity=2).run(complete_suite)
 

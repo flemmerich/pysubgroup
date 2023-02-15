@@ -1,5 +1,4 @@
 from collections import namedtuple
-from scipy.stats import norm
 import numpy as np
 import pysubgroup as ps
 beta_tuple = namedtuple('beta_tuple', ['beta', 'size_sg'])
@@ -122,9 +121,11 @@ class PolyRegression_ModelClass:
         return beta_tuple(np.polyfit(self.x[cover_arr], self.y[cover_arr], deg=self.degree), size)
 
     def likelihood(self, stats, sg):
+        from scipy.stats import norm
         if any(np.isnan(stats.beta)):
             return np.full(self.x[sg].shape, np.nan)
         return norm.pdf(np.polyval(stats.beta, self.x[sg]) - self.y[sg])
 
     def loglikelihood(self, stats, sg):
+        from scipy.stats import norm
         return norm.logpdf(np.polyval(stats.beta, self.x[sg]) - self.y[sg])

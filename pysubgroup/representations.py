@@ -123,10 +123,6 @@ class Set_Conjunction(ps.Conjunction):
     def size_sg(self):
         return len(self.representation)
 
-    #def __copy__(self):
-    #    tmp = super().__copy__()
-    #    tmp.representation = self.representation.copy()
-    #    return tmp
 
     def append_and(self, to_append):
         super().append_and(to_append)
@@ -172,11 +168,6 @@ class NumpySet_Conjunction(ps.Conjunction):
     @property
     def size_sg(self):
         return len(self.representation)
-
-    #def __copy__(self):
-    #    tmp = super().__copy__()
-    #    tmp.representation = self.representation.copy()
-    #    return tmp
 
     def append_and(self, to_append):
         super().append_and(to_append)

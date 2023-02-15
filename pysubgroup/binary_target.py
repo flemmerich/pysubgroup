@@ -6,7 +6,7 @@ Created on 29.09.2017
 from collections import namedtuple
 from functools import total_ordering
 import numpy as np
-import scipy.stats
+
 
 import pysubgroup as ps
 
@@ -162,7 +162,7 @@ class ChiSquaredQF(SimplePositivesQF): # pragma: no cover
         index : {0, 1}, optional
             decides whether the test statistic (0) or the p-value (1) should be used
         """
-
+        import scipy.stats # pylint:disable=import-outside-toplevel
         if (instances_subgroup < min_instances) or ((instances_dataset - instances_subgroup) < min_instances):
             return float("-inf")
 
@@ -185,6 +185,7 @@ class ChiSquaredQF(SimplePositivesQF): # pragma: no cover
 
     @staticmethod
     def chi_squared_qf_weighted(subgroup, data, weighting_attribute, effective_sample_size=0, min_instances=5, ):
+        import scipy.stats # pylint:disable=import-outside-toplevel
         (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = subgroup.get_base_statistics(data, weighting_attribute)
         if (instancesSubgroup < min_instances) or ((instancesDataset - instancesSubgroup) < 5):
             return float("inf")

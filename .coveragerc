@@ -10,3 +10,5 @@ exclude_lines =
 
 omit =
         pysubgroup/tests/*
+
+# pytest --cov pysubgroup --cov-report html .

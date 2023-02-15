@@ -248,7 +248,7 @@ class GeneralisingBFS: # pragma: no cover
 
         result.sort(key=lambda x: x[0], reverse=True)
         for qual, sg in result:
-            print("{} {}".format(qual, sg))
+            print(f"{qual} {sg}")
         print("discarded " + str(self.discarded))
         return ps.SubgroupDiscoveryResult(result, task)
 

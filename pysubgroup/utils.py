@@ -205,7 +205,7 @@ def intersect_of_ordered_list(list_1, list_2):
 
 class BaseTarget:
     def all_statistics_present(self, cached_statistics):
-        if isinstance(cached_statistics, dict) and all(expected_value in cached_statistics for expected_value in self.__class__.statistic_types):       
+        if isinstance(cached_statistics, dict) and all(expected_value in cached_statistics for expected_value in self.__class__.statistic_types):#pylint: disable=no-member
             return True
 
 class SubgroupDiscoveryResult:
@@ -214,8 +214,11 @@ class SubgroupDiscoveryResult:
         self.results = results
         assert isinstance(results, Iterable)
 
-    def to_descriptions(self):
-        return [(qual, sgd) for qual, sgd, stats in self.results]
+    def to_descriptions(self, include_stats=False):
+        if include_stats:
+            return [(qual, sgd, stats) for qual, sgd, stats in self.results]
+        else:
+            return [(qual, sgd) for qual, sgd, stats in self.results]
 
     def to_table(self, statistics_to_show=None, print_header=True, include_target=False):
         if statistics_to_show is None:

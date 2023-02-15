@@ -11,6 +11,8 @@ class MinSupportConstraint:
     def is_satisfied(self, subgroup, statistics=None, data=None):
         if hasattr(statistics, 'size_sg'):
             return statistics.size_sg >= self.min_support
+        if isinstance(statistics, dict) and 'size_sg' in statistics:
+            return statistics['size_sg'] >= self.min_support
         else:
             return ps.get_size(subgroup, len(data), data) >= self.min_support
 

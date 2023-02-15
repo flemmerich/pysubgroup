@@ -50,7 +50,13 @@ class TestCountQF(TestAlgorithmsBase, unittest.TestCase):
 
     def test_gp_growth(self):
         self.task.constraints_monotone.append(ps.MinSupportConstraint(20))
-        self.runAlgorithm(ps.GpGrowth(), "GpGrowth", self.result[1:], self.qualities[1:], self.task)
+        self.runAlgorithm(ps.GpGrowth(), "GpGrowth", self.result[:-1], self.qualities[:-1], self.task)
+        self.task.constraints_monotone.pop(-1)
+
+
+    def test_gp_growth_top_down(self):
+        self.task.constraints_monotone.append(ps.MinSupportConstraint(20))
+        self.runAlgorithm(ps.GpGrowth(mode="t_d"), "GpGrowth", self.result[:-1], self.qualities[:-1], self.task)
         self.task.constraints_monotone.pop(-1)
 
     def setUp(self):
@@ -140,9 +146,9 @@ class TestAreaQF(TestAlgorithmsBase, unittest.TestCase):
 
 if __name__ == '__main__':
     #unittest.main()
-    #suite1 = unittest.TestLoader().loadTestsFromTestCase(TestCountQF)
-    #suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAreaQF)
+    suite1 = unittest.TestLoader().loadTestsFromTestCase(TestCountQF)
+    suite2 = unittest.TestLoader().loadTestsFromTestCase(TestAreaQF)
     suite3 = unittest.TestLoader().loadTestsFromTestCase(TestFITarget)
     #suite3 = unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3)
-    complete_suite = unittest.TestSuite([suite3])
+    complete_suite = unittest.TestSuite([suite1, suite2, suite3])
     unittest.TextTestRunner(verbosity=2).run(complete_suite)
