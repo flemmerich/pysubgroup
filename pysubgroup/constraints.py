@@ -13,8 +13,10 @@ class MinSupportConstraint:
             return statistics.size_sg >= self.min_support
         if isinstance(statistics, dict) and 'size_sg' in statistics:
             return statistics['size_sg'] >= self.min_support
-        else:
+        try:
             return ps.get_size(subgroup, len(data), data) >= self.min_support
+        except AttributeError: # special case for gp_growth
+            return self.get_size_sg(statistics)
 
     def gp_prepare(self, qf):
         self.get_size_sg = qf.gp_size_sg # pylint: disable=attribute-defined-outside-init

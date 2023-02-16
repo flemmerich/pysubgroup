@@ -1,30 +1,11 @@
 import unittest
-from collections import defaultdict
+
 import pandas as pd
 import pysubgroup as ps
 from pysubgroup.tests.DataSets import get_credit_data
+from pysubgroup.tests.t_utils import assertResultEqual
 
 
-def print_result(result):
-    for i, (quality, pattern, _) in enumerate(result.to_descriptions(include_stats=True)):
-        print(quality, pattern)
-
-def conjunctions_from_str(s):
-    result = []
-    for line in s.strip().splitlines():
-        parts = line.strip().split(" ")
-        q=float(parts[0])
-        tmp = " ".join(parts[1:])
-        result.append((q, ps.Conjunction.from_str(tmp)))
-    return result
-
-def to_dict(result):
-    out = defaultdict(list)
-    for tpl in result:
-        q = round(float(tpl[0]), 8)
-        sg = tpl[1]
-        out[q].append(sg)
-    return {key: sorted(out[key]) for key in sorted(out.keys())}
 
 class TestGpGrowth(unittest.TestCase):
     def setUp(self):
@@ -58,20 +39,21 @@ class TestGpGrowth(unittest.TestCase):
         self.df3 = pd.DataFrame.from_records([(1,1,), (0,1), (1,0), (1,0)], columns=("A", "B"))
         selectors3 = [ps.EqualitySelector(x, 1) for x in self.df3.columns]
         self.task3 = ps.SubgroupDiscoveryTask(self.df3, target, selectors3, result_set_size=20, depth=4, qf=QF)
-
         self.all_selectors = {x: ps.EqualitySelector(x, 1) for x in self.df2.columns}
 
 
+        self.task4 = ps.SubgroupDiscoveryTask(self.df1, target, selectors1, result_set_size=20, depth=4, qf=QF, constraints=[ps.MinSupportConstraint(3)])
+        self.solution4 = """6 A==1
+        6 Dataset
+        5 B==1
+        5 A==1 AND B==1"""
 
-    def assertResultEqual(self, result, s):
-        alg_results = to_dict(result.to_descriptions())
-        sol_results = to_dict(conjunctions_from_str(s))
-        self.maxDiff=None
-        self.assertEqual(len(alg_results), len(sol_results))
-        #self.assertDictEqual(alg_results, sol_results)
-        self.assertListEqual(sorted(alg_results.keys()), sorted(sol_results.keys()))
-        for key in alg_results.keys():
-            self.assertListEqual(alg_results[key], sol_results[key], msg=f"{key}")
+        self.task5 = ps.SubgroupDiscoveryTask(self.df1, target, selectors1, result_set_size=20, depth=4, qf=QF, constraints=[ps.MinSupportConstraint(10)])
+        self.solution5 = """"""
+
+
+
+
 
     def test_export_fi(self):
         target = ps.FITarget()
@@ -103,18 +85,18 @@ class TestGpGrowth(unittest.TestCase):
         with self.assertWarns(UserWarning):
             result = ps.GpGrowth(mode='t_d').execute(self.task1)
         self.task1.qf.gp_requires_cover_arr = tmp
-        self.assertResultEqual(result,self.solution1)
+        assertResultEqual(self, result,self.solution1)
 
     def test_gp_b_u_simple1(self):
         result = ps.GpGrowth(mode='b_u').execute(self.task1)
         #print_result(result)
-        self.assertResultEqual(result, self.solution1)
+        assertResultEqual(self, result, self.solution1)
 
     def test_gp_simple1(self):
         with self.assertWarns(UserWarning):
             result = ps.GpGrowth(mode='t_d').execute(self.task1)
         #print_result(result)
-        self.assertResultEqual(result,self.solution1)
+        assertResultEqual(self, result,self.solution1)
 
         #self.assertEqual(results[0], (6, ps.Conjunction([self.all_selectors["A"]]) ))
 
@@ -123,7 +105,7 @@ class TestGpGrowth(unittest.TestCase):
         with self.assertWarns(UserWarning):
             result = ps.GpGrowth(mode='t_d').execute(self.task2)
         #print_result(result)
-        self.assertResultEqual(result,
+        assertResultEqual(self, result,
         """ 4 A==1 AND B==1
             4 A==1
             4 Dataset
@@ -150,12 +132,24 @@ class TestGpGrowth(unittest.TestCase):
         with self.assertWarns(UserWarning):
             result = ps.GpGrowth(mode='t_d').execute(self.task3)
         #print_result(result)
-        self.assertResultEqual(result,
+        assertResultEqual(self, result,
         """4 Dataset
             3 A==1
             2 B==1
             1 A==1 AND B==1
             1 B==1""")
+
+
+    def test_gp_simple4(self):
+        result = ps.GpGrowth(mode='t_d').execute(self.task4)
+        #print_result(result)
+        assertResultEqual(self, result,self.solution4)
+
+
+    def test_gp_simple5(self):
+        result = ps.GpGrowth(mode='t_d').execute(self.task5)
+        #print_result(result)
+        assertResultEqual(self, result,self.solution5)
 
     def test_gp_credit(self):
         data = get_credit_data()
@@ -173,7 +167,7 @@ class TestGpGrowth(unittest.TestCase):
         task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=30, depth=2, qf=QF, constraints=[ps.MinSupportConstraint(30)])
         result = ps.GpGrowth(mode='t_d').execute(task)
         #print_result(result)
-        self.assertResultEqual(result,
+        assertResultEqual(self, result,
          """0.10866138825404954 checking_status=='b'<0'' AND foreign_worker=='b'yes''
             0.10705790652183149 checking_status=='b'<0'' AND job=='b'skilled''
             0.10371988780388462 checking_status=='b'<0'' AND other_parties=='b'none''

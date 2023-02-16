@@ -44,7 +44,7 @@ class NumericTarget:
 
     def calculate_statistics(self, subgroup, data, cached_statistics=None):
         if cached_statistics is None or not isinstance(cached_statistics, dict):
-            statistics = dict()
+            statistics = {}
         elif all(k in cached_statistics for k in NumericTarget.statistic_types):
             return cached_statistics
         else:

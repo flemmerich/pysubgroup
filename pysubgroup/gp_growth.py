@@ -1,5 +1,4 @@
 from collections import namedtuple, defaultdict
-from itertools import combinations
 from pathlib import Path
 import warnings
 import numpy as np
@@ -31,7 +30,7 @@ class GpGrowth:
             cov_arr = selector.covers(data)
             l.append((np.count_nonzero(cov_arr), selector, cov_arr))
 
-        l = [(size, selector, arr) for size, selector, arr in l if all(constraint.is_satisfied(arr, None, data) for constraint in self.constraints_monotone)]
+        l = [(size, selector, arr) for size, selector, arr in l if all(constraint.is_satisfied(arr, slice(None), data) for constraint in self.constraints_monotone)]
         s = sorted(l, reverse=True)
         self.remove_selectors_with_low_optimistic_estimate(s, len(search_space))
 
@@ -45,15 +44,17 @@ class GpGrowth:
 
 
     def remove_selectors_with_low_optimistic_estimate(self, s, search_space_size):
+        if not hasattr(self.task.qf, "optimistic_estimate"):
+            return
         if search_space_size > self.task.result_set_size:
             # remove selectors which have to lo of an optimistic estimate
             #selectors_map = {selector : i for i,(_, selector, _) in enumerate(s)}
             stats=[]
-            for size, selector, cov_arr in s:
+            for _, _, cov_arr in s:
                 statistics = self.task.qf.calculate_statistics(cov_arr, self.task.target, self.task.data)
                 stats.append(statistics)
                 quality = self.task.qf.evaluate(cov_arr, self.task.target, self.task.data, statistics)
-                ps.add_if_required(self.results, tuple(), quality, self.task, statistics=statistics)
+                ps.add_if_required(self.results, None, quality, self.task, statistics=statistics)
             del statistics
             to_pop=[]
             min_quality = ps.minimum_required_quality(self.results, self.task)
@@ -180,23 +181,6 @@ class GpGrowth:
         self.merge(node.stats, new_stats)
         return node
 
-    def insert_into_tree(self, root, nodes, new_stats, classes, max_depth):
-        ''' Creates a tree of a maximum depth = depth
-        '''
-        if len(classes) <= max_depth:
-            self.normal_insert(root, nodes, new_stats, classes)
-            return
-        for prefix in combinations(classes, max_depth -1):
-            node = self.normal_insert(root, nodes, new_stats, classes)
-            # do normal insert for prefix
-            index_for_remaining = classes.index(prefix) + 1
-            for cls in classes[index_for_remaining:]:
-                if cls not in node.children:
-                    new_child = self.GP_node(cls, len(nodes), node, {}, self.get_null_vector())
-                    nodes.append(new_child)
-                    node.children[cls] = new_child
-                    self.merge(node.stats, new_stats)
-
 
     def add_if_required(self, prefix, gp_stats):
         statistics = self.task.qf.gp_get_params(None, gp_stats)
@@ -206,10 +190,10 @@ class GpGrowth:
 
     def recurse(self, cls_nodes, prefix, is_single_path=False):
         if len(cls_nodes) == 0:
-            raise RuntimeError
+            raise RuntimeError # pragma: no cover
         self.add_if_required(prefix, cls_nodes[-1][0].stats)
         if len(prefix) >= self.depth:
-            return
+            return # pragma: no cover
 
 
 
@@ -241,16 +225,6 @@ class GpGrowth:
                             new_tree = self.create_new_tree_from_nodes(nodes)
                             if len(new_tree) > 0:
                                 self.recurse(new_tree, (*prefix, cls), is_single_path_now)
-
-    def get_prefixes_top_down(self, alpha, max_length):
-        if len(alpha) == 0:
-            return [()]
-        if len(alpha) == 1 or max_length == 1:
-            return [(alpha[0],)]
-        prefixes = [(alpha[0],)]
-        prefixes.extend([(alpha[0], *suffix) for suffix in self.get_prefixes_top_down(alpha[1:], max_length-1)])
-        return prefixes
-
 
 
     def recurse_top_down(self, cls_nodes, root, depth_in=0):
@@ -300,21 +274,20 @@ class GpGrowth:
                 if is_valid_class[init_root.cls]:
                     results.append((prefix, stats_dict[init_root.cls]))
                 continue
-            else:
-                cls = prefix[-1]
-                if is_valid_class[cls]:
-                    results.append((prefix, stats_dict[cls]))
+            cls = prefix[-1]
+            if is_valid_class[cls]:
+                results.append((prefix, stats_dict[cls]))
 
         #suffixes = [((), root.stats)]
 
         suffixes = []
         if curr_depth == (self.depth - 1):
             #print(f"{depth_in}"+"\t"*depth_in+"B")
-            for cls in stats_dict.keys():
+            for cls, stats in stats_dict.items():
                 if cls < 0 or cls in alpha:
                     continue
                 assert cls > max(alpha), f"{cls} {max(alpha)}, {alpha}, {list(stats_dict.keys())}"
-                suffixes.append(((cls,), stats_dict[cls]))
+                suffixes.append(((cls,), stats))
         else:
             #print(f"{depth_in}"+"\t"*depth_in+"A")
             for cls in stats_dict:
@@ -348,7 +321,7 @@ class GpGrowth:
         #print()
         return results
 
-    def check_tree_is_ordered(self, root, prefix=None):
+    def check_tree_is_ordered(self, root, prefix=None): # pragma: no cover
         """Verify that the nodes of a tree are sorted in ascending order"""
         if prefix is None:
             prefix= []
@@ -359,17 +332,6 @@ class GpGrowth:
             s = s.union(s2)
         return s
 
-    def remove_infrequent_class(self, nodes, cls_nodes, stats_dict):
-        # returns cleaned tree
-
-        infrequent_classes = []
-        for cls in cls_nodes:
-            if not self.check_constraints(stats_dict[cls]):
-                infrequent_classes.append(cls)
-        infrequent_classes = sorted(infrequent_classes, reverse=True)
-        for cls in infrequent_classes:
-            for node_to_remove in cls_nodes[cls]:
-                self.merge_trees_top_down(nodes, node_to_remove.parent, node_to_remove)
 
 
 
@@ -385,7 +347,7 @@ class GpGrowth:
 
     def create_copy_of_tree_top_down(self, from_root, nodes=None, parent=None, is_valid_class=None):
         if nodes is None:
-            nodes = []
+            nodes = [] # pragma: no cover
         #if len(nodes) == 0:
         #    root_cls = -1
         children = {}
@@ -429,12 +391,6 @@ class GpGrowth:
             cls_nodes[new_node.cls].append(new_node)
         return cls_nodes
 
-    def remove_infrequent_nodes(self, new_nodes):
-        keys = list(new_nodes.keys())
-        for key in keys:
-            node = new_nodes[key]
-            if node.stats["size"] < self.minSupp:
-                del new_nodes[key]
 
     def create_copy_of_path(self, nodes, new_nodes, stats):
         parent = None

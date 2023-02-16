@@ -99,7 +99,7 @@ class Apriori:
         from numba import njit # pylint: disable=import-error, import-outside-toplevel
         if not hasattr(self, 'compiled_func') or self.compiled_func is None:
             @njit
-            def getNewCandidates(l, hashes):
+            def getNewCandidates(l, hashes): # pragma: no cover
                 result = []
                 for i in range(len(l)-1):
                     for j in range(i + 1, len(l)):
@@ -312,7 +312,7 @@ class SimpleSearch:
                 def binomial(x, y):
                     try:
                         binom = factorial(x) // factorial(y) // factorial(x - y)
-                    except ValueError:
+                    except ValueError:  # pragma: no cover
                         binom = 0
                     return binom
                 total = sum(binomial(len(task.search_space), k) for k in range(1, task.depth + 1))
@@ -347,7 +347,7 @@ class SimpleDFS:
         quality = task.qf.evaluate(sg, task.target, task.data, statistics)
         ps.add_if_required(result, sg, quality, task, statistics=statistics)
         if not ps.constraints_satisfied(task.constraints_monotone, sg, statistics=statistics, data=task.data):
-            return
+            return result
         if len(prefix) < task.depth:
             new_modification_set = copy.copy(modification_set)
             for sel in modification_set:

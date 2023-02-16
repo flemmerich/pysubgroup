@@ -63,7 +63,7 @@ class BinaryTarget(ps.BaseTarget):
 
         (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = \
             self.get_base_statistics(subgroup, data)
-        statistics = dict()
+        statistics = {}
         statistics['size_sg'] = instances_subgroup
         statistics['size_dataset'] = instances_dataset
         statistics['positives_sg'] = positives_subgroup
@@ -74,7 +74,10 @@ class BinaryTarget(ps.BaseTarget):
         statistics['coverage_sg'] = positives_subgroup / positives_dataset
         statistics['coverage_complement'] = (positives_dataset - positives_subgroup) / positives_dataset
         statistics['target_share_sg'] = positives_subgroup / instances_subgroup
-        statistics['target_share_complement'] = (positives_dataset - positives_subgroup) / (instances_dataset - instances_subgroup)
+        if instances_dataset == instances_subgroup:
+            statistics['target_share_complement'] = float("nan")
+        else:
+            statistics['target_share_complement'] = (positives_dataset - positives_subgroup) / (instances_dataset - instances_subgroup)
         statistics['target_share_dataset'] = positives_dataset / instances_dataset
         statistics['lift'] = statistics['target_share_sg'] / statistics['target_share_dataset']
         return statistics
@@ -98,11 +101,6 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):  # pylint: disable=a
     def calculate_statistics(self, subgroup, target, data, statistics=None): # pylint: disable=unused-argument
         cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, len(self.positives), data)
         return SimplePositivesQF.tpl(size_sg, np.count_nonzero(self.positives[cover_arr]))
-
-    def evaluate(self, subgroup, target, data, statistics=None):
-        statistics = self.ensure_statistics(subgroup, target, data, statistics)
-        dataset = self.dataset_statistics
-        return (statistics.positives_count / dataset.positives_count)
 
 # <<< GpGrowth >>>
     def gp_get_stats(self, row_index):
@@ -131,8 +129,8 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):  # pylint: disable=a
 
 
 # TODO Make ChiSquared useful for real nominal data not just binary
-# TODO Introduce Enum for direction
-# TODO Maybe it is possible to give a optimistic estimate for ChiSquared
+#      Introduce Enum for direction
+#      Maybe it is possible to give a optimistic estimate for ChiSquared
 class ChiSquaredQF(SimplePositivesQF): # pragma: no cover
     """
     ChiSquaredQF which test for statistical independence of a subgroup against it's complement
@@ -166,8 +164,8 @@ class ChiSquaredQF(SimplePositivesQF): # pragma: no cover
         if (instances_subgroup < min_instances) or ((instances_dataset - instances_subgroup) < min_instances):
             return float("-inf")
 
-        negatives_subgroup = instances_subgroup - positives_subgroup # pylint: disable=bad-whitespace
-        negatives_dataset = instances_dataset - positives_dataset # pylint: disable=bad-whitespace
+        negatives_subgroup = instances_subgroup - positives_subgroup
+        negatives_dataset = instances_dataset - positives_dataset
         negatives_complement = negatives_dataset - negatives_subgroup
         positives_complement = positives_dataset - positives_subgroup
 
@@ -179,7 +177,7 @@ class ChiSquaredQF(SimplePositivesQF): # pragma: no cover
         p_dataset = positives_dataset / instances_dataset
         if direction_positive and p_subgroup > p_dataset:
             return val
-        elif not direction_positive and p_subgroup < p_dataset:
+        if not direction_positive and p_subgroup < p_dataset:
             return val
         return -val
 

@@ -9,7 +9,6 @@ from heapq import heappush, heappop
 from collections.abc import Iterable
 
 import numpy as np
-import pandas as pd
 import pysubgroup as ps
 
 
@@ -207,6 +206,7 @@ class BaseTarget:
     def all_statistics_present(self, cached_statistics):
         if isinstance(cached_statistics, dict) and all(expected_value in cached_statistics for expected_value in self.__class__.statistic_types):#pylint: disable=no-member
             return True
+        return False
 
 class SubgroupDiscoveryResult:
     def __init__(self, results, task):
@@ -216,7 +216,7 @@ class SubgroupDiscoveryResult:
 
     def to_descriptions(self, include_stats=False):
         if include_stats:
-            return [(qual, sgd, stats) for qual, sgd, stats in self.results]
+            return list(self.results)
         else:
             return [(qual, sgd) for qual, sgd, stats in self.results]
 
@@ -240,6 +240,7 @@ class SubgroupDiscoveryResult:
         return table
 
     def to_dataframe(self, statistics_to_show=None, autoround=False, include_target=False):
+        import pandas as pd #pylint: disable=import-outside-toplevel
         if statistics_to_show is None:
             statistics_to_show = type(self.task.target).statistic_types
         res = self.to_table(statistics_to_show, True, include_target)

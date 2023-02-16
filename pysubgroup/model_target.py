@@ -45,13 +45,6 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
         sg_size = params.size_sg
         return self.get_tuple(sg_size, params, cover_arr)
 
-
-    def supports_weights(self):
-        return False
-
-    def is_applicable(self, _):
-        return True
-
     @property
     def gp_requires_cover_arr(self):
         return True
@@ -121,11 +114,11 @@ class PolyRegression_ModelClass:
         return beta_tuple(np.polyfit(self.x[cover_arr], self.y[cover_arr], deg=self.degree), size)
 
     def likelihood(self, stats, sg):
-        from scipy.stats import norm
+        from scipy.stats import norm # pylint: disable=import-outside-toplevel
         if any(np.isnan(stats.beta)):
             return np.full(self.x[sg].shape, np.nan)
         return norm.pdf(np.polyval(stats.beta, self.x[sg]) - self.y[sg])
 
     def loglikelihood(self, stats, sg):
-        from scipy.stats import norm
+        from scipy.stats import norm # pylint: disable=import-outside-toplevel
         return norm.logpdf(np.polyval(stats.beta, self.x[sg]) - self.y[sg])

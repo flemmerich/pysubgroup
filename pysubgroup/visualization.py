@@ -1,5 +1,4 @@
 from functools import partial
-import pandas as pd
 import numpy as np
 import pysubgroup as ps
 
@@ -112,6 +111,7 @@ def compare_distributions_numeric(sgs, data, bins):
 
 
 def similarity_sgs(sgd_results, data, color=True):
+    import pandas as pd # pylint:disable=import-outside-toplevel
     sgs = [x[1] for x in sgd_results]
     #sgNames = [str(sg.subgroup_description) for sg in sgs]
     dists = [[ps.overlap(sg, sg2, data) for sg2 in sgs] for sg in sgs]

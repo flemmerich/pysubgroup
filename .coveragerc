@@ -7,8 +7,11 @@ exclude_lines =
         def __lt__
         raise RuntimeWarning
         except ImportError:
+        @abstractmethod
+        @abc.abstractmethod
 
 omit =
         pysubgroup/tests/*
+        pysubgroup/visualization.py
 
 # pytest --cov pysubgroup --cov-report html .
