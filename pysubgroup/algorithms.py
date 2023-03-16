@@ -7,7 +7,7 @@ import copy
 from math import factorial
 from itertools import combinations, chain
 from heapq import heappush, heappop
-from collections import Counter, namedtuple
+from collections import Counter, namedtuple, defaultdict
 import warnings
 import numpy as np
 import pysubgroup as ps
@@ -46,7 +46,6 @@ class Apriori:
             representation_type = ps.BitSetRepresentation
         self.representation_type = representation_type
         self.use_vectorization = True
-        self.use_repruning = False
         self.optimistic_estimate_name = 'optimistic_estimate'
         self.next_level = self.get_next_level
         self.compiled_func = None
@@ -68,7 +67,7 @@ class Apriori:
             optimistic_estimate = optimistic_estimate_function(sg, task.target, task.data, statistics)
 
             if optimistic_estimate >= ps.minimum_required_quality(result, task):
-                if ps.constraints_hold(task.constraints_monotone, sg, statistics, task.data):
+                if ps.constraints_satisfied(task.constraints_monotone, sg, statistics, task.data):
                     promising_candidates.append((optimistic_estimate, sg.selectors))
         min_quality = ps.minimum_required_quality(result, task)
         promising_candidates = [selectors for estimate, selectors in promising_candidates if estimate > min_quality]
@@ -95,21 +94,12 @@ class Apriori:
                 promising_candidates.append(sg.selectors)
         return promising_candidates
 
-    def reprune_lower_levels(self, promising_candidates, depth):
-        for k in range(1, depth):
-            promising_candidates_k = (combinations(selectors, k) for selectors in promising_candidates)
-            combination_counter = Counter(chain.from_iterable(promising_candidates_k))
-            d = depth + 1 - k
-            unpromising_combinations = set(frozenset(sel) for sel, count in combination_counter.items() if count < d)
-            promising_candidates = list(selectors for selectors in promising_candidates
-                                        if all(frozenset(comb) not in unpromising_combinations for comb in combinations(selectors, k)))
-        return promising_candidates
 
     def get_next_level_numba(self, promising_candidates):
-        from numba import jit # pylint: disable=import-error, import-outside-toplevel
+        from numba import njit # pylint: disable=import-error, import-outside-toplevel
         if not hasattr(self, 'compiled_func') or self.compiled_func is None:
-            @jit
-            def getNewCandidates(l, hashes):
+            @njit
+            def getNewCandidates(l, hashes): # pragma: no cover
                 result = []
                 for i in range(len(l)-1):
                     for j in range(i + 1, len(l)):
@@ -129,10 +119,14 @@ class Apriori:
         candidates_int = self.compiled_func(arr, hashes)
         return list((*promising_candidates[i], promising_candidates[j][-1])  for i, j in candidates_int)
 
+
     def get_next_level(self, promising_candidates):
-        precomputed_list = list((tuple(sg), sg[-1], hash(tuple(sg[:-1])), tuple(sg[:-1])) for sg in promising_candidates)
-        return list((*sg1, new_selector) for (sg1, _, hash_l, selectors_l), (_, new_selector, hash_r, selectors_r) in combinations(precomputed_list, 2)
-                    if (hash_l == hash_r) and (selectors_l == selectors_r))
+        by_prefix_dict = defaultdict(list)
+        for sg in promising_candidates:
+            by_prefix_dict[tuple(sg[:-1])].append(sg[-1])
+        return [prefix + real_suffix
+                for prefix, suffixes in by_prefix_dict.items()
+                    for real_suffix in combinations(sorted(suffixes), 2)]
 
     def execute(self, task):
         if not isinstance(task.qf, ps.BoundedInterestingnessMeasure):
@@ -146,7 +140,9 @@ class Apriori:
             # init the first level
             next_level_candidates = []
             for sel in task.search_space:
-                next_level_candidates.append(combine_selectors([sel]))
+                sg = combine_selectors([sel])
+                if ps.constraints_satisfied(task.constraints_monotone, sg, None, task.data):
+                    next_level_candidates.append(sg)
 
             # level-wise search
             depth = 1
@@ -160,9 +156,6 @@ class Apriori:
                 if depth == task.depth:
                     break
 
-                if self.use_repruning:
-                    promising_candidates = self.reprune_lower_levels(promising_candidates, depth)
-
                 next_level_candidates_no_pruning = self.next_level(promising_candidates)
 
                 # select those selectors and build a subgroup from them
@@ -172,7 +165,7 @@ class Apriori:
                                          if all((subset in set_promising_candidates) for subset in combinations(selectors, depth))]
                 depth = depth + 1
 
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
 
@@ -199,11 +192,11 @@ class BestFirstSearch:
                         if ps.constraints_satisfied(task.constraints_monotone, candidate_description, statistics, task.data):
                             heappush(queue, (-optimistic_estimate, candidate_description))
 
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
 
-class GeneralisingBFS:
+class GeneralisingBFS: # pragma: no cover
     def __init__(self):
         self.alpha = 1.10
         self.discarded = [0, 0, 0, 0, 0, 0, 0]
@@ -255,7 +248,7 @@ class GeneralisingBFS:
 
         result.sort(key=lambda x: x[0], reverse=True)
         for qual, sg in result:
-            print("{} {}".format(qual, sg))
+            print(f"{qual} {sg}")
         print("discarded " + str(self.discarded))
         return ps.SubgroupDiscoveryResult(result, task)
 
@@ -302,7 +295,7 @@ class BeamSearch:
             depth += 1
 # TODO make sure there is no bug here
         result = beam[:task.result_set_size]
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
 
@@ -315,23 +308,23 @@ class SimpleSearch:
         all_selectors = chain.from_iterable(combinations(task.search_space, r) for r in range(1, task.depth + 1))
         if self.show_progress:
             try:
-                from tqdm import tqdm   # pylint: disable=import-outside-toplevel
+                from tqdm.auto import tqdm   # pylint: disable=import-outside-toplevel
                 def binomial(x, y):
                     try:
                         binom = factorial(x) // factorial(y) // factorial(x - y)
-                    except ValueError:
+                    except ValueError:  # pragma: no cover
                         binom = 0
                     return binom
                 total = sum(binomial(len(task.search_space), k) for k in range(1, task.depth + 1))
                 all_selectors = tqdm(all_selectors, total=total)
             except ImportError:
-                pass
+                warnings.warn("tqdm not installed but show_progress=True", ImportWarning)
         for selectors in all_selectors:
             sg = ps.Conjunction(selectors)
             statistics = task.qf.calculate_statistics(sg, task.target, task.data)
             quality = task.qf.evaluate(sg, task.target, task.data, statistics)
             ps.add_if_required(result, sg, quality, task, statistics=statistics)
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
 
@@ -339,7 +332,7 @@ class SimpleDFS:
     def execute(self, task, use_optimistic_estimates=True):
         task.qf.calculate_constant_statistics(task.data, task.target)
         result = self.search_internal(task, [], task.search_space, [], use_optimistic_estimates)
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, prefix, modification_set, result, use_optimistic_estimates):
@@ -354,7 +347,7 @@ class SimpleDFS:
         quality = task.qf.evaluate(sg, task.target, task.data, statistics)
         ps.add_if_required(result, sg, quality, task, statistics=statistics)
         if not ps.constraints_satisfied(task.constraints_monotone, sg, statistics=statistics, data=task.data):
-            return
+            return result
         if len(prefix) < task.depth:
             new_modification_set = copy.copy(modification_set)
             for sel in modification_set:
@@ -383,7 +376,7 @@ class DFS:
         result = []
         with self.apply_representation(task.data, task.search_space) as representation:
             self.search_internal(task, result, representation.Conjunction([]))
-        result.sort(key=lambda x: x[0], reverse=True)
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, result, sg):
@@ -409,12 +402,13 @@ class DFSNumeric:
         self.target_values = None
         self.bitsets = {}
         self.num_calls = 0
+        self.evaluate = None
 
     def execute(self, task):
         if not isinstance(task.qf, ps.StandardQFNumeric):
-            warnings.warn("BSD_numeric so far is only implemented for StandardQFNumeric")
+            raise RuntimeError("BSD_numeric so far is only implemented for StandardQFNumeric")
         self.pop_size = len(task.data)
-        sorted_data = task.data.sort_values(task.target.get_attributes(), ascending=False)
+        sorted_data = task.data.sort_values(task.target.get_attributes()[0], ascending=False)
 
         # generate target bitset
         self.target_values = sorted_data[task.target.get_attributes()[0]].to_numpy()
@@ -427,8 +421,7 @@ class DFSNumeric:
             # generate bitset
             self.bitsets[sel] = sel.covers(sorted_data)
         result = self.search_internal(task, [], task.search_space, [], np.ones(len(sorted_data), dtype=bool))
-        result.sort(key=lambda x: x[0], reverse=True)
-
+        result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, prefix, modification_set, result, bitset):
@@ -438,7 +431,8 @@ class DFSNumeric:
             return result
         target_values_sg = self.target_values[bitset]
 
-        target_values_cs = np.cumsum(target_values_sg)
+        target_values_cs = np.cumsum(target_values_sg, dtype=np.float64)
+
         sizes = np.arange(1, len(target_values_cs) + 1)
         mean_values_cs = target_values_cs / sizes
         tpl = DFSNumeric.tpl(sizes, mean_values_cs)

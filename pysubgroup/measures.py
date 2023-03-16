@@ -3,11 +3,12 @@ Created on 28.04.2016
 
 @author: lemmerfn
 '''
-from abc import ABC, abstractmethod
+from abc import ABC
 from collections import namedtuple
 from itertools import combinations
 import numpy as np
 import pysubgroup as ps
+
 
 
 class AbstractInterestingnessMeasure(ABC):
@@ -19,8 +20,7 @@ class AbstractInterestingnessMeasure(ABC):
         if any(not hasattr(statistics, attr) for attr in self.required_stat_attrs):
             if getattr(subgroup, 'statistics', False):
                 return subgroup.statistics
-            else:
-                return self.calculate_statistics(subgroup, target, data, statistics)
+            return self.calculate_statistics(subgroup, target, data, statistics)
         return statistics
     # pylint: enable=no-member
     #def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None): #pylint: disable=unused-argument
@@ -78,7 +78,7 @@ def unique_attributes(result_set, data):
     used_attributes = []
     for (q, sg) in result_set:
         atts = sg.subgroup_description.get_attributes()
-        if atts not in used_attributes or all([ps.is_categorical_attribute(data, x) for x in atts]):
+        if atts not in used_attributes or all(ps.is_categorical_attribute(data, x) for x in atts):
             result.append((q, sg))
             used_attributes.append(atts)
     return result
@@ -169,10 +169,10 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
         sg_repr = repr(subgroup)
         if sg_repr in self.cache:
             return GeneralizationAwareQF.ga_tuple(*self.cache[sg_repr])
-        else:
-            (q_sg, q_prev) = self.get_qual_and_previous_qual(subgroup, target, data)
-            self.cache[sg_repr] = (q_sg, q_prev)
-            return GeneralizationAwareQF.ga_tuple(q_sg, q_prev)
+
+        (q_sg, q_prev) = self.get_qual_and_previous_qual(subgroup, target, data)
+        self.cache[sg_repr] = (q_sg, q_prev)
+        return GeneralizationAwareQF.ga_tuple(q_sg, q_prev)
 
     def get_qual_and_previous_qual(self, subgroup, target, data):
         q_subgroup = self.qf.evaluate(subgroup, target, data)
@@ -219,10 +219,10 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
         sg_repr = repr(subgroup)
         if sg_repr in self.cache:
             return GeneralizationAwareQF_stats.ga_tuple(*self.cache[sg_repr])
-        else:
-            (stats_sg, stats_prev) = self.get_stats_and_previous_stats(subgroup, target, data)
-            self.cache[sg_repr] = (stats_sg, stats_prev)
-            return GeneralizationAwareQF_stats.ga_tuple(stats_sg, stats_prev)
+
+        (stats_sg, stats_prev) = self.get_stats_and_previous_stats(subgroup, target, data)
+        self.cache[sg_repr] = (stats_sg, stats_prev)
+        return GeneralizationAwareQF_stats.ga_tuple(stats_sg, stats_prev)
 
     def get_stats_and_previous_stats(self, subgroup, target, data):
         stats_subgroup = self.qf.calculate_statistics(subgroup, target, data)
@@ -238,7 +238,7 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
                 max_stats = self.get_max(max_stats, stats_sg, stats_prev)
         return (stats_subgroup, max_stats)
 
-    def evaluate(self, subgroup, statistics_or_data=None):
+    def evaluate(self, subgroup, target, data, statistics=None):
         raise NotImplementedError
 
     def get_max(self, *args):

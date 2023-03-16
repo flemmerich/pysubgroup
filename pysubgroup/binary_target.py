@@ -6,7 +6,7 @@ Created on 29.09.2017
 from collections import namedtuple
 from functools import total_ordering
 import numpy as np
-import scipy.stats
+
 
 import pysubgroup as ps
 
@@ -14,7 +14,7 @@ from pysubgroup.subgroup_description import EqualitySelector
 
 
 @total_ordering
-class BinaryTarget:
+class BinaryTarget(ps.BaseTarget):
 
     statistic_types = ('size_sg', 'size_dataset', 'positives_sg', 'positives_dataset', 'size_complement',
                       'relative_size_sg', 'relative_size_complement', 'coverage_sg', 'coverage_complement',
@@ -27,10 +27,10 @@ class BinaryTarget:
         """
         if target_attribute is not None and target_value is not None:
             if target_selector is not None:
-                raise BaseException("BinaryTarget is to be constructed EITHER by a selector OR by attribute/value pair")
+                raise ValueError("BinaryTarget is to be constructed EITHER by a selector OR by attribute/value pair")
             target_selector = EqualitySelector(target_attribute, target_value)
         if target_selector is None:
-            raise BaseException("No target selector given")
+            raise ValueError("No target selector given")
         self.target_selector = target_selector
 
     def __repr__(self):
@@ -46,7 +46,7 @@ class BinaryTarget:
         return self.target_selector.covers(instance)
 
     def get_attributes(self):
-        return [self.target_selector.get_attribute_name()]
+        return (self.target_selector.attribute_name,)
 
     def get_base_statistics(self, subgroup, data):
         cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, len(data), data)
@@ -58,15 +58,12 @@ class BinaryTarget:
         return instances_dataset, positives_dataset, instances_subgroup, positives_subgroup
 
     def calculate_statistics(self, subgroup, data, cached_statistics=None):
-        if cached_statistics is None or not isinstance(cached_statistics, dict):
-            statistics = dict()
-        elif all(k in cached_statistics for k in BinaryTarget.statistic_types):
+        if self.all_statistics_present(cached_statistics):
             return cached_statistics
-        else:
-            statistics = cached_statistics
 
         (instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) = \
             self.get_base_statistics(subgroup, data)
+        statistics = {}
         statistics['size_sg'] = instances_subgroup
         statistics['size_dataset'] = instances_dataset
         statistics['positives_sg'] = positives_subgroup
@@ -77,7 +74,10 @@ class BinaryTarget:
         statistics['coverage_sg'] = positives_subgroup / positives_dataset
         statistics['coverage_complement'] = (positives_dataset - positives_subgroup) / positives_dataset
         statistics['target_share_sg'] = positives_subgroup / instances_subgroup
-        statistics['target_share_complement'] = (positives_dataset - positives_subgroup) / (instances_dataset - instances_subgroup)
+        if instances_dataset == instances_subgroup:
+            statistics['target_share_complement'] = float("nan")
+        else:
+            statistics['target_share_complement'] = (positives_dataset - positives_subgroup) / (instances_dataset - instances_subgroup)
         statistics['target_share_dataset'] = positives_dataset / instances_dataset
         statistics['lift'] = statistics['target_share_sg'] / statistics['target_share_dataset']
         return statistics
@@ -98,22 +98,40 @@ class SimplePositivesQF(ps.AbstractInterestingnessMeasure):  # pylint: disable=a
         self.dataset_statistics = SimplePositivesQF.tpl(len(data), np.sum(self.positives))
         self.has_constant_statistics = True
 
-    def calculate_statistics(self, subgroup, target, data, statistics=None):
+    def calculate_statistics(self, subgroup, target, data, statistics=None): # pylint: disable=unused-argument
         cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, len(self.positives), data)
         return SimplePositivesQF.tpl(size_sg, np.count_nonzero(self.positives[cover_arr]))
 
-    def evaluate(self, subgroup, target, data, statistics=None):
-        statistics = self.ensure_statistics(subgroup, target, data, statistics)
-        dataset = self.dataset_statistics
-        return (statistics.positives_count / dataset.positives_count)
+# <<< GpGrowth >>>
+    def gp_get_stats(self, row_index):
+        return np.array([1, self.positives[row_index]], dtype=int)
+
+    def gp_get_null_vector(self):
+        return np.zeros(2)
+
+    def gp_merge(self, l, r):
+        l += r
+
+    def gp_get_params(self, _cover_arr, v):
+        return SimplePositivesQF.tpl(v[0], v[1])
+
+    def gp_to_str(self, stats):
+        return " ".join(map(str, stats))
+
+    def gp_size_sg(self, stats):
+        return stats[0]
+
+    @property
+    def gp_requires_cover_arr(self):
+        return False
 
 
-        
+
 
 # TODO Make ChiSquared useful for real nominal data not just binary
-# TODO Introduce Enum for direction
-# TODO Maybe it is possible to give a optimistic estimate for ChiSquared
-class ChiSquaredQF(SimplePositivesQF):
+#      Introduce Enum for direction
+#      Maybe it is possible to give a optimistic estimate for ChiSquared
+class ChiSquaredQF(SimplePositivesQF): # pragma: no cover
     """
     ChiSquaredQF which test for statistical independence of a subgroup against it's complement
 
@@ -142,12 +160,12 @@ class ChiSquaredQF(SimplePositivesQF):
         index : {0, 1}, optional
             decides whether the test statistic (0) or the p-value (1) should be used
         """
-
+        import scipy.stats # pylint:disable=import-outside-toplevel
         if (instances_subgroup < min_instances) or ((instances_dataset - instances_subgroup) < min_instances):
             return float("-inf")
 
-        negatives_subgroup = instances_subgroup - positives_subgroup # pylint: disable=bad-whitespace
-        negatives_dataset = instances_dataset - positives_dataset # pylint: disable=bad-whitespace
+        negatives_subgroup = instances_subgroup - positives_subgroup
+        negatives_dataset = instances_dataset - positives_dataset
         negatives_complement = negatives_dataset - negatives_subgroup
         positives_complement = positives_dataset - positives_subgroup
 
@@ -159,12 +177,13 @@ class ChiSquaredQF(SimplePositivesQF):
         p_dataset = positives_dataset / instances_dataset
         if direction_positive and p_subgroup > p_dataset:
             return val
-        elif not direction_positive and p_subgroup < p_dataset:
+        if not direction_positive and p_subgroup < p_dataset:
             return val
         return -val
 
     @staticmethod
     def chi_squared_qf_weighted(subgroup, data, weighting_attribute, effective_sample_size=0, min_instances=5, ):
+        import scipy.stats # pylint:disable=import-outside-toplevel
         (instancesDataset, positivesDataset, instancesSubgroup, positivesSubgroup) = subgroup.get_base_statistics(data, weighting_attribute)
         if (instancesSubgroup < min_instances) or ((instancesDataset - instancesSubgroup) < 5):
             return float("inf")

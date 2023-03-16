@@ -1,15 +1,10 @@
 from functools import partial
-
-import pandas as pd
 import numpy as np
-from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.spatial.distance import squareform
-from matplotlib import pyplot as plt
-
 import pysubgroup as ps
 
 
 def plot_sgbars(result_df, _, ylabel="target share", title="Discovered Subgroups", dynamic_widths=False, _suffix=""):
+    from matplotlib import pyplot as plt # pylint: disable=import-outside-toplevel
     shares_sg = result_df["target_share_sg"]
     shares_compl = result_df["target_share_complement"]
     sg_relative_sizes = result_df["relative_size_sg"]
@@ -39,6 +34,7 @@ def plot_sgbars(result_df, _, ylabel="target share", title="Discovered Subgroups
 
 
 def plot_roc(result_df, data, qf=ps.StandardQF(0.5), levels=40, annotate=False):
+    from matplotlib import pyplot as plt # pylint: disable=import-outside-toplevel
     instances_dataset = len(data)
     positives_dataset = np.max(result_df['positives_dataset'])
     negatives_dataset = instances_dataset - positives_dataset
@@ -72,7 +68,7 @@ def plot_roc(result_df, data, qf=ps.StandardQF(0.5), levels=40, annotate=False):
 
 
 def plot_npspace(result_df, data, annotate=True, fixed_limits=False):
-
+    from matplotlib import pyplot as plt # pylint: disable=import-outside-toplevel
     fig, ax = plt.subplots()
 
     for i, sg in result_df.iterrows():
@@ -94,6 +90,7 @@ def plot_npspace(result_df, data, annotate=True, fixed_limits=False):
 
 
 def plot_distribution_numeric(sg, data, bins):
+    from matplotlib import pyplot as plt # pylint: disable=import-outside-toplevel
     fig, _ = plt.subplots()
     target_values_sg = data[sg.covers(data)][sg.target.get_attributes()].values
     target_values_data = data[sg.target.get_attributes()].values
@@ -104,6 +101,7 @@ def plot_distribution_numeric(sg, data, bins):
 
 
 def compare_distributions_numeric(sgs, data, bins):
+    from matplotlib import pyplot as plt # pylint: disable=import-outside-toplevel
     fig, _ = plt.subplots()
     for sg in sgs:
         target_values_sg = data[sg.covers(data)][sg.target.get_attributes()].values
@@ -113,6 +111,7 @@ def compare_distributions_numeric(sgs, data, bins):
 
 
 def similarity_sgs(sgd_results, data, color=True):
+    import pandas as pd # pylint:disable=import-outside-toplevel
     sgs = [x[1] for x in sgd_results]
     #sgNames = [str(sg.subgroup_description) for sg in sgs]
     dists = [[ps.overlap(sg, sg2, data) for sg2 in sgs] for sg in sgs]
@@ -123,6 +122,9 @@ def similarity_sgs(sgd_results, data, color=True):
 
 
 def similarity_dendrogram(result, data):
+    from matplotlib import pyplot as plt # pylint: disable=import-outside-toplevel
+    from scipy.cluster.hierarchy import dendrogram, linkage # pylint: disable=import-outside-toplevel
+    from scipy.spatial.distance import squareform # pylint: disable=import-outside-toplevel
     fig, _ = plt.subplots()
     dist_df = similarity_sgs(result, data, color=False)
     mat = 1 - dist_df.values
@@ -148,6 +150,6 @@ def supportSetVisualization(result, in_order=True, drop_empty=True):
         img_arr = img_arr[:, sort_inds_y]
     if drop_empty:
         keep_entities = np.sum(img_arr, axis=1) > 0
-        print("Discarding {} entities that are not covered".format(n_items - np.count_nonzero(keep_entities)))
+        print(f"Discarding {n_items - np.count_nonzero(keep_entities)} entities that are not covered")
         img_arr = img_arr[keep_entities, :]
     return img_arr.T
