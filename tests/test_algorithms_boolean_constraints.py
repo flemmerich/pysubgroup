@@ -1,9 +1,11 @@
 import unittest
 import pytest
-import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
 
-from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
+from tests.DataSets import get_credit_data
+from tests.algorithms_testing import TestAlgorithmsBase
+
+import pysubgroup as ps
+
 
 class TestSettings:
     All = True

@@ -1,8 +1,8 @@
 import unittest
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
+from tests.DataSets import get_credit_data
 
-from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
+from tests.algorithms_testing import TestAlgorithmsBase
 data = get_credit_data()
 
 target = ps.NumericTarget('credit_amount')

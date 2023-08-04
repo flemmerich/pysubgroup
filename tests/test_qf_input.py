@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
+from tests.DataSets import get_credit_data
 
 class TestQFInputs(unittest.TestCase):
     def setUp(self):

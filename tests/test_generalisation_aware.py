@@ -3,8 +3,8 @@ from collections import namedtuple
 import numpy as np
 import pandas as pd
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
-from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
+from tests.DataSets import get_credit_data
+from tests.algorithms_testing import TestAlgorithmsBase
 
 class TestGeneralisationAwareQf(unittest.TestCase):
     def setUp(self):

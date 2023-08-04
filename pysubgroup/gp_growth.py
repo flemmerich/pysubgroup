@@ -317,7 +317,7 @@ class GpGrowth:
         
 
 if __name__ == '__main__':
-    from pysubgroup.tests.DataSets import get_credit_data
+    from tests.DataSets import get_credit_data
     from pysubgroup import model_target
 
     data = get_credit_data()

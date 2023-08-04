@@ -10,11 +10,13 @@
 # 297422.98200000013:     foreign_worker=='b'yes'' and other_parties=='b'none'' and own_telephone=='b'yes'' and personal_status=='b'male single''
 
 import unittest
+
+from tests.DataSets import get_credit_data
+from tests.algorithms_testing import TestAlgorithmsBase
+
 import pysubgroup as ps
 
 
-from pysubgroup.tests.DataSets import get_credit_data
-from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
 
 class TestStandardQFNumeric(unittest.TestCase):
     def test_constructor(self):

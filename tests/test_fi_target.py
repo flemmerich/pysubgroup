@@ -1,9 +1,10 @@
 import unittest
+
+from tests.DataSets import get_titanic_data
+from tests.algorithms_testing import TestAlgorithmsBase
+
 import numpy as np
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_titanic_data
-from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
-
 
 
 #data=get_titanic_data()
