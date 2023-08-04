@@ -12,6 +12,17 @@ class TestRelationsMethods(unittest.TestCase):
         np.testing.assert_array_equal(selector.covers(self.df), result1)
         np.testing.assert_array_equal(self.df.query(repr(selector)), self.df[result1])
 
+    def test_Disjunction(self):
+        dis1 = ps.Disjunction(ps.EqualitySelector("A1", 1))
+        dis2 = ps.Disjunction(ps.EqualitySelector("A2", 1))
+        dis_test = dis1 | dis2
+        dis12 = ps.Disjunction([ps.EqualitySelector("A1", 1), ps.EqualitySelector("A2", 1)])
+        self.assertEqual(dis_test, dis12)
+
+    def test_Conjunction(self):
+        conj = ps.Conjunction(ps.EqualitySelector("A1", 1))
+        conj.append_and([ps.EqualitySelector("A1", 1)])
+
     def test_DNF(self):
         A1 = ps.EqualitySelector("A1", 1)
         A2 = ps.EqualitySelector("A2", 1, "AA")
@@ -37,6 +48,8 @@ class TestRelationsMethods(unittest.TestCase):
         dnf7 = ps.DNF([])
         dnf7.append_and([A1, A2])
         dnf7.append_or(ps.Conjunction([B1, B2]))
+        with self.assertRaises(RuntimeError):
+            dnf7.pop_and()
         self.df = pd.DataFrame.from_dict({"A1": [1, 1, 1, 2, 2, 2, 2, 0, 0, 0], #pylint: disable=attribute-defined-outside-init
                                           "A2": [0, 1, 1, 1, 2, 2, 2, 0, 0, 0],
                                           "B1": [0, 0, 0, 0, 1, 1, 1, 0, 1, 1],
@@ -45,6 +58,14 @@ class TestRelationsMethods(unittest.TestCase):
         self.check_dataframe_query(dnf3, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0])
         self.check_dataframe_query(dnf6, [0, 0, 0, 0, 1, 1, 0, 0, 0, 1])
         self.check_dataframe_query(dnf7, [0, 1, 1, 0, 1, 1, 0, 0, 0, 1])
+
+        dnf8 = ps.DNF([])
+        dnf8.append_and([A1, A2])
+        dnf8.append_or(ps.Conjunction([B1, A2]))
+        self.assertEqual(dnf8.pop_and(), A2)
+        dnf8.append_or(ps.Disjunction([A2]))
+        with self.assertRaises(NotImplementedError):
+            dnf8.append_and(ps.Disjunction([A2]))
 
     def test_equality_expressions(self):
         A1 = ps.EqualitySelector("A", 1)

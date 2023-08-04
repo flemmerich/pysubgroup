@@ -1,8 +1,7 @@
 from collections import namedtuple
-from scipy.stats import norm
 import numpy as np
 import pysubgroup as ps
-beta_tuple = namedtuple('beta_tuple', ['beta', 'size'])
+beta_tuple = namedtuple('beta_tuple', ['beta', 'size_sg'])
 
 
 class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
@@ -13,14 +12,13 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
         self.required_stat_attrs = EMM_Likelihood.tpl._fields
         self.data_size = None
 
-    def calculate_constant_statistics(self, task):
-        self.model.calculate_constant_statistics(task)
-        self.data_size = len(task.data)
+    def calculate_constant_statistics(self, data, target):
+        self.model.calculate_constant_statistics(data, target)
+        self.data_size = len(data)
         self.has_constant_statistics = True
 
-    def calculate_statistics(self, subgroup, data=None):
+    def calculate_statistics(self, subgroup, target, data, statistics=None): # pylint: disable=unused-argument
         cover_arr, sg_size = ps.get_cover_array_and_size(subgroup, self.data_size, data)
-
         params = self.model.fit(cover_arr, data)
         return self.get_tuple(sg_size, params, cover_arr)
 
@@ -37,21 +35,18 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
             sg_average = sg_likelihood_sum/sg_size
         return EMM_Likelihood.tpl(params, sg_average, dataset_average, sg_size)
 
-    def evaluate(self, subgroup, statistics=None):
-        statistics = self.ensure_statistics(subgroup, statistics)
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
         #numeric stability?
         return statistics.subgroup_likelihood - statistics.inverse_likelihood
 
     def gp_get_params(self, cover_arr, v):
         params = self.model.gp_get_params(v)
-        sg_size = params.size
+        sg_size = params.size_sg
         return self.get_tuple(sg_size, params, cover_arr)
 
-
-    def supports_weights(self):
-        return False
-
-    def is_applicable(self, _):
+    @property
+    def gp_requires_cover_arr(self):
         return True
 
     def __getattr__(self, name):
@@ -69,8 +64,7 @@ class PolyRegression_ModelClass:
         self.has_constant_statistics = True
         super().__init__()
 
-    def calculate_constant_statistics(self, task):
-        data = task.data
+    def calculate_constant_statistics(self, data, target): # pylint: disable=unused-argument
         self.x = data[self.x_name].to_numpy()
         self.y = data[self.y_name].to_numpy()
         self.has_constant_statistics = True
@@ -102,6 +96,17 @@ class PolyRegression_ModelClass:
         intersept = v[2]/v[0] - slope * v[1]/v[0]
         return beta_tuple(np.array([slope, intersept]), v[0])
 
+    def gp_to_str(self, stats):
+        return " ".join(map(str, stats))
+
+    def gp_size_sg(self, stats):
+        return stats[0]
+
+    @property
+    def gp_requires_cover_arr(self):
+        return False
+
+
     def fit(self, subgroup, data=None):
         cover_arr, size = ps.get_cover_array_and_size(subgroup, len(self.x), data)
         if size <= self.degree + 1:
@@ -109,9 +114,11 @@ class PolyRegression_ModelClass:
         return beta_tuple(np.polyfit(self.x[cover_arr], self.y[cover_arr], deg=self.degree), size)
 
     def likelihood(self, stats, sg):
+        from scipy.stats import norm # pylint: disable=import-outside-toplevel
         if any(np.isnan(stats.beta)):
             return np.full(self.x[sg].shape, np.nan)
         return norm.pdf(np.polyval(stats.beta, self.x[sg]) - self.y[sg])
 
     def loglikelihood(self, stats, sg):
+        from scipy.stats import norm # pylint: disable=import-outside-toplevel
         return norm.logpdf(np.polyval(stats.beta, self.x[sg]) - self.y[sg])
