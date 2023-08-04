@@ -1,8 +1,8 @@
 import pysubgroup as ps
-from tests.DataSets import get_credit_data
+from tests.DataSets import get_titanic_data
 
 import pandas as pd
-data = ps.testsfrom tests.DataSets.get_titanic_data()
+data = get_titanic_data()
 target = ps.BinaryTarget('Survived', True)
 
 searchspace = ps.create_selectors(data, ignore=['Survived'])
