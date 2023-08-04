@@ -11,7 +11,7 @@ class TestGeneralisationAwareQf(unittest.TestCase):
         self.qf = ps.CountQF()
         self.ga_qf = ps.GeneralizationAwareQF(self.qf)
         self.prepare_df()
-    
+
 
     def prepare_df(self):
         A = np.array([0, 0, 1, 1, 0, 0, 1, 1, 1, 1], dtype=bool)
@@ -21,6 +21,7 @@ class TestGeneralisationAwareQf(unittest.TestCase):
         B = np.array(["A", "B", "C", "C", "B", "A", "D", "A", "A", "A"])
         self.BA = ps.EqualitySelector("columnB", "A")
         self.BC = ps.EqualitySelector("columnB", "C")
+        self.BD = ps.EqualitySelector("columnB", "D")
         self.df = pd.DataFrame.from_dict({'columnA': A, 'columnB':B, 'columnC': np.array([[0, 1] for _ in range(5)]).flatten()})
 
 
@@ -60,6 +61,8 @@ class TestGeneralisationAware_StandardQf(unittest.TestCase):
         self.df = None
         self.A1 = None
         self.BA = None
+        self.A0 = None
+        self.BD = None
         TestGeneralisationAwareQf.prepare_df(self)
         self.ga_qf = ps.GeneralizationAware_StandardQF(0)
 
@@ -78,14 +81,17 @@ class TestGeneralisationAware_StandardQf(unittest.TestCase):
 
         self.assertEqual(ga_stat.subgroup_stats, ps.SimplePositivesQF.tpl(3, 2))
         self.assertEqual(ga_stat.generalisation_stats, ps.SimplePositivesQF.tpl(5, 3))
+
         # Ensure cache works properly
         self.assertEqual(ga_stat, self.ga_qf.calculate_statistics(ps.Conjunction([self.A1, self.BA]), target, self.df))
 
         ga_score = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), target, self.df)
         ga_score2 = self.ga_qf.evaluate(ps.Conjunction([self.A1, self.BA]), target, self.df)
+        ga_score3 = self.ga_qf.evaluate(ps.Conjunction([self.A0, self.BD]), target, self.df)
 
         self.assertEqual(ga_score, ga_score2)
         self.assertAlmostEqual(ga_score, 0.06666666666666)
+        self.assertTrue(np.isnan(ga_score3))
 
 
 class TestAlgorithms(TestAlgorithmsBase, unittest.TestCase):

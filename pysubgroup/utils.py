@@ -9,7 +9,6 @@ from heapq import heappush, heappop
 from collections.abc import Iterable
 
 import numpy as np
-import pandas as pd
 import pysubgroup as ps
 
 
@@ -31,6 +30,12 @@ def minimum_required_quality(result, task):
         return task.min_quality
     else:
         return result[0][0]
+
+def prepare_subgroup_discovery_result(result, task):
+    result_filtered = [tpl for tpl in result if tpl[0]>task.min_quality]
+    result_filtered.sort(key=lambda x: x[0], reverse=True)
+    result_filtered = result_filtered[:task.result_set_size]
+    return result_filtered
 
 
 # Returns the cutpoints for discretization
@@ -197,6 +202,11 @@ def intersect_of_ordered_list(list_1, list_2):
             i += 1
     return result
 
+class BaseTarget:
+    def all_statistics_present(self, cached_statistics):
+        if isinstance(cached_statistics, dict) and all(expected_value in cached_statistics for expected_value in self.__class__.statistic_types):#pylint: disable=no-member
+            return True
+        return False
 
 class SubgroupDiscoveryResult:
     def __init__(self, results, task):
@@ -204,8 +214,11 @@ class SubgroupDiscoveryResult:
         self.results = results
         assert isinstance(results, Iterable)
 
-    def to_descriptions(self):
-        return [(qual, sgd) for qual, sgd, stats in self.results]
+    def to_descriptions(self, include_stats=False):
+        if include_stats:
+            return list(self.results)
+        else:
+            return [(qual, sgd) for qual, sgd, stats in self.results]
 
     def to_table(self, statistics_to_show=None, print_header=True, include_target=False):
         if statistics_to_show is None:
@@ -218,15 +231,16 @@ class SubgroupDiscoveryResult:
             table.append(row)
         for (q, sg, stats) in self.results:
             stats = self.task.target.calculate_statistics(sg, self.task.data, stats)
-            row = [q, str(sg)]
+            row = [q, sg]
             if include_target:
-                row.append(str(self.task.target))
+                row.append(self.task.target)
             for stat in statistics_to_show:
                 row.append(stats[stat])
             table.append(row)
         return table
 
     def to_dataframe(self, statistics_to_show=None, autoround=False, include_target=False):
+        import pandas as pd #pylint: disable=import-outside-toplevel
         if statistics_to_show is None:
             statistics_to_show = type(self.task.target).statistic_types
         res = self.to_table(statistics_to_show, True, include_target)

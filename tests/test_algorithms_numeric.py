@@ -74,33 +74,33 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
         searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['credit_amount'])
         searchSpace_Numeric = [] #ps.create_numeric_selectors(data, ignore=['credit_amount'], nbins=10)
         searchSpace = searchSpace_Nominal + searchSpace_Numeric
-        self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(1, False, 'sum')))
+        self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQFNumeric(1, False, 'sum'))
 
     def test_SimpleDFS(self):
         self.runAlgorithm(ps.SimpleDFS(), "SimpleDFS", self.result, self.qualities, self.task)
 
     def test_DFS_average(self):
-        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'average'))
+        self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, 'average')
         self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS average", self.result, self.qualities, self.task)
 
     def test_DFS_order(self):
-        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'order'))
+        self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, 'order')
         self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS order", self.result, self.qualities, self.task)
 
     def test_DFS_sum(self):
-        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'sum'))
+        self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, 'sum')
         self.runAlgorithm(ps.DFS(ps.BitSetRepresentation), "DFS sum", self.result, self.qualities, self.task)
 
     def test_BeamSearch_sum(self):
-        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'sum'))
+        self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, 'sum')
         self.runAlgorithm(ps.BeamSearch(), "BeamSearch sum", self.result, self.qualities, self.task)
 
     def test_BeamSearch_average(self):
-        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'average'))
+        self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, 'average')
         self.runAlgorithm(ps.BeamSearch(), "BeamSearch average", self.result, self.qualities, self.task)
 
     def test_BeamSearch_order(self):
-        self.task.qf = ps.CountCallsInterestingMeasure(ps.StandardQFNumeric(self.task.qf.a, False, 'order'))
+        self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, 'order')
         self.runAlgorithm(ps.BeamSearch(), "BeamSearch order", self.result, self.qualities, self.task)
 
     def test_Apriori_no_numba(self):
@@ -110,9 +110,8 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
         self.runAlgorithm(ps.Apriori(use_numba=True), "Apriori use_numba=True", self.result, self.qualities, self.task)
 
     def test_DFSNumeric(self):
-        algo = ps.DFSNumeric()
-        self.runAlgorithm(algo, "DFS_numeric", self.result, self.qualities, self.task)
-        print('   Number of call to qf:', algo.num_calls)
+        self.runAlgorithm(ps.DFSNumeric(), "DFS_numeric", self.result, self.qualities, self.task)
+        #print('   Number of call to qf:', algo.num_calls)
 
     #def test_SimpleSearch(self):
     #   self.runAlgorithm(ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task)
