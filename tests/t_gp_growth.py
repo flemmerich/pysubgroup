@@ -1,6 +1,6 @@
 import time
 from collections import defaultdict
-from pysubgroup.tests.DataSets import get_credit_data
+from tests.DataSets import get_credit_data
 from pysubgroup import model_target
 import pysubgroup as ps
 

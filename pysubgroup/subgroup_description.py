@@ -39,6 +39,9 @@ class SelectorBase(ABC):
         # if not return
         return tmp
 
+    def __getnewargs_ex__(self):
+        return self.__new_args__
+
     def __init__(self):
         # add selector to cache
         # TODO: why not do this in `__new__`, then it would be all together in one function?
@@ -224,6 +227,7 @@ class NegatedSelector(SelectorBase):
 # Including the lower bound, excluding the upper_bound
 class IntervalSelector(SelectorBase):
     def __init__(self, attribute_name, lower_bound, upper_bound, selector_name=None):
+        assert lower_bound <= upper_bound
         self._attribute_name = attribute_name
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound

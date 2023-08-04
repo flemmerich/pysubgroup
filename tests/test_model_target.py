@@ -1,8 +1,8 @@
 import unittest
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
+from tests.DataSets import get_credit_data
 from pysubgroup import model_target
-from pysubgroup.tests.t_utils import assertResultEqual
+from tests.t_utils import assertResultEqual
 
 
 class TestGpGrowth(unittest.TestCase):

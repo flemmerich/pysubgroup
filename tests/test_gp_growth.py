@@ -2,8 +2,8 @@ import unittest
 
 import pandas as pd
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
-from pysubgroup.tests.t_utils import assertResultEqual
+from tests.DataSets import get_credit_data
+from tests.t_utils import assertResultEqual
 
 
 
