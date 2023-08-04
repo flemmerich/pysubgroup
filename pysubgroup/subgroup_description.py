@@ -39,11 +39,16 @@ class SelectorBase(ABC):
         # if not return
         return tmp
 
+    def __getnewargs_ex__(self): # pylint: disable=invalid-getnewargs-ex-returned
+        tmp_args = self.__new_args__
+        del self.__new_args__
+        return tmp_args
+
     def __init__(self):
         # add selector to cache
         # TODO: why not do this in `__new__`, then it would be all together in one function?
         SelectorBase.__refs__.add(self)
-
+    
     def __eq__(self, other):
         if other is None:
             return False
@@ -120,6 +125,8 @@ class EqualitySelector(SelectorBase):
             raise TypeError()
         if attribute_value is None:
             raise TypeError()
+        
+        # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._attribute_name = attribute_name
         self._attribute_value = attribute_value
         self._selector_name = selector_name
@@ -194,6 +201,8 @@ class EqualitySelector(SelectorBase):
 
 class NegatedSelector(SelectorBase):
     def __init__(self, selector):
+        
+        # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._selector = selector
         self.set_descriptions(selector)
 
@@ -224,6 +233,8 @@ class NegatedSelector(SelectorBase):
 # Including the lower bound, excluding the upper_bound
 class IntervalSelector(SelectorBase):
     def __init__(self, attribute_name, lower_bound, upper_bound, selector_name=None):
+        assert lower_bound < upper_bound
+        # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._attribute_name = attribute_name
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
