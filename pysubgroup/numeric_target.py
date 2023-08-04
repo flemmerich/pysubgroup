@@ -111,7 +111,7 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
 
     def calculate_statistics(self, subgroup, target, data, statistics=None):
         cover_arr, sg_size = ps.get_cover_array_and_size(subgroup, len(self.all_target_values), data)
-        sg_mean = np.array([0])
+        sg_mean = 0
         sg_target_values = 0
         if sg_size > 0:
             sg_target_values = self.all_target_values[cover_arr]

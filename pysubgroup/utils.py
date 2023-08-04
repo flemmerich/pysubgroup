@@ -218,11 +218,11 @@ class SubgroupDiscoveryResult:
             table.append(row)
         for (q, sg, stats) in self.results:
             stats = self.task.target.calculate_statistics(sg, self.task.data, stats)
-            row = [str(q), str(sg)]
+            row = [q, str(sg)]
             if include_target:
                 row.append(str(self.task.target))
             for stat in statistics_to_show:
-                row.append(str(stats[stat]))
+                row.append(stats[stat])
             table.append(row)
         return table
 
@@ -231,7 +231,7 @@ class SubgroupDiscoveryResult:
             statistics_to_show = type(self.task.target).statistic_types
         res = self.to_table(statistics_to_show, True, include_target)
         headers = res.pop(0)
-        df = pd.DataFrame(res, columns=headers, dtype=np.float64)
+        df = pd.DataFrame(res, columns=headers)
         if autoround:
             df = results_df_autoround(df)
         return df

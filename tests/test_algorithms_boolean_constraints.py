@@ -60,6 +60,7 @@ class BooleanTargetBase(TestAlgorithmsBase):
         self.assertTrue(all(algorithm_result.task.constraints[0].min_support <= df['size_sg']))
         TestAlgorithmsBase.evaluate_result(self, algorithm_result, result, qualities)
     # pylint: enable=no-member
+
 class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.EqualitySelector("checking_status", b"<0")
