@@ -226,6 +226,8 @@ class SubgroupDiscoveryResult:
         table = []
         if print_header:
             row = ["quality", "subgroup"]
+            if include_target:
+                row.append("target")
             for stat in statistics_to_show:
                 row.append(stat)
             table.append(row)

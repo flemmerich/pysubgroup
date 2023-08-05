@@ -1,7 +1,7 @@
 import unittest
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
-from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
+from tests.DataSets import get_credit_data
+from tests.algorithms_testing import TestAlgorithmsBase
 
 skip_long_running = True
 

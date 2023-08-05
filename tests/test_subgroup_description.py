@@ -1,10 +1,10 @@
 import tempfile
 import os
 import unittest
+from tests.DataSets import get_credit_data
 
 import pickle
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
 import numpy as np
 import pandas as pd
 
@@ -15,7 +15,9 @@ class TestRelationsMethods(unittest.TestCase):
 
         A1 = ps.EqualitySelector("A", 1)
         with tempfile.TemporaryDirectory() as td:
+            
             f_name = os.path.join(td, 'test.pickle')
+
             with open(f_name, 'wb') as f:
                 pickle.dump(A1, f)
 
@@ -165,7 +167,7 @@ class TestBasics(unittest.TestCase):
         np.testing.assert_array_equal(dis.covers(df), [False, False, False])
 
     def test_create_numeric_selectors_for_attribute(self):
-        from pysubgroup.tests.t_utils import interval_selectors_from_str # pylint:disable=import-outside-toplevel
+        from tests.t_utils import interval_selectors_from_str # pylint:disable=import-outside-toplevel
         df = pd.DataFrame({"A" : np.array([1,1,0,3,3,4,5], dtype=int)})
         selectors = ps.create_numeric_selectors_for_attribute(df, "A", nbins=4, intervals_only=False)
         result_selectors = interval_selectors_from_str("""A>=1

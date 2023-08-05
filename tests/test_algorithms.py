@@ -1,5 +1,5 @@
 import unittest
-from pysubgroup.tests.DataSets import get_credit_data
+from tests.DataSets import get_credit_data
 
 import pandas as pd
 import pysubgroup as ps

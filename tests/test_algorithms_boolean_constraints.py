@@ -1,9 +1,11 @@
 import unittest
 import pytest
-import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
 
-from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
+from tests.DataSets import get_credit_data
+from tests.algorithms_testing import TestAlgorithmsBase
+
+import pysubgroup as ps
+
 
 class TestSettings:
     All = True
@@ -63,9 +65,6 @@ class BooleanTargetBase(TestAlgorithmsBase):
         TestAlgorithmsBase.evaluate_result(self, algorithm_result, result, qualities)
     # pylint: enable=no-member
 
-
-
-
 class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
     def setUp(self):
         NS_checking = ps.EqualitySelector("checking_status", b"<0")
@@ -98,7 +97,6 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
         target = ps.BinaryTarget('class', b'bad')
         searchSpace = ps.create_nominal_selectors(data, ignore=['class'])
         self.task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=10, depth=5, qf=ps.StandardQF(1.0), constraints=[ps.MinSupportConstraint(200)])
-
 
 
 class TestAlgorithms2(BooleanTargetBase, unittest.TestCase):

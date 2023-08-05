@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_titanic_data
+from tests.DataSets import get_titanic_data
 
 if __name__ == '__main__':
     plt.interactive(False)

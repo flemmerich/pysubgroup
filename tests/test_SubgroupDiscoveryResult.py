@@ -2,8 +2,9 @@ import unittest
 import matplotlib.pyplot as plt
 
 import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
-from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
+
+from tests.DataSets import get_credit_data
+from tests.algorithms_testing import TestAlgorithmsBase
 
 show_plots = False
 class TestNominalTarget_to_result(unittest.TestCase, TestAlgorithmsBase):

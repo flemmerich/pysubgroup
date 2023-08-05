@@ -1,9 +1,11 @@
 import unittest
 import pytest
-import pysubgroup as ps
-from pysubgroup.tests.DataSets import get_credit_data
+from tests.DataSets import get_credit_data
+from tests.algorithms_testing import TestAlgorithmsBase
 
-from pysubgroup.tests.algorithms_testing import TestAlgorithmsBase
+
+import pysubgroup as ps
+
 
 class TestSettings:
     All = True
@@ -16,6 +18,7 @@ class TestSettings:
     DFS_numpyset = False
     SimpleSearch = False
     GpGrowth = False
+
 
 skip_long_running = True
 class BooleanTargetBase():

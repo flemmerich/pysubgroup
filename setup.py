@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='pysubgroup',
     version='0.7.3',
-    packages=['pysubgroup', 'pysubgroup.tests'],
+    packages=['pysubgroup'],
     package_data={'pysubgroup': ['data/credit-g.arff', 'data/titanic.csv']},
     url='http://florian.lemmerich.net/pysubgroup',
     license='',
