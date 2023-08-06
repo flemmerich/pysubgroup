@@ -1,17 +1,28 @@
+# .coveragerc to control coverage.py
+[run]
+branch = True
+source = pysubgroup
+# omit = bad_file.py
+
+[paths]
+source =
+    src/
+    */site-packages/
+
 [report]
+# Regexes for lines to exclude from consideration
 exclude_lines =
-        pragma: no cover
-        if __name__ == .__main__.:
-        def __repr__
-        def __eq__
-        def __lt__
-        raise RuntimeWarning
-        except ImportError:
-        @abstractmethod
-        @abc.abstractmethod
+    # Have to re-enable the standard pragma
+    pragma: no cover
 
-omit =
-        pysubgroup/tests/*
-        pysubgroup/visualization.py
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
 
-# pytest --cov pysubgroup --cov-report html .
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if 0:
+    if __name__ == .__main__.:
