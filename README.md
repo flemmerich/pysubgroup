@@ -17,7 +17,7 @@
 
 This library is still in a prototype phase. It has, however, been already successfully employed in active application projects.
 
-### Subgroup Discovery
+## Subgroup Discovery
 
 Subgroup Discovery is a well established data mining technique that allows you to identify patterns in your data.
 More precisely, the goal of subgroup discovery is to identify descriptions of data subsets that show an interesting distribution with respect to a pre-specified target concept.
@@ -54,7 +54,7 @@ If, after the installation, it still doesn't find the package, then do the follo
  2. Copy the folder `pysubgroup`, which contains the source code, into the `site-packages` directory. (WARNING: This is not the main repository folder. The `pysubgroup` folder is inside the main repository folder, at the same level as `doc`)
  3. Now you can import the module with `import pysubgroup`.
 
-### How to use:
+## How to use:
 A simple use case (here using the well known _titanic_ data) can be created in just a few lines of code:
 
 ```python
@@ -104,7 +104,7 @@ to get:
 </tbody></table>
 
 
-### Key classes
+## Key classes
 Here is an outline on the most important classes:
 * Selector: A Selector represents an atomic condition over the data, e.g., _age < 50_. There several subtypes of Selectors, i.e., NominalSelector (color==BLUE), NumericSelector (age < 50) and NegatedSelector (a wrapper such as not selector1)
 * SubgroupDiscoveryTask: As mentioned before, encapsulates the specification of how an algorithm should search for interesting subgroups
@@ -112,7 +112,7 @@ Here is an outline on the most important classes:
 * Conjunction: A conjunction is the most widely used SubgroupDescription, and indicates which data instances are covered by the subgroup. It can be seen as the left hand side of a rule.
 
 
-### License
+## License
 We are happy about anyone using this software. Thus, this work is put under an Apache license. However, if this constitutes
 any hindrance to your application, please feel free to contact us, we am sure that we can work something out.
 
@@ -130,7 +130,7 @@ any hindrance to your application, please feel free to contact us, we am sure th
     See the License for the specific language governing permissions and
     limitations under the License.
 
-### Cite
+## Cite
 If you are using pysubgroup for your research, please consider citing our demo paper:
 
     Lemmerich, F., & Becker, M. (2018, September). pysubgroup: Easy-to-use subgroup discovery in python. In Joint European Conference on Machine Learning and Knowledge Discovery in Databases (ECMLPKDD). pp. 658-662.

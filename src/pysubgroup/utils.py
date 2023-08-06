@@ -143,7 +143,7 @@ def remove_selectors_with_attributes(selector_list, attribute_list):
     return [x for x in selector_list if x.attributeName not in attribute_list]
 
 
-def effective_sample_size(weights):
+def derive_effective_sample_size(weights):
     return sum(weights) ** 2 / sum(weights**2)
 
 

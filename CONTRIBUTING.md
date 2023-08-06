@@ -78,8 +78,7 @@ python3 -m http.server --directory 'docs/_build/html'
 ## Code Contributions
 
 ```{todo} Please include a reference or explanation about the internals of the project.
-   TODO:
-   An architecture description, design principles or at least a summary of the
+   TODO: An architecture description, design principles or at least a summary of the
    main concepts will make it easy for potential contributors to get started
    quickly.
 ```

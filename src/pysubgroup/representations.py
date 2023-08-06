@@ -1,6 +1,6 @@
 import numpy as np
 
-import pysubgroup as ps
+from pysubgroup.subgroup_description import Conjunction, Disjunction
 
 
 class RepresentationBase:
@@ -31,7 +31,7 @@ class RepresentationBase:
         self.undo_patch_classes()
 
 
-class BitSet_Conjunction(ps.Conjunction):
+class BitSet_Conjunction(Conjunction):
     n_instances = 0
 
     def __init__(self, *args, **kwargs):
@@ -60,7 +60,7 @@ class BitSet_Conjunction(ps.Conjunction):
         return self.representation.__array_interface__
 
 
-class BitSet_Disjunction(ps.Disjunction):
+class BitSet_Disjunction(Disjunction):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.representation = self.compute_representation()
@@ -104,7 +104,7 @@ class BitSetRepresentation(RepresentationBase):
         super().patch_classes()
 
 
-class Set_Conjunction(ps.Conjunction):
+class Set_Conjunction(Conjunction):
     all_set = set()
 
     def __init__(self, *args, **kwargs):
@@ -149,7 +149,7 @@ class SetRepresentation(RepresentationBase):
         super().patch_classes()
 
 
-class NumpySet_Conjunction(ps.Conjunction):
+class NumpySet_Conjunction(Conjunction):
     all_set = None
 
     def __init__(self, *args, **kwargs):

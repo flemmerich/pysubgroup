@@ -8,12 +8,18 @@ from functools import total_ordering
 
 import numpy as np
 
-import pysubgroup as ps
-from pysubgroup.subgroup_description import EqualitySelector
+from pysubgroup.measures import (
+    AbstractInterestingnessMeasure,
+    BoundedInterestingnessMeasure,
+    GeneralizationAwareQF_stats,
+)
+
+from .subgroup_description import EqualitySelector, get_cover_array_and_size
+from .utils import BaseTarget, derive_effective_sample_size
 
 
 @total_ordering
-class BinaryTarget(ps.BaseTarget):
+class BinaryTarget(BaseTarget):
     statistic_types = (
         "size_sg",
         "size_dataset",
@@ -63,7 +69,7 @@ class BinaryTarget(ps.BaseTarget):
         return (self.target_selector.attribute_name,)
 
     def get_base_statistics(self, subgroup, data):
-        cover_arr, size_sg = ps.get_cover_array_and_size(subgroup, len(data), data)
+        cover_arr, size_sg = get_cover_array_and_size(subgroup, len(data), data)
         positives = self.covers(data)
         instances_subgroup = size_sg
         positives_dataset = np.sum(positives)
@@ -115,7 +121,7 @@ class BinaryTarget(ps.BaseTarget):
 
 
 class SimplePositivesQF(
-    ps.AbstractInterestingnessMeasure
+    AbstractInterestingnessMeasure
 ):  # pylint: disable=abstract-method
     tpl = namedtuple("PositivesQF_parameters", ("size_sg", "positives_count"))
 
@@ -136,7 +142,7 @@ class SimplePositivesQF(
     def calculate_statistics(
         self, subgroup, target, data, statistics=None
     ):  # pylint: disable=unused-argument
-        cover_arr, size_sg = ps.get_cover_array_and_size(
+        cover_arr, size_sg = get_cover_array_and_size(
             subgroup, len(self.positives), data
         )
         return SimplePositivesQF.tpl(
@@ -265,7 +271,9 @@ class ChiSquaredQF(SimplePositivesQF):  # pragma: no cover
         ):
             return float("inf")
         if effective_sample_size == 0:
-            effective_sample_size = ps.effective_sample_size(data[weighting_attribute])
+            effective_sample_size = derive_effective_sample_size(
+                data[weighting_attribute]
+            )
         # p_subgroup = positivesSubgroup / instancesSubgroup
         # p_dataset = positivesDataset / instancesDataset
 
@@ -322,7 +330,7 @@ class ChiSquaredQF(SimplePositivesQF):  # pragma: no cover
         )
 
 
-class StandardQF(SimplePositivesQF, ps.BoundedInterestingnessMeasure):
+class StandardQF(SimplePositivesQF, BoundedInterestingnessMeasure):
     """
     StandardQF which weights the relative size against the difference in averages
 
@@ -447,7 +455,7 @@ class WRAccQF(StandardQF):
 #####
 # GeneralizationAware Interestingness Measures
 #####
-class GeneralizationAware_StandardQF(ps.GeneralizationAwareQF_stats):
+class GeneralizationAware_StandardQF(GeneralizationAwareQF_stats):
     def __init__(self, a):
         super().__init__(StandardQF(0))
         self.a = a
