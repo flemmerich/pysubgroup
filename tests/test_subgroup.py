@@ -1,6 +1,8 @@
 import unittest
+
 import numpy as np
 import pandas as pd
+
 import pysubgroup as ps
 
 
@@ -26,10 +28,10 @@ class TestRelationsMethods(unittest.TestCase):
         self.assertTrue(C1 == C2)
         self.assertTrue(hash(C1) == hash(C2))
 
-        l = [A1, A2, B1]
-        self.assertEqual(l.index(A1), 0)
-        self.assertEqual(l.index(A2), 1)
-        self.assertEqual(l.index(B1), 2)
+        selectors = [A1, A2, B1]
+        self.assertEqual(selectors.index(A1), 0)
+        self.assertEqual(selectors.index(A2), 1)
+        self.assertEqual(selectors.index(B1), 2)
 
     def test_IntervalSelector_ordering(self):
         S1 = ps.IntervalSelector("A", 1.2345, 2.0)
@@ -119,18 +121,23 @@ class TestRelationsMethods(unittest.TestCase):
         I2 = ps.IntervalSelector("test2", np.sqrt(2), np.sqrt(3))
         self.assertEqual(str(I2), "test2: [1.41:1.73[")
         self.assertEqual(repr(I2), "test2: [1.4142135623730951:1.7320508075688772[")
-        #self.assertEqual(repr(NegC), "(not CCC==True)")
+        # self.assertEqual(repr(NegC), "(not CCC==True)")
 
     def test_create_selectors_with_nan(self):
-        df = pd.DataFrame.from_dict({'A' : np.array([np.nan, np.nan, np.nan]), 'B' : np.array([10, np.nan, np.nan])})
+        df = pd.DataFrame.from_dict(
+            {
+                "A": np.array([np.nan, np.nan, np.nan]),
+                "B": np.array([10, np.nan, np.nan]),
+            }
+        )
         result = ps.create_selectors(df)
-        A_null = ps.EqualitySelector('A', np.nan)
-        B_null = ps.EqualitySelector('B', np.nan)
-        B_10 = ps.EqualitySelector('B', 10.)
+        A_null = ps.EqualitySelector("A", np.nan)
+        B_null = ps.EqualitySelector("B", np.nan)
+        B_10 = ps.EqualitySelector("B", 10.0)
         assert A_null in result
         assert B_null in result
         assert B_10 in result
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

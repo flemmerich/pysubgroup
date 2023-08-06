@@ -1,38 +1,43 @@
-'''
+"""
 Created on 28.04.2016
 
 @author: lemmerfn
-'''
+"""
 from abc import ABC
 from collections import namedtuple
 from itertools import combinations
+
 import numpy as np
+
 import pysubgroup as ps
 
 
-
 class AbstractInterestingnessMeasure(ABC):
-
     # pylint: disable=no-member
     def ensure_statistics(self, subgroup, target, data, statistics=None):
         if not self.has_constant_statistics:
             self.calculate_constant_statistics(data, target)
         if any(not hasattr(statistics, attr) for attr in self.required_stat_attrs):
-            if getattr(subgroup, 'statistics', False):
+            if getattr(subgroup, "statistics", False):
                 return subgroup.statistics
             return self.calculate_statistics(subgroup, target, data, statistics)
         return statistics
+
     # pylint: enable=no-member
-    #def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None): #pylint: disable=unused-argument
+    # def optimistic_estimate_from_dataset(
+    #       self,
+    #       data,
+    #       subgroup,
+    #       weighting_attribute=None): #pylint: disable=unused-argument
     #    return float("inf")
 
 
 class BoundedInterestingnessMeasure(AbstractInterestingnessMeasure):
     pass
-    #@abstractmethod
-    #def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):
+    # @abstractmethod
+    # def optimistic_estimate_from_dataset(
+    #       self, data, subgroup, weighting_attribute=None):
     #    pass
-
 
 
 #####
@@ -54,19 +59,55 @@ class CombinedInterestingnessMeasure(BoundedInterestingnessMeasure):
         pass
 
     def evaluate(self, subgroup, target, data, statistics=None):
-        #FIX USE of constant statistics
-        return np.dot([m.evaluate(subgroup, target, data, None) for m in self.measures], self.weights)
+        # FIX USE of constant statistics
+        return np.dot(
+            [m.evaluate(subgroup, target, data, None) for m in self.measures],
+            self.weights,
+        )
 
     def optimistic_estimate(self, subgroup, target, data, statistics=None):
         # FIX USE of constant statistics
-        return np.dot([m.optimistic_estimate(subgroup, target, data, None) for m in self.measures], self.weights)
+        return np.dot(
+            [
+                m.optimistic_estimate(subgroup, target, data, None)
+                for m in self.measures
+            ],
+            self.weights,
+        )
 
-    def evaluate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
-        return np.dot([m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures], self.weights)
+    def evaluate_from_statistics(
+        self,
+        instances_dataset,
+        positives_dataset,
+        instances_subgroup,
+        positives_subgroup,
+    ):
+        return np.dot(
+            [
+                m.evaluate_from_statistics(
+                    instances_dataset,
+                    positives_dataset,
+                    instances_subgroup,
+                    positives_subgroup,
+                )
+                for m in self.measures
+            ],
+            self.weights,
+        )
 
-    #def optimistic_estimate_from_statistics(self, instances_dataset, positives_dataset, instances_subgroup, positives_subgroup):
+    # def optimistic_estimate_from_statistics(
+    #       self,
+    #       instances_dataset,
+    #       positives_dataset,
+    #       instances_subgroup,
+    #       positives_subgroup):
     #    return np.dot(
-    #        [m.evaluate_from_statistics(instances_dataset, positives_dataset, instances_subgroup, positives_subgroup) for m in self.measures],
+    #        [m.evaluate_from_statistics(
+    #           instances_dataset,
+    #           positives_dataset,
+    #           instances_subgroup,
+    #           positives_subgroup)
+    #               for m in self.measures],
     #        self.weights)
 
 
@@ -76,9 +117,11 @@ class CombinedInterestingnessMeasure(BoundedInterestingnessMeasure):
 def unique_attributes(result_set, data):
     result = []
     used_attributes = []
-    for (q, sg) in result_set:
+    for q, sg in result_set:
         atts = sg.subgroup_description.get_attributes()
-        if atts not in used_attributes or all(ps.is_categorical_attribute(data, x) for x in atts):
+        if atts not in used_attributes or all(
+            ps.is_categorical_attribute(data, x) for x in atts
+        ):
             result.append((q, sg))
             used_attributes.append(atts)
     return result
@@ -86,7 +129,7 @@ def unique_attributes(result_set, data):
 
 def minimum_statistic_filter(result_set, statistic, minimum, data):
     result = []
-    for (q, sg) in result_set:
+    for q, sg in result_set:
         if len(sg.statistics) == 0:
             sg.calculate_statistics(data)
         if sg.statistics[statistic] >= minimum:
@@ -96,7 +139,7 @@ def minimum_statistic_filter(result_set, statistic, minimum, data):
 
 def minimum_quality_filter(result_set, minimum):
     result = []
-    for (q, sg) in result_set:
+    for q, sg in result_set:
         if q >= minimum:
             result.append((q, sg))
     return result
@@ -104,7 +147,7 @@ def minimum_quality_filter(result_set, minimum):
 
 def maximum_statistic_filter(result_set, statistic, maximum):
     result = []
-    for (q, sg) in result_set:
+    for q, sg in result_set:
         if sg.statistics[statistic] <= maximum:
             result.append((q, sg))
     return result
@@ -113,7 +156,7 @@ def maximum_statistic_filter(result_set, statistic, maximum):
 def overlap_filter(result_set, data, similarity_level=0.9):
     result = []
     result_sgs = []
-    for (q, sg) in result_set:
+    for q, sg in result_set:
         if not overlaps_list(sg, result_sgs, data, similarity_level):
             result_sgs.append(sg)
             result.append((q, sg))
@@ -147,7 +190,8 @@ class CountCallsInterestingMeasure(BoundedInterestingnessMeasure):
 # GeneralizationAware Interestingness Measures
 #####
 class GeneralizationAwareQF(AbstractInterestingnessMeasure):
-    ga_tuple = namedtuple('ga_tuple', ['subgroup_quality', 'generalisation_quality'])
+    ga_tuple = namedtuple("ga_tuple", ["subgroup_quality", "generalisation_quality"])
+
     def __init__(self, qf):
         self.qf = qf
 
@@ -156,7 +200,7 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
         # the largest quality of all its predessors
         self.cache = {}
         self.has_constant_statistics = False
-        self.required_stat_attrs = ['subgroup_quality', 'generalisation_quality']
+        self.required_stat_attrs = ["subgroup_quality", "generalisation_quality"]
         self.q0 = 0
 
     def calculate_constant_statistics(self, data, target):
@@ -180,7 +224,7 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
         selectors = subgroup.selectors
         if len(selectors) > 0:
             # compute quality of all generalizations
-            generalizations = combinations(selectors, len(selectors)-1)
+            generalizations = combinations(selectors, len(selectors) - 1)
 
             for sels in generalizations:
                 sgd = ps.Conjunction(list(sels))
@@ -197,7 +241,8 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
 # GeneralizationAware Interestingness Measures
 #####
 class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
-    ga_tuple = namedtuple('ga_stats_tuple', ['subgroup_stats', 'generalisation_stats'])
+    ga_tuple = namedtuple("ga_stats_tuple", ["subgroup_stats", "generalisation_stats"])
+
     def __init__(self, qf):
         self.qf = qf
 
@@ -220,7 +265,9 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
         if sg_repr in self.cache:
             return GeneralizationAwareQF_stats.ga_tuple(*self.cache[sg_repr])
 
-        (stats_sg, stats_prev) = self.get_stats_and_previous_stats(subgroup, target, data)
+        (stats_sg, stats_prev) = self.get_stats_and_previous_stats(
+            subgroup, target, data
+        )
         self.cache[sg_repr] = (stats_sg, stats_prev)
         return GeneralizationAwareQF_stats.ga_tuple(stats_sg, stats_prev)
 
@@ -230,7 +277,7 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
         selectors = subgroup.selectors
         if len(selectors) > 0:
             # compute quality of all generalizations
-            generalizations = combinations(selectors, len(selectors)-1)
+            generalizations = combinations(selectors, len(selectors) - 1)
 
             for sels in generalizations:
                 sgd = ps.Conjunction(list(sels))

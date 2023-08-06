@@ -7,7 +7,7 @@ This tree based algorithm uses a condensed representation (a so called valuation
 Gp-growth is a generalisation of the popular `fp-growth <https://en.wikipedia.org/wiki/Association_rule_learning#FP-growth_algorithm>`_ algorithm. So refer to instructional material on fp-growth for more in depth knowledge on the workings of this tree based algorithm.
 
 
-.. contents:: 
+.. contents::
     :depth: 2
 
 Basic usage
@@ -33,10 +33,10 @@ You can specify the :code:`mode` argument in the constructor of GpGrowth to run 
 As gp growth is a generalisation of fp-growth you can also perform standard fp-growth using gp_growth by using the CountQF (:ref:`countqf`) quality function.
 
 
-.. 
+..
     Export a gp_tree
     =================
-    It is possible to export a gp_tree. 
+    It is possible to export a gp_tree.
 
 
 
@@ -71,7 +71,7 @@ To make a target and quality function suitable for gp-growth you have to provide
         def gp_get_basis(self, row_index):
         """ returns the valuation basis of the element at this row_index """
             pass
-        
+
         def gp_get_null_vector(self):
         """ returns the zero element of the valuation basis """
             pass
@@ -84,10 +84,10 @@ To make a target and quality function suitable for gp-growth you have to provide
         def gp_get_statistics(self, cover_arr, v):
         """ computes the statistics for this quality function from the valuation basis v """
             pass
-        
+
         @property
         def gp_requires_cover_arr(self) -> bool:
-        """ returns a boolean value that indicates whether a cover array is required when calling the gp_get_statistics function 
+        """ returns a boolean value that indicates whether a cover array is required when calling the gp_get_statistics function
 
             usually this value is False
         """

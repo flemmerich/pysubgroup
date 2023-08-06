@@ -1,13 +1,25 @@
 import unittest
 
 import pandas as pd
-import pysubgroup as ps
 
+import pysubgroup as ps
 
 
 class TestBinaryTarget(unittest.TestCase):
     def setUp(self):
-        self.df = pd.DataFrame.from_records([(1,1,0), (1,1,1,), (1,1,0), (1,0,1)], columns=("A", "B", "C"))
+        self.df = pd.DataFrame.from_records(
+            [
+                (1, 1, 0),
+                (
+                    1,
+                    1,
+                    1,
+                ),
+                (1, 1, 0),
+                (1, 0, 1),
+            ],
+            columns=("A", "B", "C"),
+        )
         self.selector = ps.EqualitySelector("A", 1)
 
     def test_init_errors(self):
@@ -17,7 +29,7 @@ class TestBinaryTarget(unittest.TestCase):
             ps.BinaryTarget("A", 1, self.selector)
 
     def test_calculate_statistics_for_cached(self):
-        target = ps.BinaryTarget("C",1)
+        target = ps.BinaryTarget("C", 1)
         statistics = target.calculate_statistics(self.selector, self.df)
         statistics2 = target.calculate_statistics(self.selector, self.df, statistics)
         self.assertIs(statistics, statistics2)
@@ -37,4 +49,3 @@ class TestBinaryTarget(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

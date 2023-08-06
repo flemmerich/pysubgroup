@@ -3,7 +3,7 @@ Targets and Quality Functions
 ##############################
 
 To define the goal of our subgroup discovery task, we use targets and quality functions. Targets are used to define which attributes play a significant role and can provide common statistics for a subgroup in question. Quality functions assign a score to each subgroup.
-These scores are used by all the algorithms to determine the most interesting subgroups. 
+These scores are used by all the algorithms to determine the most interesting subgroups.
 
 .. _countqf:
 
@@ -18,14 +18,14 @@ Binary Targets
 ##################
 
 For Boolean or Binary Targets we provide the *ChiSquaredQF* as well as the *StandardQF* quality functions.
-The *StandardQF* quality function uses a parameter :math:`\alpha` to weight the relative size :math:`\frac{N_{SG}}{N}` of a subgroup and 
+The *StandardQF* quality function uses a parameter :math:`\alpha` to weight the relative size :math:`\frac{N_{SG}}{N}` of a subgroup and
 multiplies it with the differences in relations of positive instances :math:`p` to the number of instances :math:`N`
 
 .. math::
 
     \left ( \frac{N_{SG}}{N} \right ) ^\alpha \left(\frac{p_{SG}}{N_{SG}} - \frac{p}{N} \right)
 
-The *StandardQF* also supports an optimistic estimate. 
+The *StandardQF* also supports an optimistic estimate.
 
 
 
@@ -56,7 +56,7 @@ For numeric targets pysubgroup offers the *StandardQFNumeric* which is defined s
 
 where :math:`\mu_{SG}` and :math:`\mu` are the mean value for the subgroup and entire dataset respectively.
 For the *StandardQFNumeric* we offer three optimistic estimates:  Average, Summation and Ordering. These are in detail described in Florian Lemmerich's dissertation.
-You can choose between the different optimistic estimates by using the keyword argument :code:`estimator` the different options are :code:`'sum'`, :code:`'average'`, and :code:`'order'` 
+You can choose between the different optimistic estimates by using the keyword argument :code:`estimator` the different options are :code:`'sum'`, :code:`'average'`, and :code:`'order'`
 
 
 
@@ -79,7 +79,7 @@ To create a custom quality function that works will all algorithms except gp_gro
 
         def calculate_statistics(self, subgroup, data=None):
             """ calculates necessary statistics
-                this statistics object is passed on to the evaluate 
+                this statistics object is passed on to the evaluate
                 and optimistic_estimate functions
             """
             pass
@@ -89,6 +89,6 @@ To create a custom quality function that works will all algorithms except gp_gro
             pass
 
         def optimistic_estimate(self, subgroup, statistics=None):
-            """ returns optimistic estimate 
-                if one is available return it otherwise infinity""" 
+            """ returns optimistic estimate
+                if one is available return it otherwise infinity"""
             pass

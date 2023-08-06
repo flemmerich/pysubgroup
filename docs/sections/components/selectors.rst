@@ -134,4 +134,3 @@ As already mentioned in the introduction on selectors, anything that provides a 
 
 The output shows that only the first and last instance contain an m in their name.
 In addition to the covers function it is certainly advised to also implement the :code:`__str__` and :code:`__repr__` functions. This selector can now be added to the searchspace for any algorithm execution.
-    

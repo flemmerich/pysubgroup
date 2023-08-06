@@ -1,20 +1,21 @@
-'''
+"""
 Created on 28.04.2016
 
 @author: lemmerfn
-'''
-from abc import ABC, abstractmethod
-import weakref
-from functools import total_ordering
-import pysubgroup as ps
-from itertools import chain
+"""
 import copy
+import weakref
+from abc import ABC, abstractmethod
+from functools import total_ordering
+from itertools import chain
+
 import numpy as np
+
+import pysubgroup as ps
 
 
 @total_ordering
 class SelectorBase(ABC):
-
     # selector cache
     __refs__ = weakref.WeakSet()
 
@@ -26,29 +27,32 @@ class SelectorBase(ABC):
         tmp.set_descriptions(*args, **kwargs)
 
         # save original arguments
-        # NOTE: this is a fix for pickle; so we can call `__getnewargs_ex__` with the right arguments
-        # TODO: this may have unintended side effects if args, kwargs are large or volatile (I don't think we have that yet though)
+        # NOTE: this is a fix for pickle
+        #       so we can call `__getnewargs_ex__` with the right arguments
+        # TODO: this may have unintended side effects if args,
+        #       kwargs are large or volatile (I don't think we have that yet though)
         tmp.__new_args__ = args, kwargs
 
         # check if selector is already in cache (__refs__)
         # if so, return cached instance
         if tmp in SelectorBase.__refs__:
-            for ref in SelectorBase. __refs__:
+            for ref in SelectorBase.__refs__:
                 if ref == tmp:
                     return ref
         # if not return
         return tmp
 
-    def __getnewargs_ex__(self): # pylint: disable=invalid-getnewargs-ex-returned
+    def __getnewargs_ex__(self):  # pylint: disable=invalid-getnewargs-ex-returned
         tmp_args = self.__new_args__
         del self.__new_args__
         return tmp_args
 
     def __init__(self):
         # add selector to cache
-        # TODO: why not do this in `__new__`, then it would be all together in one function?
+        # TODO: why not do this in `__new__`,
+        # then it would be all together in one function?
         SelectorBase.__refs__.add(self)
-    
+
     def __eq__(self, other):
         if other is None:
             return False
@@ -58,11 +62,11 @@ class SelectorBase(ABC):
         return repr(self) < repr(other)
 
     def __hash__(self):
-        return self._hash #pylint: disable=no-member
+        return self._hash  # pylint: disable=no-member
 
     @abstractmethod
     def set_descriptions(self, *args, **kwargs):
-        pass # pragma: no-cover
+        pass  # pragma: no-cover
 
 
 def get_cover_array_and_size(subgroup, data_len=None, data=None):
@@ -75,18 +79,22 @@ def get_cover_array_and_size(subgroup, data_len=None, data=None):
             if type(data).__name__ == "DataFrame":
                 data_len = len(data)
             else:
-                raise ValueError("if you pass a slice, you need to pass either data_len or data")
+                raise ValueError(
+                    "if you pass a slice, you need to pass either data_len or data"
+                )
         # https://stackoverflow.com/questions/36188429/retrieve-length-of-slice-from-slice-object-in-python
         size = len(range(*subgroup.indices(data_len)))
-    elif hasattr(subgroup, '__array_interface__'):
+    elif hasattr(subgroup, "__array_interface__"):
         cover_arr = subgroup
-        type_char = subgroup.__array_interface__['typestr'][1]
-        if type_char == 'b': # boolean indexing is used
+        type_char = subgroup.__array_interface__["typestr"][1]
+        if type_char == "b":  # boolean indexing is used
             size = np.count_nonzero(cover_arr)
-        elif type_char in ('u', 'i'): # integer indexing
-            size = subgroup.__array_interface__['shape'][0]
+        elif type_char in ("u", "i"):  # integer indexing
+            size = subgroup.__array_interface__["shape"][0]
         else:
-            raise NotImplementedError(f"Currently a typechar of {type_char} is not supported.")
+            raise NotImplementedError(
+                f"Currently a typechar of {type_char} is not supported."
+            )
     else:
         assert type(data).__name__ == "DataFrame"
         cover_arr = subgroup.covers(data)
@@ -102,17 +110,21 @@ def get_size(subgroup, data_len=None, data=None):
             if type(data).__name__ == "DataFrame":
                 data_len = len(data)
             else:
-                raise ValueError("if you pass a slice, you need to pass either data_len or data")
+                raise ValueError(
+                    "if you pass a slice, you need to pass either data_len or data"
+                )
         # https://stackoverflow.com/questions/36188429/retrieve-length-of-slice-from-slice-object-in-python
         size = len(range(*subgroup.indices(data_len)))
-    elif hasattr(subgroup, '__array_interface__'):
-        type_char = subgroup.__array_interface__['typestr'][1]
-        if type_char == 'b': # boolean indexing is used
+    elif hasattr(subgroup, "__array_interface__"):
+        type_char = subgroup.__array_interface__["typestr"][1]
+        if type_char == "b":  # boolean indexing is used
             size = np.count_nonzero(subgroup)
-        elif type_char == 'u' or type_char == 'i': # integer indexing
-            size = subgroup.__array_interface__['shape'][0]
+        elif type_char == "u" or type_char == "i":  # integer indexing
+            size = subgroup.__array_interface__["shape"][0]
         else:
-            raise NotImplementedError(f"Currently a typechar of {type_char} is not supported.")
+            raise NotImplementedError(
+                f"Currently a typechar of {type_char} is not supported."
+            )
     else:
         assert type(data).__name__ == "DataFrame"
         size = np.count_nonzero(subgroup.covers(data))
@@ -125,12 +137,14 @@ class EqualitySelector(SelectorBase):
             raise TypeError()
         if attribute_value is None:
             raise TypeError()
-        
+
         # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._attribute_name = attribute_name
         self._attribute_value = attribute_value
         self._selector_name = selector_name
-        self.set_descriptions(self._attribute_name, self._attribute_value, self._selector_name)
+        self.set_descriptions(
+            self._attribute_name, self._attribute_value, self._selector_name
+        )
 
         super().__init__()
 
@@ -142,8 +156,12 @@ class EqualitySelector(SelectorBase):
     def attribute_value(self):
         return self._attribute_value
 
-    def set_descriptions(self, attribute_name, attribute_value, selector_name=None): # pylint: disable=arguments-differ
-        self._hash, self._query, self._string = EqualitySelector.compute_descriptions(attribute_name, attribute_value, selector_name=selector_name)
+    def set_descriptions(
+        self, attribute_name, attribute_value, selector_name=None
+    ):  # pylint: disable=arguments-differ
+        self._hash, self._query, self._string = EqualitySelector.compute_descriptions(
+            attribute_name, attribute_value, selector_name=selector_name
+        )
 
     @classmethod
     def compute_descriptions(cls, attribute_name, attribute_value, selector_name):
@@ -166,7 +184,8 @@ class EqualitySelector(SelectorBase):
         return self._query
 
     def covers(self, data):
-        import pandas as pd #pylint: disable=import-outside-toplevel
+        import pandas as pd  # pylint: disable=import-outside-toplevel
+
         row = data[self.attribute_name].to_numpy()
         if pd.isnull(self.attribute_value):
             return pd.isnull(row)
@@ -198,10 +217,8 @@ class EqualitySelector(SelectorBase):
         return ps.EqualitySelector(attribute_name, attribute_value)
 
 
-
 class NegatedSelector(SelectorBase):
     def __init__(self, selector):
-        
         # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._selector = selector
         self.set_descriptions(selector)
@@ -227,7 +244,7 @@ class NegatedSelector(SelectorBase):
 
     @property
     def selectors(self):
-        return (self, )
+        return (self,)
 
 
 # Including the lower bound, excluding the upper_bound
@@ -269,17 +286,27 @@ class IntervalSelector(SelectorBase):
         return self._string
 
     @classmethod
-    def compute_descriptions(cls, attribute_name, lower_bound, upper_bound, selector_name=None):
+    def compute_descriptions(
+        cls, attribute_name, lower_bound, upper_bound, selector_name=None
+    ):
         if selector_name is None:
-            _string = cls.compute_string(attribute_name, lower_bound, upper_bound, rounding_digits=2)
+            _string = cls.compute_string(
+                attribute_name, lower_bound, upper_bound, rounding_digits=2
+            )
         else:
             _string = selector_name
-        _query = cls.compute_string(attribute_name, lower_bound, upper_bound, rounding_digits=None)
+        _query = cls.compute_string(
+            attribute_name, lower_bound, upper_bound, rounding_digits=None
+        )
         _hash = hash(_query)
         return (_hash, _query, _string)
 
-    def set_descriptions(self, attribute_name, lower_bound, upper_bound, selector_name=None):  # pylint: disable=arguments-differ
-        self._hash, self._query, self._string = IntervalSelector.compute_descriptions(attribute_name, lower_bound, upper_bound, selector_name=selector_name)
+    def set_descriptions(
+        self, attribute_name, lower_bound, upper_bound, selector_name=None
+    ):  # pylint: disable=arguments-differ
+        self._hash, self._query, self._string = IntervalSelector.compute_descriptions(
+            attribute_name, lower_bound, upper_bound, selector_name=selector_name
+        )
 
     @classmethod
     def compute_string(cls, attribute_name, lower_bound, upper_bound, rounding_digits):
@@ -308,20 +335,24 @@ class IntervalSelector(SelectorBase):
     def from_str(s):
         s = s.strip()
         if s.endswith(" = anything"):
-            return IntervalSelector(s[:-len(" = anything")], float("-inf"), float("+inf"))
+            return IntervalSelector(
+                s[: -len(" = anything")], float("-inf"), float("+inf")
+            )
         if "<" in s:
             attribute_name, ub = s.split("<")
             try:
                 return IntervalSelector(attribute_name.strip(), float("-inf"), int(ub))
             except ValueError:
-                return IntervalSelector(attribute_name.strip(), float("-inf"), float(ub))
+                return IntervalSelector(
+                    attribute_name.strip(), float("-inf"), float(ub)
+                )
         if ">=" in s:
             attribute_name, lb = s.split(">=")
             try:
                 return IntervalSelector(attribute_name.strip(), int(lb), float("inf"))
             except ValueError:
                 return IntervalSelector(attribute_name.strip(), float(lb), float("inf"))
-        if s.count(":")==2:
+        if s.count(":") == 2:
             attribute_name, lb, ub = s.split(":")
             lb = lb.strip()[1:]
             ub = ub.strip()[:-1]
@@ -337,7 +368,6 @@ class IntervalSelector(SelectorBase):
         return (self,)
 
 
-
 def create_selectors(data, nbins=5, intervals_only=True, ignore=None):
     if ignore is None:
         ignore = []
@@ -350,41 +380,58 @@ def create_nominal_selectors(data, ignore=None):
     if ignore is None:
         ignore = []
     nominal_selectors = []
-    # for attr_name in [x for x in data.select_dtypes(exclude=['number']).columns.values if x not in ignore]:
-    #    nominal_selectors.extend(create_nominal_selectors_for_attribute(data, attr_name))
-    nominal_dtypes = data.select_dtypes(exclude=['number'])
+    # for attr_name in [
+    #       x for x in data.select_dtypes(exclude=['number']).columns.values
+    #       if x not in ignore]:
+    #    nominal_selectors.extend(
+    #       create_nominal_selectors_for_attribute(data, attr_name))
+    nominal_dtypes = data.select_dtypes(exclude=["number"])
     dtypes = data.dtypes
     # print(dtypes)
     for attr_name in [x for x in nominal_dtypes.columns.values if x not in ignore]:
-        nominal_selectors.extend(create_nominal_selectors_for_attribute(data, attr_name, dtypes))
+        nominal_selectors.extend(
+            create_nominal_selectors_for_attribute(data, attr_name, dtypes)
+        )
     return nominal_selectors
 
 
 def create_nominal_selectors_for_attribute(data, attribute_name, dtypes=None):
-    import pandas as pd # pylint: disable=import-outside-toplevel
+    import pandas as pd  # pylint: disable=import-outside-toplevel
+
     nominal_selectors = []
     for val in pd.unique(data[attribute_name]):
         nominal_selectors.append(EqualitySelector(attribute_name, val))
     # setting the is_bool flag for selector
     if dtypes is None:
         dtypes = data.dtypes
-    if dtypes[attribute_name] == 'bool':
+    if dtypes[attribute_name] == "bool":
         for s in nominal_selectors:
             s.is_bool = True
     return nominal_selectors
 
 
-def create_numeric_selectors(data, nbins=5, intervals_only=True, weighting_attribute=None, ignore=None):
+def create_numeric_selectors(
+    data, nbins=5, intervals_only=True, weighting_attribute=None, ignore=None
+):
     if ignore is None:
-        ignore = [] # pragma: no cover
+        ignore = []  # pragma: no cover
     numeric_selectors = []
-    for attr_name in [x for x in data.select_dtypes(include=['number']).columns.values if x not in ignore]:
-        numeric_selectors.extend(create_numeric_selectors_for_attribute(
-            data, attr_name, nbins, intervals_only, weighting_attribute))
+    for attr_name in [
+        x
+        for x in data.select_dtypes(include=["number"]).columns.values
+        if x not in ignore
+    ]:
+        numeric_selectors.extend(
+            create_numeric_selectors_for_attribute(
+                data, attr_name, nbins, intervals_only, weighting_attribute
+            )
+        )
     return numeric_selectors
 
 
-def create_numeric_selectors_for_attribute(data, attr_name, nbins=5, intervals_only=True, weighting_attribute=None):
+def create_numeric_selectors_for_attribute(
+    data, attr_name, nbins=5, intervals_only=True, weighting_attribute=None
+):
     numeric_selectors = []
     data_not_null = data[data[attr_name].notnull()]
 
@@ -396,13 +443,17 @@ def create_numeric_selectors_for_attribute(data, attr_name, nbins=5, intervals_o
         for val in uniqueValues:
             numeric_selectors.append(EqualitySelector(attr_name, val))
     else:
-        cutpoints = ps.equal_frequency_discretization(data, attr_name, nbins, weighting_attribute)
+        cutpoints = ps.equal_frequency_discretization(
+            data, attr_name, nbins, weighting_attribute
+        )
         if intervals_only:
             old_cutpoint = float("-inf")
             for c in cutpoints:
                 numeric_selectors.append(IntervalSelector(attr_name, old_cutpoint, c))
                 old_cutpoint = c
-            numeric_selectors.append(IntervalSelector(attr_name, old_cutpoint, float("inf")))
+            numeric_selectors.append(
+                IntervalSelector(attr_name, old_cutpoint, float("inf"))
+            )
         else:
             for c in cutpoints:
                 numeric_selectors.append(IntervalSelector(attr_name, c, float("inf")))
@@ -412,7 +463,9 @@ def create_numeric_selectors_for_attribute(data, attr_name, nbins=5, intervals_o
 
 
 def remove_target_attributes(selectors, target):
-    return [sel for sel in selectors if not sel.attribute_name in target.get_attributes()]
+    return [
+        sel for sel in selectors if sel.attribute_name not in target.get_attributes()
+    ]
 
 
 ##############
@@ -441,6 +494,7 @@ class BooleanExpressionBase(ABC):
     def __copy__(self):
         pass
 
+
 @total_ordering
 class Conjunction(BooleanExpressionBase):
     def __init__(self, selectors):
@@ -451,7 +505,6 @@ class Conjunction(BooleanExpressionBase):
             self._selectors = list(it)
         except TypeError:
             self._selectors = [selectors]
-
 
     def covers(self, instance):
         # empty description ==> return a list of all '1's
@@ -470,7 +523,7 @@ class Conjunction(BooleanExpressionBase):
         return "".join((open_brackets, and_term.join(attrs), closing_brackets))
 
     def __repr__(self):
-        if not self._repr is None:
+        if self._repr is not None:
             return self._repr
         else:
             self._repr = self._compute_repr()
@@ -483,7 +536,7 @@ class Conjunction(BooleanExpressionBase):
         return repr(self) < repr(other)
 
     def __hash__(self):
-        if not self._hash is None:
+        if self._hash is not None:
             return self._hash
         else:
             self._hash = self._compute_hash()
@@ -512,13 +565,17 @@ class Conjunction(BooleanExpressionBase):
         self._invalidate_representations()
 
     def append_or(self, to_append):
-        raise RuntimeError("Or operations are not supported by a pure Conjunction. Consider using DNF.")
+        raise RuntimeError(
+            "Or operations are not supported by a pure Conjunction. Consider using DNF."
+        )
 
     def pop_and(self):
         return self._selectors.pop()
 
     def pop_or(self):
-        raise RuntimeError("Or operations are not supported by a pure Conjunction. Consider using DNF.")
+        raise RuntimeError(
+            "Or operations are not supported by a pure Conjunction. Consider using DNF."
+        )
 
     def __copy__(self):
         cls = self.__class__
@@ -537,10 +594,10 @@ class Conjunction(BooleanExpressionBase):
 
     @staticmethod
     def from_str(s):
-        if s.strip()=="Dataset":
+        if s.strip() == "Dataset":
             return Conjunction([])
         selector_strings = s.split(" AND ")
-        selectors=[]
+        selectors = []
         for selector_string in selector_strings:
             selector_string = selector_string.strip()
             if "==" in selector_string:
@@ -556,7 +613,7 @@ class Disjunction(BooleanExpressionBase):
         if isinstance(selectors, (list, tuple)):
             self._selectors = selectors
         elif selectors is None:
-            self._selectors=[]
+            self._selectors = []
         else:
             self._selectors = [selectors]
 
@@ -572,7 +629,7 @@ class Disjunction(BooleanExpressionBase):
 
     def __str__(self, open_brackets="", closing_brackets="", or_term=" OR "):
         if not self._selectors:
-            return "Empty" # pragma: no cover
+            return "Empty"  # pragma: no cover
         attrs = sorted(str(sel) for sel in self._selectors)
         return "".join((open_brackets, or_term.join(attrs), closing_brackets))
 
@@ -592,7 +649,10 @@ class Disjunction(BooleanExpressionBase):
         return hash(repr(self))
 
     def append_and(self, to_append):
-        raise RuntimeError("And operations are not supported by a pure Conjunction. Consider using DNF.")
+        raise RuntimeError(
+            "And operations are not supported by a pure Conjunction. "
+            "Consider using DNF."
+        )
 
     def append_or(self, to_append):
         if isinstance(to_append, Disjunction):
@@ -633,7 +693,9 @@ class DNF(Disjunction):
             if all(isinstance(sel, SelectorBase) for sel in to_append):
                 return Conjunction(it)
             else:
-                raise ValueError("DNFs only accept an iterable of Selectors")#pragma: no cover
+                raise ValueError(
+                    "DNFs only accept an iterable of Selectors"
+                )  # pragma: no cover
 
     def append_or(self, to_append):
         if isinstance(to_append, ps.Disjunction):
@@ -647,7 +709,9 @@ class DNF(Disjunction):
 
     def append_and(self, to_append):
         if isinstance(to_append, Disjunction):
-            raise NotImplementedError("Appeding a disjunction to DNF is not implemented")
+            raise NotImplementedError(
+                "Appeding a disjunction to DNF is not implemented"
+            )
         conj = DNF._ensure_pure_conjunction(to_append)
         if len(self._selectors) > 0:
             for conjunction in self._selectors:

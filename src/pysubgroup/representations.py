@@ -1,10 +1,9 @@
 import numpy as np
+
 import pysubgroup as ps
 
 
-
-
-class RepresentationBase():
+class RepresentationBase:
     def __init__(self, new_conjunction, selectors_to_patch):
         self._new_conjunction = new_conjunction
         self.previous_conjunction = None
@@ -14,7 +13,7 @@ class RepresentationBase():
         for sel in self.selectors_to_patch:
             self.patch_selector(sel)
 
-    def patch_selector(self, sel): # pragma: no cover
+    def patch_selector(self, sel):  # pragma: no cover
         raise NotImplementedError()  # pragma: no cover
 
     def patch_classes(self):
@@ -28,20 +27,19 @@ class RepresentationBase():
         self.patch_all_selectors()
         return self
 
-
-    def __exit__(self, * args):
+    def __exit__(self, *args):
         self.undo_patch_classes()
-
 
 
 class BitSet_Conjunction(ps.Conjunction):
     n_instances = 0
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.representation = self.compute_representation()
 
     def compute_representation(self):
-                # empty description ==> return a list of all '1's
+        # empty description ==> return a list of all '1's
         if not self._selectors:
             return np.full(BitSet_Conjunction.n_instances, True, dtype=bool)
         # non-empty description
@@ -53,12 +51,13 @@ class BitSet_Conjunction(ps.Conjunction):
 
     def append_and(self, to_append):
         super().append_and(to_append)
-        self.representation = np.logical_and(self.representation, to_append.representation)
+        self.representation = np.logical_and(
+            self.representation, to_append.representation
+        )
 
     @property
     def __array_interface__(self):
         return self.representation.__array_interface__
-
 
 
 class BitSet_Disjunction(ps.Disjunction):
@@ -67,7 +66,7 @@ class BitSet_Disjunction(ps.Disjunction):
         self.representation = self.compute_representation()
 
     def compute_representation(self):
-                # empty description ==> return a list of all '1's
+        # empty description ==> return a list of all '1's
         if not self._selectors:
             return np.full(BitSet_Conjunction.n_instances, False, dtype=bool)
         # non-empty description
@@ -79,18 +78,19 @@ class BitSet_Disjunction(ps.Disjunction):
 
     def append_or(self, to_append):
         super().append_or(to_append)
-        self.representation = np.logical_or(self.representation, to_append.representation)
+        self.representation = np.logical_or(
+            self.representation, to_append.representation
+        )
 
     @property
     def __array_interface__(self):
         return self.representation.__array_interface__
 
 
-
-
 class BitSetRepresentation(RepresentationBase):
     Conjunction = BitSet_Conjunction
     Disjunction = BitSet_Disjunction
+
     def __init__(self, df, selectors_to_patch):
         self.df = df
         super().__init__(BitSet_Conjunction, selectors_to_patch)
@@ -113,7 +113,7 @@ class Set_Conjunction(ps.Conjunction):
         self.arr_for_interface = np.array(list(self.representation), dtype=int)
 
     def compute_representation(self):
-                # empty description ==> return a list of all '1's
+        # empty description ==> return a list of all '1's
         if not self._selectors:
             return Set_Conjunction.all_set
         # non-empty description
@@ -123,7 +123,6 @@ class Set_Conjunction(ps.Conjunction):
     def size_sg(self):
         return len(self.representation)
 
-
     def append_and(self, to_append):
         super().append_and(to_append)
         self.representation = self.representation.intersection(to_append.representation)
@@ -131,11 +130,12 @@ class Set_Conjunction(ps.Conjunction):
 
     @property
     def __array_interface__(self):
-        return self.arr_for_interface.__array_interface__ # pylint: disable=no-member
+        return self.arr_for_interface.__array_interface__  # pylint: disable=no-member
 
 
 class SetRepresentation(RepresentationBase):
     Conjunction = Set_Conjunction
+
     def __init__(self, df, selectors_to_patch):
         self.df = df
         super().__init__(Set_Conjunction, selectors_to_patch)
@@ -157,7 +157,7 @@ class NumpySet_Conjunction(ps.Conjunction):
         self.representation = self.compute_representation()
 
     def compute_representation(self):
-                # empty description ==> return a list of all '1's
+        # empty description ==> return a list of all '1's
         if not self._selectors:
             return NumpySet_Conjunction.all_set
         start = self._selectors[0].representation
@@ -171,8 +171,10 @@ class NumpySet_Conjunction(ps.Conjunction):
 
     def append_and(self, to_append):
         super().append_and(to_append)
-        #self._selectors.append(to_append)
-        self.representation = np.intersect1d(self.representation, to_append.representation, True)
+        # self._selectors.append(to_append)
+        self.representation = np.intersect1d(
+            self.representation, to_append.representation, True
+        )
 
     @property
     def __array_interface__(self):
@@ -181,6 +183,7 @@ class NumpySet_Conjunction(ps.Conjunction):
 
 class NumpySetRepresentation(RepresentationBase):
     Conjunction = NumpySet_Conjunction
+
     def __init__(self, df, selectors_to_patch):
         self.df = df
         super().__init__(NumpySet_Conjunction, selectors_to_patch)
