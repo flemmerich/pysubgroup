@@ -1,24 +1,44 @@
 import unittest
+
+from t_utils import assertResultEqual
+
 import pysubgroup as ps
-from tests.DataSets import get_credit_data
 from pysubgroup import model_target
-from tests.t_utils import assertResultEqual
+from pysubgroup.datasets import get_credit_data
 
 
 class TestGpGrowth(unittest.TestCase):
     def test_gp_growth(self):
         data = get_credit_data()
-        #warnings.filterwarnings("error")
-        searchSpace_Nominal = ps.create_nominal_selectors(data, ignore=['duration', 'credit_amount', 'class'])
-        searchSpace_Numeric = ps.create_numeric_selectors(data, ignore=['duration', 'credit_amount', 'class'])
+        # warnings.filterwarnings("error")
+        searchSpace_Nominal = ps.create_nominal_selectors(
+            data, ignore=["duration", "credit_amount", "class"]
+        )
+        searchSpace_Numeric = ps.create_numeric_selectors(
+            data, ignore=["duration", "credit_amount", "class"]
+        )
         searchSpace = searchSpace_Nominal + searchSpace_Numeric
 
-        target=model_target.EMM_Likelihood(model_target.PolyRegression_ModelClass(x_name='duration', y_name='credit_amount'))
+        target = model_target.EMM_Likelihood(
+            model_target.PolyRegression_ModelClass(
+                x_name="duration", y_name="credit_amount"
+            )
+        )
         qf = target
-        task = ps.SubgroupDiscoveryTask(data, target, searchSpace, result_set_size=30, depth=2, qf=qf, constraints=[ps.MinSupportConstraint(100)])
+        task = ps.SubgroupDiscoveryTask(
+            data,
+            target,
+            searchSpace,
+            result_set_size=30,
+            depth=2,
+            qf=qf,
+            constraints=[ps.MinSupportConstraint(100)],
+        )
         results = ps.GpGrowth().execute(task)
 
-        assertResultEqual(self, results,
+        assertResultEqual(
+            self,
+            results,
             """0.013797436813222048 property_magnitude=='b'car'' AND purpose=='b'radio/tv''
             0.009898734286313158 credit_history=='b'existing paid'' AND job=='b'unskilled resident''
             0.008246523912217767 employment=='b'>=7'' AND existing_credits==2.0
@@ -48,8 +68,9 @@ class TestGpGrowth(unittest.TestCase):
             0.004908520358522154 age<26.0 AND existing_credits==1.0
             0.00483781209051734 installment_commitment==3.0 AND other_payment_plans=='b'none''
             0.00476540157528357 own_telephone=='b'none'' AND purpose=='b'furniture/equipment''
-            0.004700479771495154 employment=='b'1<=X<4'' AND existing_credits==2.0""")
+            0.004700479771495154 employment=='b'1<=X<4'' AND existing_credits==2.0""",  # noqa: E501
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

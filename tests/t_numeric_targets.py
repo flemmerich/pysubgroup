@@ -1,11 +1,9 @@
-import unittest
 import pysubgroup as ps
-from tests.DataSets import get_credit_data
+from pysubgroup.datasets import get_credit_data
 
-from tests.algorithms_testing import TestAlgorithmsBase
 data = get_credit_data()
 
-target = ps.NumericTarget('credit_amount')
+target = ps.NumericTarget("credit_amount")
 sgd = ps.EqualitySelector("purpose", b"other")
 
 stats = target.calculate_statistics(sgd, data)

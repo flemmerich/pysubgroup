@@ -2,11 +2,11 @@ import unittest
 
 import numpy as np
 import pandas as pd
+
 import pysubgroup as ps
 
 
 class TestRelationsMethods(unittest.TestCase):
-
     def check_dataframe_query(self, selector, result):
         result1 = np.array(result, dtype=bool)
         np.testing.assert_array_equal(selector.covers(self.df), result1)
@@ -16,7 +16,9 @@ class TestRelationsMethods(unittest.TestCase):
         dis1 = ps.Disjunction(ps.EqualitySelector("A1", 1))
         dis2 = ps.Disjunction(ps.EqualitySelector("A2", 1))
         dis_test = dis1 | dis2
-        dis12 = ps.Disjunction([ps.EqualitySelector("A1", 1), ps.EqualitySelector("A2", 1)])
+        dis12 = ps.Disjunction(
+            [ps.EqualitySelector("A1", 1), ps.EqualitySelector("A2", 1)]
+        )
         self.assertEqual(dis_test, dis12)
 
     def test_Conjunction(self):
@@ -50,10 +52,25 @@ class TestRelationsMethods(unittest.TestCase):
         dnf7.append_or(ps.Conjunction([B1, B2]))
         with self.assertRaises(RuntimeError):
             dnf7.pop_and()
-        self.df = pd.DataFrame.from_dict({"A1": [1, 1, 1, 2, 2, 2, 2, 0, 0, 0], #pylint: disable=attribute-defined-outside-init
-                                          "A2": [0, 1, 1, 1, 2, 2, 2, 0, 0, 0],
-                                          "B1": [0, 0, 0, 0, 1, 1, 1, 0, 1, 1],
-                                          "B2": ["0", "0", "0", "0", "1", "1", "2", "0", "0", "1"]})
+        self.df = pd.DataFrame.from_dict(
+            {
+                "A1": [
+                    1,
+                    1,
+                    1,
+                    2,
+                    2,
+                    2,
+                    2,
+                    0,
+                    0,
+                    0,
+                ],  # pylint: disable=attribute-defined-outside-init
+                "A2": [0, 1, 1, 1, 2, 2, 2, 0, 0, 0],
+                "B1": [0, 0, 0, 0, 1, 1, 1, 0, 1, 1],
+                "B2": ["0", "0", "0", "0", "1", "1", "2", "0", "0", "1"],
+            }
+        )
         self.check_dataframe_query(dnf1, [1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
         self.check_dataframe_query(dnf3, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0])
         self.check_dataframe_query(dnf6, [0, 0, 0, 0, 1, 1, 0, 0, 0, 1])
@@ -96,5 +113,5 @@ class TestRelationsMethods(unittest.TestCase):
         self.assertFalse(hash(C1) == hash(D1))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

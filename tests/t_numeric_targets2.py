@@ -1,8 +1,9 @@
 import pprint
+
 import numpy as np
 import pandas as pd
-import pysubgroup as ps
 
+import pysubgroup as ps
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -11,7 +12,7 @@ data = pd.DataFrame(data, columns=["Target", "A"])
 data["Target"] = pd.to_numeric(data["Target"])
 
 
-target = ps.NumericTarget('Target')
+target = ps.NumericTarget("Target")
 print(data[target.target_variable])
 sgd = ps.EqualitySelector("A", "Tr")
 target.calculate_statistics(sgd, data)
