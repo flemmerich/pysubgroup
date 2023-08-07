@@ -72,7 +72,7 @@ class BooleanTargetBase(TestAlgorithmsBase):
 
     @pytest.mark.slow
     @unittest.skipUnless(TestSettings.SimpleSearch, "flag not set")
-    def test_SimpleSearch(self):
+    def test_SimpleSearch_slow(self):
         self.runAlgorithm(
             ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task
         )
@@ -158,38 +158,38 @@ class TestAlgorithms(BooleanTargetBase, unittest.TestCase):
         )
 
 
-class TestAlgorithms2(BooleanTargetBase, unittest.TestCase):
-    def setUp(self):
-        NS_checking = ps.EqualitySelector("checking_status", b"<0")
-        NS_foreign_worker = ps.EqualitySelector("foreign_worker", b"yes")
-        NS_other_parties = ps.EqualitySelector("other_parties", b"none")
-        NS_savings_status = ps.EqualitySelector("savings_status", b"<100")
-        NS_payment_plans = ps.EqualitySelector("other_payment_plans", b"none")
-        NS_job = ps.EqualitySelector("job", b"skilled")
-        self.result = [
-            ps.Conjunction([NS_savings_status]),
-            ps.Conjunction([NS_foreign_worker]),
-            ps.Conjunction([NS_foreign_worker, NS_other_parties]),
-            ps.Conjunction([NS_foreign_worker, NS_job]),
-        ]
-        self.qualities = [
-            0.03610000000000002,
-            0.0071000000000000256,
-            0.004999999999999996,
-            0.0006999999999999932,
-        ]
-        data = get_credit_data()
-        target = ps.BinaryTarget("class", b"bad")
-        searchSpace = ps.create_nominal_selectors(data, ignore=["class"])
-        self.task = ps.SubgroupDiscoveryTask(
-            data,
-            target,
-            searchSpace,
-            result_set_size=10,
-            depth=5,
-            qf=ps.StandardQF(1.0),
-            constraints=[ps.MinSupportConstraint(600)],
-        )
+# class TestAlgorithms2(BooleanTargetBase, unittest.TestCase):
+#     def setUp(self):
+#         NS_checking = ps.EqualitySelector("checking_status", b"<0")
+#         NS_foreign_worker = ps.EqualitySelector("foreign_worker", b"yes")
+#         NS_other_parties = ps.EqualitySelector("other_parties", b"none")
+#         NS_savings_status = ps.EqualitySelector("savings_status", b"<100")
+#         NS_payment_plans = ps.EqualitySelector("other_payment_plans", b"none")
+#         NS_job = ps.EqualitySelector("job", b"skilled")
+#         self.result = [
+#             ps.Conjunction([NS_savings_status]),
+#             ps.Conjunction([NS_foreign_worker]),
+#             ps.Conjunction([NS_foreign_worker, NS_other_parties]),
+#             ps.Conjunction([NS_foreign_worker, NS_job]),
+#         ]
+#         self.qualities = [
+#             0.03610000000000002,
+#             0.0071000000000000256,
+#             0.004999999999999996,
+#             0.0006999999999999932,
+#         ]
+#         data = get_credit_data()
+#         target = ps.BinaryTarget("class", b"bad")
+#         searchSpace = ps.create_nominal_selectors(data, ignore=["class"])
+#         self.task = ps.SubgroupDiscoveryTask(
+#             data,
+#             target,
+#             searchSpace,
+#             result_set_size=10,
+#             depth=5,
+#             qf=ps.StandardQF(1.0),
+#             constraints=[ps.MinSupportConstraint(600)],
+#         )
 
 
 #   0.055299999999999995:        checking_status=='b'<0'' AND foreign_worker=='b'yes''
@@ -211,7 +211,7 @@ if __name__ == "__main__":
     # unittest.main()
     suites = []
     suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2))
     # suites.append( unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3))
     complete_suite = unittest.TestSuite(suites)

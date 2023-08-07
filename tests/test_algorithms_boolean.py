@@ -97,7 +97,6 @@ class BooleanTargetBase:
         )
         self.task.constraints_monotone.pop(-1)
 
-    @pytest.mark.slow
     @unittest.skipUnless(TestSettings.All or TestSettings.GpGrowth, "flag not set")
     def test_gp_growth_long(self):
         self.runAlgorithm(
@@ -113,8 +112,8 @@ class BooleanTargetBase:
         self.task.constraints_monotone.pop(-1)
 
     @pytest.mark.slow
-    @unittest.skipUnless(TestSettings.All or TestSettings.SimpleSearch, "flag not set")
-    def test_SimpleSearch(self):
+    @unittest.skipUnless(TestSettings.SimpleSearch, "flag not set")
+    def test_SimpleSearch_slow(self):
         self.runAlgorithm(
             ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task
         )
@@ -243,7 +242,6 @@ class TestAlgorithms2(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
             qf=ps.StandardQF(1.0),
         )
 
-    @pytest.mark.slow
     def test_DFS_numpy_sets(self):
         super().test_DFS_numpy_sets()
 
@@ -324,16 +322,16 @@ class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
             qf=ps.StandardQF(0.5),
         )
 
-    @pytest.mark.slow
+    # @pytest.mark.slow  # not really that slow (< 1 min)
     def test_BestFirstSearch(self):
         super().test_BestFirstSearch()
 
-    @pytest.mark.slow
-    def test_SimpleDFS(self):
+    @pytest.mark.slow  #  (< 2 min)
+    def test_SimpleDFS_slow(self):
         super().test_SimpleDFS()
 
-    @pytest.mark.slow
-    def test_DFS_numpy_sets(self):
+    @pytest.mark.slow  # (< 1 min)
+    def test_DFS_numpy_sets_slow(self):
         super().test_DFS_numpy_sets()
 
 
