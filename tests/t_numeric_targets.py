@@ -1,5 +1,5 @@
 import pysubgroup as ps
-from tests.DataSets import get_credit_data
+from pysubgroup.datasets import get_credit_data
 
 data = get_credit_data()
 

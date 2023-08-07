@@ -20,7 +20,7 @@ The basic usage of the gp-growth algorithm is not very different from the usage 
     import pysubgroup as ps
 
     # Load the example dataset
-    from tests.DataSets import get_titanic_data
+    from pysubgroup.datasets import get_titanic_data
     data = get_titanic_data()
 
     target = ps.NominalSelector ('Survived', True)

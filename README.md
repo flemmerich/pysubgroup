@@ -61,7 +61,7 @@ A simple use case (here using the well known _titanic_ data) can be created in j
 import pysubgroup as ps
 
 # Load the example dataset
-from tests.DataSets import get_titanic_data
+from pysubgroup.datasets import get_titanic_data
 data = get_titanic_data()
 
 target = ps.BinaryTarget ('Survived', True)

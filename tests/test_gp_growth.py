@@ -1,10 +1,10 @@
 import unittest
 
 import pandas as pd
+from t_utils import assertResultEqual
 
 import pysubgroup as ps
-from tests.DataSets import get_credit_data
-from tests.t_utils import assertResultEqual
+from pysubgroup.datasets import get_credit_data
 
 
 class TestGpGrowth(unittest.TestCase):

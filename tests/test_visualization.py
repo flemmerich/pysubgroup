@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 import pysubgroup as ps
-from tests.DataSets import get_titanic_data
+from pysubgroup.datasets import get_titanic_data
 
 if __name__ == "__main__":
     plt.interactive(False)

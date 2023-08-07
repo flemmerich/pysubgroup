@@ -1,5 +1,5 @@
 import pysubgroup as ps
-from tests.DataSets import get_titanic_data
+from pysubgroup.datasets import get_titanic_data
 
 data = get_titanic_data()
 target = ps.BinaryTarget("Survived", True)

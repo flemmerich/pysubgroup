@@ -2,10 +2,10 @@ import unittest
 
 import numpy as np
 import pandas as pd
+from algorithms_testing import TestAlgorithmsBase
 
 import pysubgroup as ps
-from tests.algorithms_testing import TestAlgorithmsBase
-from tests.DataSets import get_credit_data
+from pysubgroup.datasets import get_credit_data
 
 
 class TestGeneralisationAwareQf(unittest.TestCase):

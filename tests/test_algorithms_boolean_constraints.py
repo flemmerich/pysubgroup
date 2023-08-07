@@ -3,10 +3,10 @@
 import unittest
 
 import pytest
+from algorithms_testing import TestAlgorithmsBase
 
 import pysubgroup as ps
-from tests.algorithms_testing import TestAlgorithmsBase
-from tests.DataSets import get_credit_data
+from pysubgroup.datasets import get_credit_data
 
 
 class TestSettings:

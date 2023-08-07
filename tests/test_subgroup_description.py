@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 import pysubgroup as ps
-from tests.DataSets import get_credit_data
+from pysubgroup.datasets import get_credit_data
 
 
 class TestRelationsMethods(unittest.TestCase):
@@ -186,7 +186,7 @@ class TestBasics(unittest.TestCase):
         np.testing.assert_array_equal(dis.covers(df), [False, False, False])
 
     def test_create_numeric_selectors_for_attribute(self):
-        from tests.t_utils import (
+        from t_utils import (
             interval_selectors_from_str,  # pylint:disable=import-outside-toplevel
         )
 
