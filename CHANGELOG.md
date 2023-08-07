@@ -8,7 +8,6 @@
  - you can now run the slow tests py passing `--runslow` to pytest
  - `Conjunction`, `Disjunction` and Selectors now all have the public property `.selectors` that provides all basic selectors involved
 
- 
 ### Removed
  - support for weights has been removed, it will probably be added in the future as seperate targets and Quality functions.
 
@@ -63,7 +62,6 @@ This update prepares pysubgroup for a better future. To do so we had to break ba
 - StaticSpecializationOperator now avoids checking refinements of the same attribute
 - test_algorithms_numeric now checks more algorithms
 
-# Changelog
 ## [0.6.2] - 2019-31-10
 ### Changed
 - **SubgroupDescription** has been replaced with **Conjunction**
@@ -74,7 +72,7 @@ This update prepares pysubgroup for a better future. To do so we had to break ba
   - calculate_statistics(self, subgroup, data=None) returns a namedtuple with necessary statistics
   - evaluate(self, subgroup, statistics=None) computes quality from provided statistics
   - optimistic_estimate(self, subgroup, statistics=None) computes optimistic estimate from provided statistics
-- 
+-
 
 ### Added
 - Conjunction (replaces SubgroupDescription)
@@ -87,7 +85,7 @@ This update prepares pysubgroup for a better future. To do so we had to break ba
 - SimpleSearch algorithm
 - DFS (Depth first search) using a representation for StandardQF
 - tests
-  - access to datasets for testing is provided through pysubgroup.tests.DataSets class
+  - access to datasets for testing is provided through DataSets class
   - tests for selector classes (NominalSelector, NumericSelector)
     - \_\_eq\_\_
     - \_\_lt\_\_
