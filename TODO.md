@@ -2,6 +2,8 @@
 
 - immediate
     - [x] test publishing to pytest
+    - [ ] automatically deploy docs
+    - [ ] push to conda-forge
 
 - [ ] docs
     - [ ] make navigation bar show correctly in overview (include components)
