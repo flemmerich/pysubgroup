@@ -1,15 +1,15 @@
 <!-- These are examples of badges you might want to add to your README:
      please update the URLs accordingly
 
-[![Built Status](https://api.cirrus-ci.com/github/<USER>/pysubgroup.svg?branch=main)](https://cirrus-ci.com/github/<USER>/pysubgroup)
-[![ReadTheDocs](https://readthedocs.org/projects/pysubgroup/badge/?version=latest)](https://pysubgroup.readthedocs.io/en/stable/)
-[![Coveralls](https://img.shields.io/coveralls/github/<USER>/pysubgroup/main.svg)](https://coveralls.io/r/<USER>/pysubgroup)
-[![PyPI-Server](https://img.shields.io/pypi/v/pysubgroup.svg)](https://pypi.org/project/pysubgroup/)
-[![Conda-Forge](https://img.shields.io/conda/vn/conda-forge/pysubgroup.svg)](https://anaconda.org/conda-forge/pysubgroup)
-[![Monthly Downloads](https://pepy.tech/badge/pysubgroup/month)](https://pepy.tech/project/pysubgroup)
 [![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Twitter)](https://twitter.com/pysubgroup)
 -->
 
+![Build status](https://github.com/flemmerich/pysubgroup/actions/workflows/ci.yaml/badge.svg)
+[![ReadTheDocs](https://readthedocs.org/projects/pysubgroup/badge/?version=latest)](https://pysubgroup.readthedocs.io/en/stable/)
+[![Coveralls](https://img.shields.io/coveralls/github/flemmerich/pysubgroup/main.svg)](https://coveralls.io/r/flemmerich/pysubgroup)
+[![PyPI-Server](https://img.shields.io/pypi/v/pysubgroup.svg)](https://pypi.org/project/pysubgroup/)
+[![Conda-Forge](https://img.shields.io/conda/vn/conda-forge/pysubgroup.svg)](https://anaconda.org/conda-forge/pysubgroup)
+[![Monthly Downloads](https://pepy.tech/badge/pysubgroup/month)](https://pepy.tech/project/pysubgroup)
 
 # pysubgroup
 

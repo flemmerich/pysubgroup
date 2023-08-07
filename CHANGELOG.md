@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.6] - 2020-05-20
+
+Some internal changes to the continuous integration pipeline on top of version 0.7.6.
+
+## [0.7.5] - 2020-05-20
+
+Moved to pyscaffold, src/test structure and GitHub Actions.
+
 ## [0.7.1] - 2020-05-20
 
 ### Added
