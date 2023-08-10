@@ -73,7 +73,7 @@ task = ps.SubgroupDiscoveryTask (
     result_set_size=5,
     depth=2,
     qf=ps.WRAccQF())
-result = ps.BeamSearch().execute(task)
+result = ps.DFS().execute(task)
 ```
 The first line imports _pysubgroup_ package.
 The following lines load an example dataset (the popular titanic dataset).
