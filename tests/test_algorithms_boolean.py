@@ -70,7 +70,7 @@ class BooleanTargetBase:
     @unittest.skipUnless(TestSettings.All or TestSettings.BeamSearch, "flag not set")
     def test_BeamSearch(self):
         self.runAlgorithm(
-            ps.BeamSearch(beam_width=12),
+            ps.BeamSearch(self.task.result_set_size),
             "BeamSearch",
             self.result,
             self.qualities,

@@ -128,13 +128,17 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
     def test_BeamSearch_sum(self):
         self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, "sum")
         self.runAlgorithm(
-            ps.BeamSearch(), "BeamSearch sum", self.result, self.qualities, self.task
+            ps.BeamSearch(beam_width=self.task.result_set_size),
+            "BeamSearch sum",
+            self.result,
+            self.qualities,
+            self.task,
         )
 
     def test_BeamSearch_average(self):
         self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, "average")
         self.runAlgorithm(
-            ps.BeamSearch(),
+            ps.BeamSearch(beam_width=self.task.result_set_size),
             "BeamSearch average",
             self.result,
             self.qualities,
@@ -144,7 +148,11 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
     def test_BeamSearch_order(self):
         self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, "order")
         self.runAlgorithm(
-            ps.BeamSearch(), "BeamSearch order", self.result, self.qualities, self.task
+            ps.BeamSearch(beam_width=self.task.result_set_size),
+            "BeamSearch order",
+            self.result,
+            self.qualities,
+            self.task,
         )
 
     def test_Apriori_no_numba(self):

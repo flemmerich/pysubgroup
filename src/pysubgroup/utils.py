@@ -12,20 +12,7 @@ import numpy as np
 
 import pysubgroup as ps
 
-
-def add_if_required(
-    result, sg, quality, task, check_for_duplicates=False, statistics=None
-):
-    if quality > task.min_quality:
-        if not ps.constraints_satisfied(task.constraints, sg, statistics, task.data):
-            return
-        if check_for_duplicates and (quality, sg, statistics) in result:
-            return
-        if len(result) < task.result_set_size:
-            heappush(result, (quality, sg, statistics))
-        elif quality > result[0][0]:
-            heappop(result)
-            heappush(result, (quality, sg, statistics))
+from .algorithms import SubgroupDiscoveryTask
 
 
 def minimum_required_quality(result, task):
@@ -298,3 +285,32 @@ class SubgroupDiscoveryResult:
         )
         latex = latex.replace(" AND ", r" $\wedge$ ")
         return latex
+
+
+def add_if_required(
+    result,
+    sg,
+    quality,
+    task: SubgroupDiscoveryTask,
+    check_for_duplicates=False,
+    statistics=None,
+    explicit_result_set_size=None,
+):
+    """
+    IMPORTANT:
+        Only add/remove subgroups from `result` by using `heappop` and `heappush`
+        to ensure order of subgroups by quality.
+    """
+    if explicit_result_set_size is None:
+        explicit_result_set_size = task.result_set_size
+
+    if quality >= task.min_quality:
+        if not ps.constraints_satisfied(task.constraints, sg, statistics, task.data):
+            return
+        if check_for_duplicates and (quality, sg, statistics) in result:
+            return
+        if len(result) < explicit_result_set_size:
+            heappush(result, (quality, sg, statistics))
+        elif quality > result[0][0]:  # better than worst subgroup
+            heappop(result)
+            heappush(result, (quality, sg, statistics))
