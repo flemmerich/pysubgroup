@@ -132,7 +132,6 @@ any hindrance to your application, please feel free to contact us, we am sure th
 
 
 ## Warning
-* Beam-Search is bugged at the moment and does not use beam width, see: https://github.com/flemmerich/pysubgroup/issues/37
 * GP-growth is in an experimental stage.
 
 ## Cite
