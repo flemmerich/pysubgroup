@@ -150,8 +150,6 @@ bibtex:
       year={2018}
     }
 
-    
-
 
 ## Note
 

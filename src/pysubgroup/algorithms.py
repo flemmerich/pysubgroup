@@ -345,11 +345,12 @@ class BeamSearch:
 
     def execute(self, task):
         # adapt beam width to the result set size if desired
+        beam_width = self.beam_width
         if self.beam_width_adaptive:
-            self.beam_width = task.result_set_size
+            beam_width = task.result_set_size
 
         # check if beam size is to small for result set
-        if self.beam_width < task.result_set_size:
+        if beam_width < task.result_set_size:
             raise RuntimeError(
                 "Beam width in the beam search algorithm "
                 "is smaller than the result set size!"
@@ -365,12 +366,12 @@ class BeamSearch:
                 task.qf.calculate_statistics(slice(None), task.target, task.data),
             )
         ]
-        last_beam = None
+        previous_beam = None
 
         depth = 0
-        while beam != last_beam and depth < task.depth:
-            last_beam = beam.copy()
-            for _, last_sg, _ in last_beam:
+        while beam != previous_beam and depth < task.depth:
+            previous_beam = beam.copy()
+            for _, last_sg, _ in previous_beam:
                 if not getattr(last_sg, "visited", False):
                     setattr(last_sg, "visited", True)
                     for sel in task.search_space:
@@ -392,10 +393,15 @@ class BeamSearch:
                                 task,
                                 check_for_duplicates=True,
                                 statistics=statistics,
+                                explicit_result_set_size=beam_width,
                             )
             depth += 1
-        # TODO make sure there is no bug here
-        result = beam[: task.result_set_size]
+
+        # result = beam[-task.result_set_size:]
+        while len(beam) > task.result_set_size:
+            heappop(beam)
+
+        result = beam
         result = ps.prepare_subgroup_discovery_result(result, task)
         return ps.SubgroupDiscoveryResult(result, task)
 
