@@ -145,7 +145,6 @@ bibtex:
       year={2018}
     }
 
-
 ## Note
 
 This project has been set up using PyScaffold 4.5. For details and usage
