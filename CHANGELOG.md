@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.7] - 2020-05-20
+
+### Fixed
+
+- BeamSearch now correctly uses `beam_width` parameter
+
 ## [0.7.6] - 2020-05-20
 
 Some internal changes to the continuous integration pipeline on top of version 0.7.6.

@@ -273,35 +273,60 @@ package:
 
 ### Releases
 
-```{todo} This section assumes you are using PyPI to publicly release your package.
-
-   If instead you are using a different/private package index, please update
-   the instructions accordingly.
-```
-
 If you are part of the group of maintainers and have correct user permissions
-on [PyPI], the following steps can be used to release a new version for
+on [PyPI] and [Conda-Forge], the following steps can be used to release a new version for
 `pysubgroup`:
 
-1. Make sure all unit tests are successful.
-2. Tag the current commit on the main branch with a release tag, e.g., `v1.2.3`.
-3. Push the new tag to the upstream [repository],
-   e.g., `git push upstream v1.2.3`
-4. Clean up the `dist` and `build` folders with `tox -e clean`
+#### PyPI
+
+1. Merge `master` branch into `develop`.
+2. Make sure all unit tests are successful on `develop`.
+3. Create a pull request from the `develop` to the `master` branch.
+4. Merge the pull request after all tests have passed.
+5. Tag the current commit on the main branch (`master`)
+      with a release tag, e.g., `git tag -a 0.7.7 -m "Release 0.7.7`.
+6. Push the new tag to the upstream,
+   e.g., `git push --tags`
+7. GitHub Actions will now automatically push this version to
+7. Clean up the `dist` and `build` folders with `tox -e clean`
    (or `rm -rf dist build`)
    to avoid confusion with old builds and Sphinx docs.
-5. Run `tox -e build` and check that the files in `dist` have
-   the correct version (no `.dirty` or [git] hash) according to the [git] tag.
-   Also check the sizes of the distributions, if they are too big (e.g., >
-   500KB), unwanted clutter may have been accidentally included.
-6. Run `tox -e publish -- --repository pypi` and check that everything was
-   uploaded to [PyPI] correctly.
+8. The
+
+#### Conda Forge
+
+  TODO: Automate this with GitHub Actions?
+
+Resources:
+
+- Conda: [Contributing packages](https://conda-forge.org/docs/maintainer/adding_pkgs.html)
+
+
+1. **Fork** and clone [pysubgroup-feedstock](https://github.com/conda-forge/pysubgroup-feedstock)
+2. Create a branch with the current version number,
+   e.g., `git branch 0.7.7; git checkout 0.7.7`.
+3. Get the `sha256` hash [from PyPI](https://pypi.org/project/pysubgroup),
+   i.e., click on `view hashes` of the `Source Distribution`.
+4. Update the `recipe/meta.yaml`:
+```yaml
+{% set version = "0.7.7" %}
+
+# ...
+
+source:
+  sha256: <SHA256 from PyPI>
+```
+5. Commit and push branch
+6. Create a pull request on main repository.
+   For this, make sure to fill in all the fields
+   and use [closing tags](https://docs.github.com/en/issues/tracking-your-work-with-issues) for changes.
+7. Merge the pull requests when all tests have successfully passed.
+
 
 [^contrib1]: Even though, these resources focus on open source projects and
     communities, the general ideas behind collaborating with other developers
     to collectively create software are general and can be applied to all sorts
     of environments, including private companies and proprietary code bases.
-
 
 [black]: https://pypi.org/project/black/
 [commonmark]: https://commonmark.org/
