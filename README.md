@@ -73,7 +73,7 @@ task = ps.SubgroupDiscoveryTask (
     result_set_size=5,
     depth=2,
     qf=ps.WRAccQF())
-result = ps.BeamSearch().execute(task)
+result = ps.DFS().execute(task)
 ```
 The first line imports _pysubgroup_ package.
 The following lines load an example dataset (the popular titanic dataset).
@@ -130,6 +130,11 @@ any hindrance to your application, please feel free to contact us, we am sure th
     See the License for the specific language governing permissions and
     limitations under the License.
 
+
+## Warning
+* Beam-Search is bugged at the moment and does not use beam width, see: https://github.com/flemmerich/pysubgroup/issues/37
+* GP-growth is in an experimental stage.
+
 ## Cite
 If you are using pysubgroup for your research, please consider citing our demo paper:
 
@@ -144,6 +149,7 @@ bibtex:
       pages={658--662},
       year={2018}
     }
+
 
 ## Note
 
