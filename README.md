@@ -83,7 +83,7 @@ Then, we define the searchspace as a list of basic selectors. Descriptions are b
 Next, we create a SubgroupDiscoveryTask object that encapsulates what we want to find in our search.
 In particular, that comprises the target, the search space, the depth of the search (maximum numbers of selectors combined in a subgroup description), and the interestingness measure for candidate scoring (here, the Weighted Relative Accuracy measure).
 
-The last line executes the defined task by performing a search with an algorithm---in this case beam search. The result of this algorithm execution is stored in a SubgroupDiscoveryResults object.
+The last line executes the defined task by performing a search with an algorithm---in this case depth first search. The result of this algorithm execution is stored in a SubgroupDiscoveryResults object.
 
 To just print the result, we could for example do:
 
