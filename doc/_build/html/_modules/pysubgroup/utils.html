@@ -1,0 +1,448 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pysubgroup.utils &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pysubgroup.utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on 02.05.2016</span>
+
+<span class="sd">@author: lemmerfn</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">heapq</span> <span class="k">import</span> <span class="n">heappush</span><span class="p">,</span> <span class="n">heappop</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="k">import</span> <span class="n">Iterable</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pysubgroup</span> <span class="k">as</span> <span class="nn">ps</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">all_statistics</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;size_sg&#39;</span><span class="p">,</span> <span class="s1">&#39;size_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;positives_sg&#39;</span><span class="p">,</span> <span class="s1">&#39;positives_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;size_complement&#39;</span><span class="p">,</span> <span class="s1">&#39;relative_size_sg&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;relative_size_complement&#39;</span><span class="p">,</span> <span class="s1">&#39;coverage_sg&#39;</span><span class="p">,</span> <span class="s1">&#39;coverage_complement&#39;</span><span class="p">,</span> <span class="s1">&#39;target_share_sg&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;target_share_complement&#39;</span><span class="p">,</span> <span class="s1">&#39;target_share_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;lift&#39;</span><span class="p">)</span>
+<span class="n">all_statistics_weighted</span> <span class="o">=</span> <span class="n">all_statistics</span> <span class="o">+</span> <span class="p">(</span>
+    <span class="s1">&#39;size_sg_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;size_dataset_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;positives_sg_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;positives_dataset_weighted&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;size_complement_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;relative_size_sg_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;relative_size_complement_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;coverage_sg_weighted&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;coverage_complement_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;target_share_sg_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;target_share_complement_weighted&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;target_share_dataset_weighted&#39;</span><span class="p">,</span> <span class="s1">&#39;lift_weighted&#39;</span><span class="p">)</span>
+<span class="n">all_statistics_numeric</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;size_sg&#39;</span><span class="p">,</span> <span class="s1">&#39;size_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;mean_sg&#39;</span><span class="p">,</span> <span class="s1">&#39;mean_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;std_sg&#39;</span><span class="p">,</span> <span class="s1">&#39;std_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;median_sg&#39;</span><span class="p">,</span> <span class="s1">&#39;median_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;max_sg&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;max_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;min_sg&#39;</span><span class="p">,</span> <span class="s1">&#39;min_dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;mean_lift&#39;</span><span class="p">,</span> <span class="s1">&#39;median_lift&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="add_if_required"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.add_if_required">[docs]</a><span class="k">def</span> <span class="nf">add_if_required</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">check_for_duplicates</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">quality</span> <span class="o">&gt;</span> <span class="n">task</span><span class="o">.</span><span class="n">min_quality</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">check_for_duplicates</span> <span class="ow">and</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">result_set_size</span><span class="p">:</span>
+            <span class="n">heappush</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">sg</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">quality</span> <span class="o">&gt;</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">heappop</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="n">heappush</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">sg</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="minimum_required_quality"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.minimum_required_quality">[docs]</a><span class="k">def</span> <span class="nf">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">result_set_size</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">min_quality</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<span class="c1"># Returns the cutpoints for discretization</span>
+<div class="viewcode-block" id="equal_frequency_discretization"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.equal_frequency_discretization">[docs]</a><span class="k">def</span> <span class="nf">equal_frequency_discretization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">cutpoints</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">weighting_attribute</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cleaned_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
+        <span class="n">cleaned_data</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">cleaned_data</span><span class="p">)]</span>
+        <span class="n">sorted_data</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cleaned_data</span><span class="p">)</span>
+        <span class="n">number_instances</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_data</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nbins</span><span class="p">):</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">number_instances</span> <span class="o">//</span> <span class="n">nbins</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">position</span> <span class="o">&gt;=</span> <span class="n">number_instances</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">sorted_data</span><span class="p">[</span><span class="n">position</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cutpoints</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">position</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1"># print (sorted_data [position])</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cutpoints</span><span class="p">:</span>
+                <span class="n">cutpoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cleaned_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[[</span><span class="n">attribute_name</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="p">]]</span>
+        <span class="n">cleaned_data</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">])]</span>
+        <span class="n">cleaned_data</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="n">attribute_name</span><span class="p">)</span>
+
+        <span class="n">overall_weights</span> <span class="o">=</span> <span class="n">cleaned_data</span><span class="p">[</span><span class="n">weighting_attribute</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">remaining_weights</span> <span class="o">=</span> <span class="n">overall_weights</span>
+        <span class="n">bin_size</span> <span class="o">=</span> <span class="n">overall_weights</span> <span class="o">/</span> <span class="n">nbins</span>
+        <span class="n">sum_of_weights</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cleaned_data</span><span class="p">:</span>
+            <span class="n">sum_of_weights</span> <span class="o">+=</span> <span class="n">row</span><span class="p">[</span><span class="n">weighting_attribute</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">sum_of_weights</span> <span class="o">&gt;</span> <span class="n">bin_size</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span> <span class="ow">in</span> <span class="n">cutpoints</span><span class="p">:</span>
+                    <span class="n">cutpoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">])</span>
+                    <span class="n">remaining_weights</span> <span class="o">=</span> <span class="n">remaining_weights</span> <span class="o">-</span> <span class="n">sum_of_weights</span>
+                    <span class="k">if</span> <span class="n">remaining_weights</span> <span class="o">&lt;</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">bin_size</span><span class="p">):</span>
+                        <span class="k">break</span>
+                    <span class="n">sum_of_weights</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">cutpoints</span></div>
+
+
+<div class="viewcode-block" id="print_result_set"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.print_result_set">[docs]</a><span class="k">def</span> <span class="nf">print_result_set</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">statistics_to_show</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="n">include_target</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">print_header</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;Quality</span><span class="se">\t</span><span class="s2">Subgroup&quot;</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">statistics_to_show</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">stat</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+        <span class="n">sg</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;:</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">subgroup_description</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">include_target</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">statistics_to_show</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="n">stat</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="result_as_table"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.result_as_table">[docs]</a><span class="k">def</span> <span class="nf">result_as_table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">statistics_to_show</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">include_target</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">print_header</span><span class="p">:</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;quality&quot;</span><span class="p">,</span> <span class="s2">&quot;subgroup&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">statistics_to_show</span><span class="p">:</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+        <span class="n">sg</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">q</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">subgroup_description</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">include_target</span><span class="p">:</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">target</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">statistics_to_show</span><span class="p">:</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="n">stat</span><span class="p">]))</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">table</span></div>
+
+
+<div class="viewcode-block" id="results_as_df"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.results_as_df">[docs]</a><span class="k">def</span> <span class="nf">results_as_df</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">statistics_to_show</span><span class="o">=</span><span class="n">all_statistics</span><span class="p">,</span> <span class="n">autoround</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">include_target</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">result_as_table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">statistics_to_show</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">include_target</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">autoround</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">results_df_autoround</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<span class="n">as_df</span> <span class="o">=</span> <span class="n">results_as_df</span>
+
+
+<div class="viewcode-block" id="conditional_invert"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.conditional_invert">[docs]</a><span class="k">def</span> <span class="nf">conditional_invert</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">invert</span><span class="p">):</span>
+    <span class="k">return</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">invert</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">val</span></div>
+
+
+<div class="viewcode-block" id="results_df_autoround"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.results_df_autoround">[docs]</a><span class="k">def</span> <span class="nf">results_df_autoround</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">round</span><span class="p">({</span>
+        <span class="s1">&#39;quality&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;size_sg&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;size_dataset&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;positives_sg&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;positives_dataset&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;size_complement&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;relative_size_sg&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;relative_size_complement&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;coverage_sg&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;coverage_complement&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_sg&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_complement&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_dataset&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;lift&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+
+        <span class="s1">&#39;size_sg_weighted&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;size_dataset_weighted&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;positives_sg_weighted&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;positives_dataset_weighted&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;size_complement_weighted&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;relative_size_sg_weighted&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;relative_size_complement_weighted&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;coverage_sg_weighted&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;coverage_complement_weighted&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_sg_weighted&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_complement_weighted&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_dataset_weighted&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;lift_weighted&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="perc_formatter"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.perc_formatter">[docs]</a><span class="k">def</span> <span class="nf">perc_formatter</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{0:.1f}</span><span class="s2">%&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="float_formatter"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.float_formatter">[docs]</a><span class="k">def</span> <span class="nf">float_formatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;{0:.&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">digits</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;f}&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="to_latex"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.to_latex">[docs]</a><span class="k">def</span> <span class="nf">to_latex</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">statistics_to_show</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">results_as_df</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">result</span><span class="p">)[</span><span class="n">statistics_to_show</span><span class="p">]</span>
+    <span class="n">latex</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_latex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">col_space</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">formatters</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;quality&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;size_sg&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="s1">&#39;size_dataset&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="s1">&#39;positives_sg&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="s1">&#39;positives_dataset&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="s1">&#39;size_complement&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="s1">&#39;relative_size_sg&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;relative_size_complement&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;coverage_sg&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;coverage_complement&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_sg&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_complement&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_dataset&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;lift&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+
+        <span class="s1">&#39;size_sg_weighted&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="s1">&#39;size_dataset_weighted&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="s1">&#39;positives_sg_weighted&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="s1">&#39;positives_dataset_weighted&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="s1">&#39;size_complement_weighted&#39;</span><span class="p">:</span> <span class="n">partial</span><span class="p">(</span><span class="n">float_formatter</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="s1">&#39;relative_size_sg_weighted&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;relative_size_complement_weighted&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;coverage_sg_weighted&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;coverage_complement_weighted&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_sg_weighted&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_complement_weighted&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;target_share_dataset_weighted&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">,</span>
+        <span class="s1">&#39;lift_weighted&#39;</span><span class="p">:</span> <span class="n">perc_formatter</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">latex</span> <span class="o">=</span> <span class="n">latex</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; AND &#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39; $\wedge$ &#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">latex</span></div>
+
+
+<div class="viewcode-block" id="is_categorical_attribute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.is_categorical_attribute">[docs]</a><span class="k">def</span> <span class="nf">is_categorical_attribute</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span></div>
+
+
+<div class="viewcode-block" id="is_numerical_attribute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.is_numerical_attribute">[docs]</a><span class="k">def</span> <span class="nf">is_numerical_attribute</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span></div>
+
+
+<div class="viewcode-block" id="remove_selectors_with_attributes"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.remove_selectors_with_attributes">[docs]</a><span class="k">def</span> <span class="nf">remove_selectors_with_attributes</span><span class="p">(</span><span class="n">selector_list</span><span class="p">,</span> <span class="n">attribute_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">selector_list</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">attributeName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">attribute_list</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="effective_sample_size"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.effective_sample_size">[docs]</a><span class="k">def</span> <span class="nf">effective_sample_size</span><span class="p">(</span><span class="n">weights</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">weights</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span></div>
+
+
+<span class="c1"># from https://docs.python.org/3/library/itertools.html#recipes</span>
+<div class="viewcode-block" id="powerset"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.powerset">[docs]</a><span class="k">def</span> <span class="nf">powerset</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="s2">&quot;powerset([1,2,3]) --&gt; () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)&quot;</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">max_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">max_length</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="n">max_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_length</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="overlap"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.overlap">[docs]</a><span class="k">def</span> <span class="nf">overlap</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">another_sg</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">cover_sg</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">cover_another_sg</span> <span class="o">=</span> <span class="n">another_sg</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">cover_sg</span><span class="p">,</span> <span class="n">cover_another_sg</span><span class="p">)</span>
+    <span class="n">intercept</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">cover_sg</span><span class="p">,</span> <span class="n">cover_another_sg</span><span class="p">)</span>
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">intercept</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">union</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sim</span></div>
+
+
+<span class="c1">#####</span>
+<span class="c1"># bitset operations</span>
+<span class="c1">#####</span>
+<div class="viewcode-block" id="to_bits"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.to_bits">[docs]</a><span class="k">def</span> <span class="nf">to_bits</span><span class="p">(</span><span class="n">list_of_ints</span><span class="p">):</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">list_of_ints</span><span class="p">:</span>
+        <span class="n">v</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">x</span>
+    <span class="k">return</span> <span class="n">v</span></div>
+
+
+<div class="viewcode-block" id="count_bits"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.count_bits">[docs]</a><span class="k">def</span> <span class="nf">count_bits</span><span class="p">(</span><span class="n">bitset_as_int</span><span class="p">):</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">bitset_as_int</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">bitset_as_int</span> <span class="o">&amp;=</span> <span class="n">bitset_as_int</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="find_set_bits"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.find_set_bits">[docs]</a><span class="k">def</span> <span class="nf">find_set_bits</span><span class="p">(</span><span class="n">bitset_as_int</span><span class="p">):</span>
+    <span class="k">while</span> <span class="n">bitset_as_int</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">bitset_as_int</span><span class="o">.</span><span class="n">bit_length</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">yield</span> <span class="n">x</span>
+        <span class="n">bitset_as_int</span> <span class="o">=</span> <span class="n">bitset_as_int</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">x</span><span class="p">)</span></div>
+
+
+<span class="c1">#####</span>
+<span class="c1"># TID-list operations</span>
+<span class="c1">#####</span>
+<div class="viewcode-block" id="intersect_of_ordered_list"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.intersect_of_ordered_list">[docs]</a><span class="k">def</span> <span class="nf">intersect_of_ordered_list</span><span class="p">(</span><span class="n">list_1</span><span class="p">,</span> <span class="n">list_2</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">list_1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">list_2</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">list_2</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">list_1</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">list_1</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="SubgroupDiscoveryResult"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.SubgroupDiscoveryResult">[docs]</a><span class="k">class</span> <span class="nc">SubgroupDiscoveryResult</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="n">task</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">results</span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">))</span>
+
+<div class="viewcode-block" id="SubgroupDiscoveryResult.to_descriptions"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.SubgroupDiscoveryResult.to_descriptions">[docs]</a>    <span class="k">def</span> <span class="nf">to_descriptions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span></div>
+
+<div class="viewcode-block" id="SubgroupDiscoveryResult.to_subgroups"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.SubgroupDiscoveryResult.to_subgroups">[docs]</a>    <span class="k">def</span> <span class="nf">to_subgroups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">quality</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">Subgroup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">description</span><span class="p">))</span> <span class="k">for</span> <span class="n">quality</span><span class="p">,</span> <span class="n">description</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SubgroupDiscoveryResult.to_dataframe"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.SubgroupDiscoveryResult.to_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_info</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">qualities</span> <span class="o">=</span> <span class="p">[</span><span class="n">quality</span> <span class="k">for</span> <span class="n">quality</span><span class="p">,</span> <span class="n">description</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+        <span class="n">descriptions</span> <span class="o">=</span> <span class="p">[</span><span class="n">description</span> <span class="k">for</span> <span class="n">quality</span><span class="p">,</span> <span class="n">description</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="s1">&#39;quality&#39;</span> <span class="p">:</span> <span class="n">qualities</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span> <span class="p">:</span> <span class="n">descriptions</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">include_info</span><span class="p">:</span>
+            <span class="n">calc_stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">calculate_statistics</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">records</span> <span class="o">=</span> <span class="p">[</span><span class="n">calc_stats</span><span class="p">(</span><span class="n">description</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="k">for</span> <span class="n">quality</span><span class="p">,</span> <span class="n">description</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+            <span class="n">df_stats</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">df_stats</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="SubgroupDiscoveryResult.supportSetVisualization"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.utils.SubgroupDiscoveryResult.supportSetVisualization">[docs]</a>    <span class="k">def</span> <span class="nf">supportSetVisualization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_order</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">drop_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">n_items</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">n_SGDs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">)</span>
+        <span class="n">covs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_items</span><span class="p">,</span> <span class="n">n_SGDs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">):</span>
+            <span class="n">covs</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+        <span class="n">img_arr</span> <span class="o">=</span> <span class="n">covs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">sort_inds_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">covs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">img_arr</span> <span class="o">=</span> <span class="n">img_arr</span><span class="p">[</span><span class="n">sort_inds_x</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">in_order</span><span class="p">:</span>
+            <span class="n">sort_inds_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">covs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">img_arr</span> <span class="o">=</span> <span class="n">img_arr</span><span class="p">[:,</span> <span class="n">sort_inds_y</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">drop_empty</span><span class="p">:</span>
+            <span class="n">keep_entities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">img_arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Discarding </span><span class="si">{}</span><span class="s2"> entities that are not covered&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_items</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">keep_entities</span><span class="p">)))</span>
+            <span class="n">img_arr</span> <span class="o">=</span> <span class="n">img_arr</span><span class="p">[</span><span class="n">keep_entities</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">return</span> <span class="n">img_arr</span><span class="o">.</span><span class="n">T</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction2.html">How pysubgroup works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Selectors.html">Selectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../targets.html">Targets and Quality Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules.html">pysubgroup</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

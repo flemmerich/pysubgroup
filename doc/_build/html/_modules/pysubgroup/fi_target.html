@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pysubgroup.fi_target &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pysubgroup.fi_target</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on 29.09.2017</span>
+
+<span class="sd">@author: lemmerfn</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">total_ordering</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pysubgroup</span> <span class="k">as</span> <span class="nn">ps</span>
+
+
+
+<div class="viewcode-block" id="FITarget"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.FITarget">[docs]</a><span class="nd">@total_ordering</span>
+<span class="k">class</span> <span class="nc">FITarget</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;T: Frequent Itemsets&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FITarget.get_attributes"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.FITarget.get_attributes">[docs]</a>    <span class="k">def</span> <span class="nf">get_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="FITarget.get_base_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.FITarget.get_base_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">get_base_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">weighting_attribute</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sg_instances</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">sg_instances</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Attribute weights with numeric targets are not yet implemented.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FITarget.calculate_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.FITarget.calculate_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">weighting_attribute</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Attribute weights with numeric targets are not yet implemented.&quot;</span><span class="p">)</span>
+        <span class="n">sg_instances</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">subgroup</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;size_sg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sg_instances</span><span class="p">)</span>
+        <span class="n">subgroup</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;size_dataset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SimpleCountQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.SimpleCountQF">[docs]</a><span class="k">class</span> <span class="nc">SimpleCountQF</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">AbstractInterestingnessMeasure</span><span class="p">):</span>
+    <span class="n">tpl</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;CountQF_parameters&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;subgroup_size&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_stat_attrs</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;subgroup_size&#39;</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="SimpleCountQF.calculate_constant_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.SimpleCountQF.calculate_constant_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_constant_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="SimpleCountQF.calculate_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.SimpleCountQF.calculate_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="s2">&quot;representation&quot;</span><span class="p">):</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SimpleCountQF</span><span class="o">.</span><span class="n">tpl</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">cover_arr</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="SimpleCountQF.gp_get_stats"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.SimpleCountQF.gp_get_stats">[docs]</a>    <span class="k">def</span> <span class="nf">gp_get_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;subgroup_size&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="SimpleCountQF.gp_get_null_vector"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.SimpleCountQF.gp_get_null_vector">[docs]</a>    <span class="k">def</span> <span class="nf">gp_get_null_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;subgroup_size&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="SimpleCountQF.gp_merge"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.SimpleCountQF.gp_merge">[docs]</a>    <span class="k">def</span> <span class="nf">gp_merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="n">l</span><span class="p">[</span><span class="s2">&quot;subgroup_size&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;subgroup_size&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SimpleCountQF.gp_get_params"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.SimpleCountQF.gp_get_params">[docs]</a>    <span class="k">def</span> <span class="nf">gp_get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_cover_arr</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SimpleCountQF</span><span class="o">.</span><span class="n">tpl</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s1">&#39;subgroup_size&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="SimpleCountQF.gp_to_str"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.SimpleCountQF.gp_to_str">[docs]</a>    <span class="k">def</span> <span class="nf">gp_to_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stats</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;subgroup_size&#39;</span><span class="p">])</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gp_requires_cover_arr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="CountQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.CountQF">[docs]</a><span class="k">class</span> <span class="nc">CountQF</span><span class="p">(</span><span class="n">SimpleCountQF</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">BoundedInterestingnessMeasure</span><span class="p">):</span>
+<div class="viewcode-block" id="CountQF.evaluate"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.CountQF.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">statistics</span><span class="o">.</span><span class="n">subgroup_size</span></div>
+
+<div class="viewcode-block" id="CountQF.optimistic_estimate"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.CountQF.optimistic_estimate">[docs]</a>    <span class="k">def</span> <span class="nf">optimistic_estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">statistics</span><span class="o">.</span><span class="n">subgroup_size</span></div>
+
+<div class="viewcode-block" id="CountQF.is_applicable"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.CountQF.is_applicable">[docs]</a>    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subgroup</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">FITarget</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CountQF.supports_weights"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.CountQF.supports_weights">[docs]</a>    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div></div>
+
+
+
+
+<div class="viewcode-block" id="AreaQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.AreaQF">[docs]</a><span class="k">class</span> <span class="nc">AreaQF</span><span class="p">(</span><span class="n">SimpleCountQF</span><span class="p">):</span>
+<div class="viewcode-block" id="AreaQF.evaluate"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.AreaQF.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">statistics</span><span class="o">.</span><span class="n">subgroup_size</span> <span class="o">*</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">depth</span></div>
+
+<div class="viewcode-block" id="AreaQF.is_applicable"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.AreaQF.is_applicable">[docs]</a>    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subgroup</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">FITarget</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AreaQF.supports_weights"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.fi_target.AreaQF.supports_weights">[docs]</a>    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction2.html">How pysubgroup works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Selectors.html">Selectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../targets.html">Targets and Quality Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules.html">pysubgroup</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Targets and Quality Functions &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="GP-Growth" href="gp_growth.html" />
+    <link rel="prev" title="Selectors" href="Selectors.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="targets-and-quality-functions">
+<h1>Targets and Quality Functions<a class="headerlink" href="#targets-and-quality-functions" title="Permalink to this headline">¶</a></h1>
+<p>To define the goal of our subgroup discovery task, we use targets and quality functions. Targets are used to define which attributes play a significant role and can provide common statistics for a subgroup in question. Quality functions assign a score to each subgroup.
+These scores are used by all the algorithms to determine the most interesting subgroups.</p>
+<div class="section" id="frequent-itemset-targets">
+<span id="countqf"></span><h2>Frequent Itemset Targets<a class="headerlink" href="#frequent-itemset-targets" title="Permalink to this headline">¶</a></h2>
+<p>The most simple target is the <em>FITarget</em> with its associated quality functions <em>CountQF</em> and <em>AreaQf</em>.
+The CountQF simple counts the number of instances covered by the subgroup in question.
+The AreaQF multiplies the depth or length of the subgroup description with the number of instances covered by that description.</p>
+</div>
+<div class="section" id="binary-targets">
+<h2>Binary Targets<a class="headerlink" href="#binary-targets" title="Permalink to this headline">¶</a></h2>
+<p>For Boolean or Binary Targets we provide the <em>ChiSquaredQF</em> as well as the <em>StandardQF</em> quality functions.
+The <em>StandardQF</em> quality function uses a parameter <span class="math notranslate nohighlight">\(\alpha\)</span> to weight the relative size <span class="math notranslate nohighlight">\(\frac{N_{SG}}{N}\)</span> of a subgroup and
+multiplies it with the differences in relations of positive instances <span class="math notranslate nohighlight">\(p\)</span> to the number of instances <span class="math notranslate nohighlight">\(N\)</span></p>
+<div class="math notranslate nohighlight">
+\[\left ( \frac{N_{SG}}{N} \right ) ^\alpha \left(\frac{p_{SG}}{N_{SG}} - \frac{p}{N} \right)\]</div>
+<p>The <em>StandardQF</em> also supports an optimistic estimate.</p>
+<p>The <em>ChiSquaredQF</em> is calculated based on the following contigency table which is then passed to the scipy <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html">chi2_contigency</a> function.
+The small <span class="math notranslate nohighlight">\(n\)</span> represents the number of negative instances and should not be confused with the capital <span class="math notranslate nohighlight">\(N\)</span> which represents the total number of instances.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 48%" />
+<col style="width: 52%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(p_{SG}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(p-p_{SG}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(n_{SG}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(n-n_{SG}\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="nominal-targets">
+<h2>Nominal Targets<a class="headerlink" href="#nominal-targets" title="Permalink to this headline">¶</a></h2>
+<p>Currently pysubgroup only supports nominal targets as binary targets.
+So you can look for deviations of one nominal value with respect to all othe nominal values.</p>
+</div>
+<div class="section" id="numeric-targets">
+<h2>Numeric Targets<a class="headerlink" href="#numeric-targets" title="Permalink to this headline">¶</a></h2>
+<p>For numeric targets pysubgroup offers the <em>StandardQFNumeric</em> which is defined similar to the StandardQF</p>
+<div class="math notranslate nohighlight">
+\[\left ( \frac{N_{SG}}{N}  \right ) ^\alpha \left (\mu_{SG} - \mu \right )\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mu_{SG}\)</span> and <span class="math notranslate nohighlight">\(\mu\)</span> are the mean value for the subgroup and entire dataset respectively.
+For the <em>StandardQFNumeric</em> we offer three optimistic estimates:  Average, Summation and Ordering. These are in detail described in Florian Lemmerich’s dissertation.
+You can choose between the different optimistic estimates by using the keyword argument <code class="code docutils literal notranslate"><span class="pre">estimator</span></code> the different options are <code class="code docutils literal notranslate"><span class="pre">'sum'</span></code>, <code class="code docutils literal notranslate"><span class="pre">'average'</span></code>, and <code class="code docutils literal notranslate"><span class="pre">'order'</span></code></p>
+</div>
+<div class="section" id="custom-quality-function">
+<span id="customtarget"></span><h2>Custom Quality Function<a class="headerlink" href="#custom-quality-function" title="Permalink to this headline">¶</a></h2>
+<p>To create a custom quality function that works will all algorithms except gp_growth.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyQualityFunction</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">calculate_constant_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; calculate_constant_statistics</span>
+<span class="sd">            This function is called once for every execution,</span>
+<span class="sd">            it should do any preparation that is necessary prior to an execution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; calculates necessary statistics</span>
+<span class="sd">            this statistics object is passed on to the evaluate</span>
+<span class="sd">            and optimistic_estimate functions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics_or_data</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return the quality calculated from the statistics &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">optimistic_estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; returns optimistic estimate</span>
+<span class="sd">            if one is available return it otherwise infinity&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/introduction2.html">How pysubgroup works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Selectors.html">Selectors</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Targets and Quality Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#frequent-itemset-targets">Frequent Itemset Targets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#binary-targets">Binary Targets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nominal-targets">Nominal Targets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#numeric-targets">Numeric Targets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-quality-function">Custom Quality Function</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/modules.html">pysubgroup</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Selectors.html" title="previous chapter">Selectors</a></li>
+      <li>Next: <a href="gp_growth.html" title="next chapter">GP-Growth</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/targets.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

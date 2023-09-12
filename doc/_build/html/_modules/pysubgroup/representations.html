@@ -1,0 +1,308 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pysubgroup.representations &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pysubgroup.representations</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pysubgroup</span> <span class="k">as</span> <span class="nn">ps</span>
+
+
+
+
+<div class="viewcode-block" id="RepresentationBase"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.RepresentationBase">[docs]</a><span class="k">class</span> <span class="nc">RepresentationBase</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_conjunction</span><span class="p">,</span> <span class="n">selectors_to_patch</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_conjunction</span> <span class="o">=</span> <span class="n">new_conjunction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">previous_conjunction</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selectors_to_patch</span> <span class="o">=</span> <span class="n">selectors_to_patch</span>
+
+<div class="viewcode-block" id="RepresentationBase.patch_all_selectors"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.RepresentationBase.patch_all_selectors">[docs]</a>    <span class="k">def</span> <span class="nf">patch_all_selectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectors_to_patch</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">patch_selector</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RepresentationBase.patch_selector"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.RepresentationBase.patch_selector">[docs]</a>    <span class="k">def</span> <span class="nf">patch_selector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sel</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="RepresentationBase.patch_classes"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.RepresentationBase.patch_classes">[docs]</a>    <span class="k">def</span> <span class="nf">patch_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="RepresentationBase.undo_patch_classes"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.RepresentationBase.undo_patch_classes">[docs]</a>    <span class="k">def</span> <span class="nf">undo_patch_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patch_classes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patch_all_selectors</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span> <span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undo_patch_classes</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="BitSet_Conjunction"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.BitSet_Conjunction">[docs]</a><span class="k">class</span> <span class="nc">BitSet_Conjunction</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">):</span>
+    <span class="n">n_instances</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_representation</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BitSet_Conjunction.compute_representation"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.BitSet_Conjunction.compute_representation">[docs]</a>    <span class="k">def</span> <span class="nf">compute_representation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="c1"># empty description ==&gt; return a list of all &#39;1&#39;s</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">BitSet_Conjunction</span><span class="o">.</span><span class="n">n_instances</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="c1"># non-empty description</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">sel</span><span class="o">.</span><span class="n">representation</span> <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BitSet_Conjunction.append_and"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.BitSet_Conjunction.append_and">[docs]</a>    <span class="k">def</span> <span class="nf">append_and</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_append</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append_and</span><span class="p">(</span><span class="n">to_append</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="p">,</span> <span class="n">to_append</span><span class="o">.</span><span class="n">representation</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__array_interface__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="o">.</span><span class="n">__array_interface__</span></div>
+
+
+
+<div class="viewcode-block" id="BitSet_Disjunction"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.BitSet_Disjunction">[docs]</a><span class="k">class</span> <span class="nc">BitSet_Disjunction</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">Disjunction</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_representation</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BitSet_Disjunction.compute_representation"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.BitSet_Disjunction.compute_representation">[docs]</a>    <span class="k">def</span> <span class="nf">compute_representation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="c1"># empty description ==&gt; return a list of all &#39;1&#39;s</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">BitSet_Conjunction</span><span class="o">.</span><span class="n">n_instances</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="c1"># non-empty description</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">([</span><span class="n">sel</span><span class="o">.</span><span class="n">representation</span> <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BitSet_Disjunction.append_or"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.BitSet_Disjunction.append_or">[docs]</a>    <span class="k">def</span> <span class="nf">append_or</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_append</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append_or</span><span class="p">(</span><span class="n">to_append</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="p">,</span> <span class="n">to_append</span><span class="o">.</span><span class="n">representation</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__array_interface__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="o">.</span><span class="n">__array_interface__</span></div>
+
+
+
+
+<div class="viewcode-block" id="BitSetRepresentation"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.BitSetRepresentation">[docs]</a><span class="k">class</span> <span class="nc">BitSetRepresentation</span><span class="p">(</span><span class="n">RepresentationBase</span><span class="p">):</span>
+    <span class="n">Conjunction</span> <span class="o">=</span> <span class="n">BitSet_Conjunction</span>
+    <span class="n">Disjunction</span> <span class="o">=</span> <span class="n">BitSet_Disjunction</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">selectors_to_patch</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BitSet_Conjunction</span><span class="p">,</span> <span class="n">selectors_to_patch</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="BitSetRepresentation.patch_selector"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.BitSetRepresentation.patch_selector">[docs]</a>    <span class="k">def</span> <span class="nf">patch_selector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sel</span><span class="p">):</span>
+        <span class="n">sel</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span></div>
+<div class="viewcode-block" id="BitSetRepresentation.patch_classes"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.BitSetRepresentation.patch_classes">[docs]</a>    <span class="k">def</span> <span class="nf">patch_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">BitSet_Conjunction</span><span class="o">.</span><span class="n">n_instances</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">patch_classes</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="Set_Conjunction"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.Set_Conjunction">[docs]</a><span class="k">class</span> <span class="nc">Set_Conjunction</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">):</span>
+    <span class="n">all_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_representation</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arr_for_interface</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Set_Conjunction.compute_representation"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.Set_Conjunction.compute_representation">[docs]</a>    <span class="k">def</span> <span class="nf">compute_representation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="c1"># empty description ==&gt; return a list of all &#39;1&#39;s</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Set_Conjunction</span><span class="o">.</span><span class="n">all_set</span>
+        <span class="c1"># non-empty description</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">sel</span><span class="o">.</span><span class="n">representation</span> <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">])</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="p">)</span>
+
+    <span class="c1">#def __copy__(self):</span>
+    <span class="c1">#    tmp = super().__copy__()</span>
+    <span class="c1">#    tmp.representation = self.representation.copy()</span>
+    <span class="c1">#    return tmp</span>
+
+<div class="viewcode-block" id="Set_Conjunction.append_and"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.Set_Conjunction.append_and">[docs]</a>    <span class="k">def</span> <span class="nf">append_and</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_append</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append_and</span><span class="p">(</span><span class="n">to_append</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">to_append</span><span class="o">.</span><span class="n">representation</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arr_for_interface</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__array_interface__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">arr_for_interface</span><span class="o">.</span><span class="n">__array_interface__</span> <span class="c1"># pylint: disable=no-member</span></div>
+
+
+<div class="viewcode-block" id="SetRepresentation"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.SetRepresentation">[docs]</a><span class="k">class</span> <span class="nc">SetRepresentation</span><span class="p">(</span><span class="n">RepresentationBase</span><span class="p">):</span>
+    <span class="n">Conjunction</span> <span class="o">=</span> <span class="n">Set_Conjunction</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">selectors_to_patch</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">Set_Conjunction</span><span class="p">,</span> <span class="n">selectors_to_patch</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SetRepresentation.patch_selector"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.SetRepresentation.patch_selector">[docs]</a>    <span class="k">def</span> <span class="nf">patch_selector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sel</span><span class="p">):</span>
+        <span class="n">sel</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="SetRepresentation.patch_classes"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.SetRepresentation.patch_classes">[docs]</a>    <span class="k">def</span> <span class="nf">patch_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Set_Conjunction</span><span class="o">.</span><span class="n">all_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">patch_classes</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="NumpySet_Conjunction"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.NumpySet_Conjunction">[docs]</a><span class="k">class</span> <span class="nc">NumpySet_Conjunction</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">):</span>
+    <span class="n">all_set</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_representation</span><span class="p">()</span>
+
+<div class="viewcode-block" id="NumpySet_Conjunction.compute_representation"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.NumpySet_Conjunction.compute_representation">[docs]</a>    <span class="k">def</span> <span class="nf">compute_representation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="c1"># empty description ==&gt; return a list of all &#39;1&#39;s</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">NumpySet_Conjunction</span><span class="o">.</span><span class="n">all_set</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">representation</span>
+        <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">sel</span><span class="o">.</span><span class="n">representation</span><span class="p">,</span> <span class="n">assume_unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">start</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="p">)</span>
+
+    <span class="c1">#def __copy__(self):</span>
+    <span class="c1">#    tmp = super().__copy__()</span>
+    <span class="c1">#    tmp.representation = self.representation.copy()</span>
+    <span class="c1">#    return tmp</span>
+
+<div class="viewcode-block" id="NumpySet_Conjunction.append_and"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.NumpySet_Conjunction.append_and">[docs]</a>    <span class="k">def</span> <span class="nf">append_and</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_append</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append_and</span><span class="p">(</span><span class="n">to_append</span><span class="p">)</span>
+        <span class="c1">#self._selectors.append(to_append)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="p">,</span> <span class="n">to_append</span><span class="o">.</span><span class="n">representation</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__array_interface__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">representation</span><span class="o">.</span><span class="n">__array_interface__</span></div>
+
+
+<div class="viewcode-block" id="NumpySetRepresentation"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.NumpySetRepresentation">[docs]</a><span class="k">class</span> <span class="nc">NumpySetRepresentation</span><span class="p">(</span><span class="n">RepresentationBase</span><span class="p">):</span>
+    <span class="n">Conjunction</span> <span class="o">=</span> <span class="n">NumpySet_Conjunction</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">selectors_to_patch</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">NumpySet_Conjunction</span><span class="p">,</span> <span class="n">selectors_to_patch</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NumpySetRepresentation.patch_selector"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.NumpySetRepresentation.patch_selector">[docs]</a>    <span class="k">def</span> <span class="nf">patch_selector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sel</span><span class="p">):</span>
+        <span class="n">sel</span><span class="o">.</span><span class="n">representation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="NumpySetRepresentation.patch_classes"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.representations.NumpySetRepresentation.patch_classes">[docs]</a>    <span class="k">def</span> <span class="nf">patch_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">NumpySet_Conjunction</span><span class="o">.</span><span class="n">all_set</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">patch_classes</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction2.html">How pysubgroup works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Selectors.html">Selectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../targets.html">Targets and Quality Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules.html">pysubgroup</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

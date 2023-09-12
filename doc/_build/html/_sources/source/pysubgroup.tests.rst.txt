@@ -1,0 +1,134 @@
+pysubgroup.tests package
+========================
+
+Submodules
+----------
+
+pysubgroup.tests.DataSets module
+--------------------------------
+
+.. automodule:: pysubgroup.tests.DataSets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.algorithms\_testing module
+-------------------------------------------
+
+.. automodule:: pysubgroup.tests.algorithms_testing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.t\_combined\_im module
+---------------------------------------
+
+.. automodule:: pysubgroup.tests.t_combined_im
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.t\_numeric\_targets module
+-------------------------------------------
+
+.. automodule:: pysubgroup.tests.t_numeric_targets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.t\_numeric\_targets2 module
+--------------------------------------------
+
+.. automodule:: pysubgroup.tests.t_numeric_targets2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.t\_simple\_dfs module
+--------------------------------------
+
+.. automodule:: pysubgroup.tests.t_simple_dfs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.t\_titanic module
+----------------------------------
+
+.. automodule:: pysubgroup.tests.t_titanic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.test\_ChiSquaredQF module
+------------------------------------------
+
+.. automodule:: pysubgroup.tests.test_ChiSquaredQF
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.test\_algorithms\_boolean module
+-------------------------------------------------
+
+.. automodule:: pysubgroup.tests.test_algorithms_boolean
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.test\_algorithms\_numeric module
+-------------------------------------------------
+
+.. automodule:: pysubgroup.tests.test_algorithms_numeric
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.test\_boolean\_expressions module
+--------------------------------------------------
+
+.. automodule:: pysubgroup.tests.test_boolean_expressions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.test\_fi\_target module
+----------------------------------------
+
+.. automodule:: pysubgroup.tests.test_fi_target
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.test\_generalisations module
+---------------------------------------------
+
+.. automodule:: pysubgroup.tests.test_generalisations
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.test\_subgroup module
+--------------------------------------
+
+.. automodule:: pysubgroup.tests.test_subgroup
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pysubgroup.tests.test\_visualization module
+-------------------------------------------
+
+.. automodule:: pysubgroup.tests.test_visualization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pysubgroup.tests
+   :members:
+   :undoc-members:
+   :show-inheritance:

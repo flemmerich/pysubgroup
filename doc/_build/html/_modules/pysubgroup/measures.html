@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pysubgroup.measures &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pysubgroup.measures</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on 28.04.2016</span>
+
+<span class="sd">@author: lemmerfn</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pysubgroup</span> <span class="k">as</span> <span class="nn">ps</span>
+
+
+
+<div class="viewcode-block" id="AbstractInterestingnessMeasure"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.AbstractInterestingnessMeasure">[docs]</a><span class="k">class</span> <span class="nc">AbstractInterestingnessMeasure</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractInterestingnessMeasure.supports_weights"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.AbstractInterestingnessMeasure.supports_weights">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="AbstractInterestingnessMeasure.is_applicable"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.AbstractInterestingnessMeasure.is_applicable">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="AbstractInterestingnessMeasure.ensure_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.AbstractInterestingnessMeasure.ensure_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics_or_data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">statistics_or_data</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_stat_attrs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">statistics</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics_or_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">statistics_or_data</span></div></div>
+
+    <span class="c1">#def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None): #pylint: disable=unused-argument</span>
+    <span class="c1">#    return float(&quot;inf&quot;)</span>
+
+
+<div class="viewcode-block" id="BoundedInterestingnessMeasure"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.BoundedInterestingnessMeasure">[docs]</a><span class="k">class</span> <span class="nc">BoundedInterestingnessMeasure</span><span class="p">(</span><span class="n">AbstractInterestingnessMeasure</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+    <span class="c1">#@abstractmethod</span>
+    <span class="c1">#def optimistic_estimate_from_dataset(self, data, subgroup, weighting_attribute=None):</span>
+    <span class="c1">#    pass</span>
+
+
+<div class="viewcode-block" id="CombinedInterestingnessMeasure"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CombinedInterestingnessMeasure">[docs]</a><span class="k">class</span> <span class="nc">CombinedInterestingnessMeasure</span><span class="p">(</span><span class="n">BoundedInterestingnessMeasure</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measures</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measures</span> <span class="o">=</span> <span class="n">measures</span>
+
+        <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">measures</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span>
+
+<div class="viewcode-block" id="CombinedInterestingnessMeasure.evaluate_from_dataset"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CombinedInterestingnessMeasure.evaluate_from_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_from_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_applicable</span><span class="p">(</span><span class="n">subgroup</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">BaseException</span><span class="p">(</span><span class="s2">&quot;Quality measure cannot be used for this target class&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">evaluate_from_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">measures</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CombinedInterestingnessMeasure.optimistic_estimate_from_dataset"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CombinedInterestingnessMeasure.optimistic_estimate_from_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">optimistic_estimate_from_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_applicable</span><span class="p">(</span><span class="n">subgroup</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">BaseException</span><span class="p">(</span><span class="s2">&quot;Quality measure cannot be used for this target class&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">optimistic_estimate_from_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">measures</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CombinedInterestingnessMeasure.evaluate_from_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CombinedInterestingnessMeasure.evaluate_from_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_from_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instances_dataset</span><span class="p">,</span> <span class="n">positives_dataset</span><span class="p">,</span> <span class="n">instances_subgroup</span><span class="p">,</span> <span class="n">positives_subgroup</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">evaluate_from_statistics</span><span class="p">(</span><span class="n">instances_dataset</span><span class="p">,</span> <span class="n">positives_dataset</span><span class="p">,</span> <span class="n">instances_subgroup</span><span class="p">,</span> <span class="n">positives_subgroup</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">measures</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CombinedInterestingnessMeasure.optimistic_estimate_from_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CombinedInterestingnessMeasure.optimistic_estimate_from_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">optimistic_estimate_from_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instances_dataset</span><span class="p">,</span> <span class="n">positives_dataset</span><span class="p">,</span> <span class="n">instances_subgroup</span><span class="p">,</span> <span class="n">positives_subgroup</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">evaluate_from_statistics</span><span class="p">(</span><span class="n">instances_dataset</span><span class="p">,</span> <span class="n">positives_dataset</span><span class="p">,</span> <span class="n">instances_subgroup</span><span class="p">,</span> <span class="n">positives_subgroup</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">measures</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CombinedInterestingnessMeasure.is_applicable"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CombinedInterestingnessMeasure.is_applicable">[docs]</a>    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">is_applicable</span><span class="p">(</span><span class="n">subgroup</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">measures</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="CombinedInterestingnessMeasure.supports_weights"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CombinedInterestingnessMeasure.supports_weights">[docs]</a>    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">supports_weights</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">measures</span><span class="p">])</span></div></div>
+
+
+<span class="c1">##########</span>
+<span class="c1"># Filter</span>
+<span class="c1">##########</span>
+<div class="viewcode-block" id="unique_attributes"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.unique_attributes">[docs]</a><span class="k">def</span> <span class="nf">unique_attributes</span><span class="p">(</span><span class="n">result_set</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">used_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result_set</span><span class="p">:</span>
+        <span class="n">atts</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">subgroup_description</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">atts</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">used_attributes</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">([</span><span class="n">ps</span><span class="o">.</span><span class="n">is_categorical_attribute</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">atts</span><span class="p">]):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">))</span>
+            <span class="n">used_attributes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="minimum_statistic_filter"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.minimum_statistic_filter">[docs]</a><span class="k">def</span> <span class="nf">minimum_statistic_filter</span><span class="p">(</span><span class="n">result_set</span><span class="p">,</span> <span class="n">statistic</span><span class="p">,</span> <span class="n">minimum</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result_set</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">statistics</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sg</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="n">statistic</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">minimum</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="minimum_quality_filter"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.minimum_quality_filter">[docs]</a><span class="k">def</span> <span class="nf">minimum_quality_filter</span><span class="p">(</span><span class="n">result_set</span><span class="p">,</span> <span class="n">minimum</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result_set</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">q</span> <span class="o">&gt;=</span> <span class="n">minimum</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="maximum_statistic_filter"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.maximum_statistic_filter">[docs]</a><span class="k">def</span> <span class="nf">maximum_statistic_filter</span><span class="p">(</span><span class="n">result_set</span><span class="p">,</span> <span class="n">statistic</span><span class="p">,</span> <span class="n">maximum</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result_set</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="n">statistic</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">maximum</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="overlap_filter"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.overlap_filter">[docs]</a><span class="k">def</span> <span class="nf">overlap_filter</span><span class="p">(</span><span class="n">result_set</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">similarity_level</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">result_sgs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result_set</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">overlaps_list</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">result_sgs</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">similarity_level</span><span class="p">):</span>
+            <span class="n">result_sgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">q</span><span class="p">,</span> <span class="n">sg</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="overlaps_list"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.overlaps_list">[docs]</a><span class="k">def</span> <span class="nf">overlaps_list</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">list_of_sgs</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">similarity_level</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">anotherSG</span> <span class="ow">in</span> <span class="n">list_of_sgs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ps</span><span class="o">.</span><span class="n">overlap</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">anotherSG</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">similarity_level</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="CountCallsInterestingMeasure"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CountCallsInterestingMeasure">[docs]</a><span class="k">class</span> <span class="nc">CountCallsInterestingMeasure</span><span class="p">(</span><span class="n">BoundedInterestingnessMeasure</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qf</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qf</span> <span class="o">=</span> <span class="n">qf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calls</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="CountCallsInterestingMeasure.supports_weights"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CountCallsInterestingMeasure.supports_weights">[docs]</a>    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">supports_weights</span></div>
+
+<div class="viewcode-block" id="CountCallsInterestingMeasure.is_applicable"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CountCallsInterestingMeasure.is_applicable">[docs]</a>    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">is_applicable</span><span class="p">(</span><span class="n">subgroup</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CountCallsInterestingMeasure.calculate_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.CountCallsInterestingMeasure.calculate_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calls</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__hasattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<span class="c1">#####</span>
+<span class="c1"># GeneralizationAware Interestingness Measures</span>
+<span class="c1">#####</span>
+<div class="viewcode-block" id="GeneralizationAwareQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF">[docs]</a><span class="k">class</span> <span class="nc">GeneralizationAwareQF</span><span class="p">(</span><span class="n">AbstractInterestingnessMeasure</span><span class="p">):</span>
+    <span class="n">ga_tuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ga_tuple&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;subgroup_quality&#39;</span><span class="p">,</span> <span class="s1">&#39;generalisation_quality&#39;</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qf</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qf</span> <span class="o">=</span> <span class="n">qf</span>
+
+        <span class="c1"># this cache maps the representation of descriptions to tuples</span>
+        <span class="c1"># the first entry is the quality and the second one is</span>
+        <span class="c1"># the largest quality of all its predessors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_stat_attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;subgroup_quality&#39;</span><span class="p">,</span> <span class="s1">&#39;generalisation_quality&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q0</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="GeneralizationAwareQF.calculate_constant_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF.calculate_constant_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_constant_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">has_constant_statistics</span></div>
+
+<div class="viewcode-block" id="GeneralizationAwareQF.calculate_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF.calculate_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">sg_repr</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">subgroup</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sg_repr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">GeneralizationAwareQF</span><span class="o">.</span><span class="n">ga_tuple</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">sg_repr</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">q_sg</span><span class="p">,</span> <span class="n">q_prev</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_qual_and_previous_qual</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">sg_repr</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">q_sg</span><span class="p">,</span> <span class="n">q_prev</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">GeneralizationAwareQF</span><span class="o">.</span><span class="n">ga_tuple</span><span class="p">(</span><span class="n">q_sg</span><span class="p">,</span> <span class="n">q_prev</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralizationAwareQF.get_qual_and_previous_qual"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF.get_qual_and_previous_qual">[docs]</a>    <span class="k">def</span> <span class="nf">get_qual_and_previous_qual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">q_subgroup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">max_q</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">selectors</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">_selectors</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selectors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># compute quality of all generalizations</span>
+            <span class="n">generalizations</span> <span class="o">=</span> <span class="n">combinations</span><span class="p">(</span><span class="n">selectors</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">selectors</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">sels</span> <span class="ow">in</span> <span class="n">generalizations</span><span class="p">:</span>
+                <span class="n">sgd</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sels</span><span class="p">))</span>
+                <span class="p">(</span><span class="n">q_sg</span><span class="p">,</span> <span class="n">q_prev</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sgd</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                <span class="n">max_q</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_q</span><span class="p">,</span> <span class="n">q_sg</span><span class="p">,</span> <span class="n">q_prev</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">q_subgroup</span><span class="p">,</span> <span class="n">max_q</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralizationAwareQF.evaluate"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics_or_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics_or_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">statistics</span><span class="o">.</span><span class="n">subgroup_quality</span> <span class="o">-</span> <span class="n">statistics</span><span class="o">.</span><span class="n">generalisation_quality</span></div>
+
+
+<div class="viewcode-block" id="GeneralizationAwareQF.is_applicable"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF.is_applicable">[docs]</a>    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">is_applicable</span><span class="p">(</span><span class="n">subgroup</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralizationAwareQF.supports_weights"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF.supports_weights">[docs]</a>    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">supports_weights</span><span class="p">()</span></div></div>
+
+
+<span class="c1">#####</span>
+<span class="c1"># GeneralizationAware Interestingness Measures</span>
+<span class="c1">#####</span>
+<div class="viewcode-block" id="GeneralizationAwareQF_stats"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF_stats">[docs]</a><span class="k">class</span> <span class="nc">GeneralizationAwareQF_stats</span><span class="p">(</span><span class="n">AbstractInterestingnessMeasure</span><span class="p">):</span>
+    <span class="n">ga_tuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ga_stats_tuple&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;subgroup_stats&#39;</span><span class="p">,</span> <span class="s1">&#39;generalisation_stats&#39;</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qf</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qf</span> <span class="o">=</span> <span class="n">qf</span>
+
+        <span class="c1"># this cache maps the representation of descriptions to tuples</span>
+        <span class="c1"># the first entry is the quality and the second one is</span>
+        <span class="c1"># the largest quality of all its predessors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_stat_attrs</span> <span class="o">=</span> <span class="n">GeneralizationAwareQF_stats</span><span class="o">.</span><span class="n">ga_tuple</span><span class="o">.</span><span class="n">_fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats0</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="GeneralizationAwareQF_stats.calculate_constant_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF_stats.calculate_constant_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_constant_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">has_constant_statistics</span></div>
+
+<div class="viewcode-block" id="GeneralizationAwareQF_stats.calculate_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF_stats.calculate_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">sg_repr</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">subgroup</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sg_repr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">GeneralizationAwareQF_stats</span><span class="o">.</span><span class="n">ga_tuple</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">sg_repr</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">stats_sg</span><span class="p">,</span> <span class="n">stats_prev</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_stats_and_previous_stats</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">sg_repr</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">stats_sg</span><span class="p">,</span> <span class="n">stats_prev</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">GeneralizationAwareQF_stats</span><span class="o">.</span><span class="n">ga_tuple</span><span class="p">(</span><span class="n">stats_sg</span><span class="p">,</span> <span class="n">stats_prev</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralizationAwareQF_stats.get_stats_and_previous_stats"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF_stats.get_stats_and_previous_stats">[docs]</a>    <span class="k">def</span> <span class="nf">get_stats_and_previous_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">stats_subgroup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">max_stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats0</span>
+        <span class="n">selectors</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">_selectors</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selectors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># compute quality of all generalizations</span>
+            <span class="n">generalizations</span> <span class="o">=</span> <span class="n">combinations</span><span class="p">(</span><span class="n">selectors</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">selectors</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">sels</span> <span class="ow">in</span> <span class="n">generalizations</span><span class="p">:</span>
+                <span class="n">sgd</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sels</span><span class="p">))</span>
+                <span class="p">(</span><span class="n">stats_sg</span><span class="p">,</span> <span class="n">stats_prev</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sgd</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                <span class="n">max_stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_max</span><span class="p">(</span><span class="n">max_stats</span><span class="p">,</span> <span class="n">stats_sg</span><span class="p">,</span> <span class="n">stats_prev</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">stats_subgroup</span><span class="p">,</span> <span class="n">max_stats</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralizationAwareQF_stats.evaluate"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF_stats.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics_or_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="GeneralizationAwareQF_stats.get_max"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF_stats.get_max">[docs]</a>    <span class="k">def</span> <span class="nf">get_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="GeneralizationAwareQF_stats.is_applicable"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF_stats.is_applicable">[docs]</a>    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">is_applicable</span><span class="p">(</span><span class="n">subgroup</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralizationAwareQF_stats.supports_weights"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.measures.GeneralizationAwareQF_stats.supports_weights">[docs]</a>    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">supports_weights</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction2.html">How pysubgroup works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Selectors.html">Selectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../targets.html">Targets and Quality Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules.html">pysubgroup</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,300 @@
+\indexentry{pysubgroup.algorithms (module)@\spxentry{pysubgroup.algorithms}\spxextra{module}|hyperpage}{21}
+\indexentry{Apriori (class in pysubgroup.algorithms)@\spxentry{Apriori}\spxextra{class in pysubgroup.algorithms}|hyperpage}{21}
+\indexentry{execute() (Apriori method)@\spxentry{execute()}\spxextra{Apriori method}|hyperpage}{21}
+\indexentry{get\_next\_level() (Apriori method)@\spxentry{get\_next\_level()}\spxextra{Apriori method}|hyperpage}{21}
+\indexentry{get\_next\_level\_candidates() (Apriori method)@\spxentry{get\_next\_level\_candidates()}\spxextra{Apriori method}|hyperpage}{21}
+\indexentry{get\_next\_level\_candidates\_vectorized() (Apriori method)@\spxentry{get\_next\_level\_candidates\_vectorized()}\spxextra{Apriori method}|hyperpage}{21}
+\indexentry{get\_next\_level\_numba() (Apriori method)@\spxentry{get\_next\_level\_numba()}\spxextra{Apriori method}|hyperpage}{21}
+\indexentry{reprune\_lower\_levels() (Apriori method)@\spxentry{reprune\_lower\_levels()}\spxextra{Apriori method}|hyperpage}{21}
+\indexentry{BeamSearch (class in pysubgroup.algorithms)@\spxentry{BeamSearch}\spxextra{class in pysubgroup.algorithms}|hyperpage}{21}
+\indexentry{execute() (BeamSearch method)@\spxentry{execute()}\spxextra{BeamSearch method}|hyperpage}{21}
+\indexentry{BestFirstSearch (class in pysubgroup.algorithms)@\spxentry{BestFirstSearch}\spxextra{class in pysubgroup.algorithms}|hyperpage}{21}
+\indexentry{execute() (BestFirstSearch method)@\spxentry{execute()}\spxextra{BestFirstSearch method}|hyperpage}{21}
+\indexentry{DFS (class in pysubgroup.algorithms)@\spxentry{DFS}\spxextra{class in pysubgroup.algorithms}|hyperpage}{21}
+\indexentry{execute() (DFS method)@\spxentry{execute()}\spxextra{DFS method}|hyperpage}{21}
+\indexentry{search\_internal() (DFS method)@\spxentry{search\_internal()}\spxextra{DFS method}|hyperpage}{21}
+\indexentry{DFSNumeric (class in pysubgroup.algorithms)@\spxentry{DFSNumeric}\spxextra{class in pysubgroup.algorithms}|hyperpage}{21}
+\indexentry{execute() (DFSNumeric method)@\spxentry{execute()}\spxextra{DFSNumeric method}|hyperpage}{21}
+\indexentry{search\_internal() (DFSNumeric method)@\spxentry{search\_internal()}\spxextra{DFSNumeric method}|hyperpage}{21}
+\indexentry{tpl (DFSNumeric attribute)@\spxentry{tpl}\spxextra{DFSNumeric attribute}|hyperpage}{21}
+\indexentry{GeneralisingBFS (class in pysubgroup.algorithms)@\spxentry{GeneralisingBFS}\spxextra{class in pysubgroup.algorithms}|hyperpage}{22}
+\indexentry{execute() (GeneralisingBFS method)@\spxentry{execute()}\spxextra{GeneralisingBFS method}|hyperpage}{22}
+\indexentry{SimpleDFS (class in pysubgroup.algorithms)@\spxentry{SimpleDFS}\spxextra{class in pysubgroup.algorithms}|hyperpage}{22}
+\indexentry{execute() (SimpleDFS method)@\spxentry{execute()}\spxextra{SimpleDFS method}|hyperpage}{22}
+\indexentry{search\_internal() (SimpleDFS method)@\spxentry{search\_internal()}\spxextra{SimpleDFS method}|hyperpage}{22}
+\indexentry{SimpleSearch (class in pysubgroup.algorithms)@\spxentry{SimpleSearch}\spxextra{class in pysubgroup.algorithms}|hyperpage}{22}
+\indexentry{execute() (SimpleSearch method)@\spxentry{execute()}\spxextra{SimpleSearch method}|hyperpage}{22}
+\indexentry{SubgroupDiscoveryTask (class in pysubgroup.algorithms)@\spxentry{SubgroupDiscoveryTask}\spxextra{class in pysubgroup.algorithms}|hyperpage}{22}
+\indexentry{pysubgroup.boolean\_expressions (module)@\spxentry{pysubgroup.boolean\_expressions}\spxextra{module}|hyperpage}{22}
+\indexentry{BooleanExpressionBase (class in pysubgroup.boolean\_expressions)@\spxentry{BooleanExpressionBase}\spxextra{class in pysubgroup.boolean\_expressions}|hyperpage}{22}
+\indexentry{append\_and() (BooleanExpressionBase method)@\spxentry{append\_and()}\spxextra{BooleanExpressionBase method}|hyperpage}{22}
+\indexentry{append\_or() (BooleanExpressionBase method)@\spxentry{append\_or()}\spxextra{BooleanExpressionBase method}|hyperpage}{22}
+\indexentry{Conjunction (class in pysubgroup.boolean\_expressions)@\spxentry{Conjunction}\spxextra{class in pysubgroup.boolean\_expressions}|hyperpage}{22}
+\indexentry{append\_and() (Conjunction method)@\spxentry{append\_and()}\spxextra{Conjunction method}|hyperpage}{22}
+\indexentry{append\_or() (Conjunction method)@\spxentry{append\_or()}\spxextra{Conjunction method}|hyperpage}{22}
+\indexentry{covers() (Conjunction method)@\spxentry{covers()}\spxextra{Conjunction method}|hyperpage}{22}
+\indexentry{depth() (Conjunction property)@\spxentry{depth()}\spxextra{Conjunction property}|hyperpage}{22}
+\indexentry{pop\_and() (Conjunction method)@\spxentry{pop\_and()}\spxextra{Conjunction method}|hyperpage}{22}
+\indexentry{pop\_or() (Conjunction method)@\spxentry{pop\_or()}\spxextra{Conjunction method}|hyperpage}{22}
+\indexentry{DNF (class in pysubgroup.boolean\_expressions)@\spxentry{DNF}\spxextra{class in pysubgroup.boolean\_expressions}|hyperpage}{22}
+\indexentry{append\_and() (DNF method)@\spxentry{append\_and()}\spxextra{DNF method}|hyperpage}{22}
+\indexentry{append\_or() (DNF method)@\spxentry{append\_or()}\spxextra{DNF method}|hyperpage}{22}
+\indexentry{pop\_and() (DNF method)@\spxentry{pop\_and()}\spxextra{DNF method}|hyperpage}{22}
+\indexentry{Disjunction (class in pysubgroup.boolean\_expressions)@\spxentry{Disjunction}\spxextra{class in pysubgroup.boolean\_expressions}|hyperpage}{22}
+\indexentry{append\_and() (Disjunction method)@\spxentry{append\_and()}\spxextra{Disjunction method}|hyperpage}{22}
+\indexentry{append\_or() (Disjunction method)@\spxentry{append\_or()}\spxextra{Disjunction method}|hyperpage}{22}
+\indexentry{covers() (Disjunction method)@\spxentry{covers()}\spxextra{Disjunction method}|hyperpage}{22}
+\indexentry{pysubgroup.fi\_target (module)@\spxentry{pysubgroup.fi\_target}\spxextra{module}|hyperpage}{23}
+\indexentry{AreaQF (class in pysubgroup.fi\_target)@\spxentry{AreaQF}\spxextra{class in pysubgroup.fi\_target}|hyperpage}{23}
+\indexentry{evaluate() (AreaQF method)@\spxentry{evaluate()}\spxextra{AreaQF method}|hyperpage}{23}
+\indexentry{is\_applicable() (AreaQF method)@\spxentry{is\_applicable()}\spxextra{AreaQF method}|hyperpage}{23}
+\indexentry{supports\_weights() (AreaQF method)@\spxentry{supports\_weights()}\spxextra{AreaQF method}|hyperpage}{23}
+\indexentry{CountQF (class in pysubgroup.fi\_target)@\spxentry{CountQF}\spxextra{class in pysubgroup.fi\_target}|hyperpage}{23}
+\indexentry{evaluate() (CountQF method)@\spxentry{evaluate()}\spxextra{CountQF method}|hyperpage}{23}
+\indexentry{is\_applicable() (CountQF method)@\spxentry{is\_applicable()}\spxextra{CountQF method}|hyperpage}{23}
+\indexentry{optimistic\_estimate() (CountQF method)@\spxentry{optimistic\_estimate()}\spxextra{CountQF method}|hyperpage}{23}
+\indexentry{supports\_weights() (CountQF method)@\spxentry{supports\_weights()}\spxextra{CountQF method}|hyperpage}{23}
+\indexentry{FITarget (class in pysubgroup.fi\_target)@\spxentry{FITarget}\spxextra{class in pysubgroup.fi\_target}|hyperpage}{23}
+\indexentry{calculate\_statistics() (FITarget method)@\spxentry{calculate\_statistics()}\spxextra{FITarget method}|hyperpage}{23}
+\indexentry{get\_attributes() (FITarget method)@\spxentry{get\_attributes()}\spxextra{FITarget method}|hyperpage}{23}
+\indexentry{get\_base\_statistics() (FITarget method)@\spxentry{get\_base\_statistics()}\spxextra{FITarget method}|hyperpage}{23}
+\indexentry{SimpleCountQF (class in pysubgroup.fi\_target)@\spxentry{SimpleCountQF}\spxextra{class in pysubgroup.fi\_target}|hyperpage}{23}
+\indexentry{calculate\_constant\_statistics() (SimpleCountQF method)@\spxentry{calculate\_constant\_statistics()}\spxextra{SimpleCountQF method}|hyperpage}{23}
+\indexentry{calculate\_statistics() (SimpleCountQF method)@\spxentry{calculate\_statistics()}\spxextra{SimpleCountQF method}|hyperpage}{23}
+\indexentry{gp\_get\_null\_vector() (SimpleCountQF method)@\spxentry{gp\_get\_null\_vector()}\spxextra{SimpleCountQF method}|hyperpage}{23}
+\indexentry{gp\_get\_params() (SimpleCountQF method)@\spxentry{gp\_get\_params()}\spxextra{SimpleCountQF method}|hyperpage}{23}
+\indexentry{gp\_get\_stats() (SimpleCountQF method)@\spxentry{gp\_get\_stats()}\spxextra{SimpleCountQF method}|hyperpage}{23}
+\indexentry{gp\_merge() (SimpleCountQF method)@\spxentry{gp\_merge()}\spxextra{SimpleCountQF method}|hyperpage}{23}
+\indexentry{gp\_requires\_cover\_arr() (SimpleCountQF property)@\spxentry{gp\_requires\_cover\_arr()}\spxextra{SimpleCountQF property}|hyperpage}{23}
+\indexentry{gp\_to\_str() (SimpleCountQF method)@\spxentry{gp\_to\_str()}\spxextra{SimpleCountQF method}|hyperpage}{23}
+\indexentry{tpl (SimpleCountQF attribute)@\spxentry{tpl}\spxextra{SimpleCountQF attribute}|hyperpage}{23}
+\indexentry{pysubgroup.gp\_growth (module)@\spxentry{pysubgroup.gp\_growth}\spxextra{module}|hyperpage}{24}
+\indexentry{GpGrowth (class in pysubgroup.gp\_growth)@\spxentry{GpGrowth}\spxextra{class in pysubgroup.gp\_growth}|hyperpage}{24}
+\indexentry{calculate\_quality\_function\_for\_patterns() (GpGrowth method)@\spxentry{calculate\_quality\_function\_for\_patterns()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{check\_constraints() (GpGrowth method)@\spxentry{check\_constraints()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{create\_copy\_of\_path() (GpGrowth method)@\spxentry{create\_copy\_of\_path()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{create\_copy\_of\_tree\_top\_down() (GpGrowth method)@\spxentry{create\_copy\_of\_tree\_top\_down()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{create\_new\_tree\_from\_nodes() (GpGrowth method)@\spxentry{create\_new\_tree\_from\_nodes()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{execute() (GpGrowth method)@\spxentry{execute()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{get\_nodes\_upwards() (GpGrowth method)@\spxentry{get\_nodes\_upwards()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{get\_prefixes\_top\_down() (GpGrowth method)@\spxentry{get\_prefixes\_top\_down()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{get\_stats\_for\_class() (GpGrowth method)@\spxentry{get\_stats\_for\_class()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{get\_top\_down\_tree\_for\_class() (GpGrowth method)@\spxentry{get\_top\_down\_tree\_for\_class()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{insert\_into\_tree() (GpGrowth method)@\spxentry{insert\_into\_tree()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{merge\_trees\_top\_down() (GpGrowth method)@\spxentry{merge\_trees\_top\_down()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{nodes\_to\_cls\_nodes() (GpGrowth method)@\spxentry{nodes\_to\_cls\_nodes()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{normal\_insert() (GpGrowth method)@\spxentry{normal\_insert()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{prepare\_selectors() (GpGrowth method)@\spxentry{prepare\_selectors()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{recurse() (GpGrowth method)@\spxentry{recurse()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{recurse\_top\_down() (GpGrowth method)@\spxentry{recurse\_top\_down()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{remove\_infrequent\_class() (GpGrowth method)@\spxentry{remove\_infrequent\_class()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{remove\_infrequent\_nodes() (GpGrowth method)@\spxentry{remove\_infrequent\_nodes()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{to\_file() (GpGrowth method)@\spxentry{to\_file()}\spxextra{GpGrowth method}|hyperpage}{24}
+\indexentry{pysubgroup.measures (module)@\spxentry{pysubgroup.measures}\spxextra{module}|hyperpage}{24}
+\indexentry{AbstractInterestingnessMeasure (class in pysubgroup.measures)@\spxentry{AbstractInterestingnessMeasure}\spxextra{class in pysubgroup.measures}|hyperpage}{24}
+\indexentry{ensure\_statistics() (AbstractInterestingnessMeasure method)@\spxentry{ensure\_statistics()}\spxextra{AbstractInterestingnessMeasure method}|hyperpage}{24}
+\indexentry{is\_applicable() (AbstractInterestingnessMeasure method)@\spxentry{is\_applicable()}\spxextra{AbstractInterestingnessMeasure method}|hyperpage}{24}
+\indexentry{supports\_weights() (AbstractInterestingnessMeasure method)@\spxentry{supports\_weights()}\spxextra{AbstractInterestingnessMeasure method}|hyperpage}{24}
+\indexentry{BoundedInterestingnessMeasure (class in pysubgroup.measures)@\spxentry{BoundedInterestingnessMeasure}\spxextra{class in pysubgroup.measures}|hyperpage}{24}
+\indexentry{CombinedInterestingnessMeasure (class in pysubgroup.measures)@\spxentry{CombinedInterestingnessMeasure}\spxextra{class in pysubgroup.measures}|hyperpage}{24}
+\indexentry{evaluate\_from\_dataset() (CombinedInterestingnessMeasure method)@\spxentry{evaluate\_from\_dataset()}\spxextra{CombinedInterestingnessMeasure method}|hyperpage}{24}
+\indexentry{evaluate\_from\_statistics() (CombinedInterestingnessMeasure method)@\spxentry{evaluate\_from\_statistics()}\spxextra{CombinedInterestingnessMeasure method}|hyperpage}{24}
+\indexentry{is\_applicable() (CombinedInterestingnessMeasure method)@\spxentry{is\_applicable()}\spxextra{CombinedInterestingnessMeasure method}|hyperpage}{25}
+\indexentry{optimistic\_estimate\_from\_dataset() (CombinedInterestingnessMeasure method)@\spxentry{optimistic\_estimate\_from\_dataset()}\spxextra{CombinedInterestingnessMeasure method}|hyperpage}{25}
+\indexentry{optimistic\_estimate\_from\_statistics() (CombinedInterestingnessMeasure method)@\spxentry{optimistic\_estimate\_from\_statistics()}\spxextra{CombinedInterestingnessMeasure method}|hyperpage}{25}
+\indexentry{supports\_weights() (CombinedInterestingnessMeasure method)@\spxentry{supports\_weights()}\spxextra{CombinedInterestingnessMeasure method}|hyperpage}{25}
+\indexentry{CountCallsInterestingMeasure (class in pysubgroup.measures)@\spxentry{CountCallsInterestingMeasure}\spxextra{class in pysubgroup.measures}|hyperpage}{25}
+\indexentry{calculate\_statistics() (CountCallsInterestingMeasure method)@\spxentry{calculate\_statistics()}\spxextra{CountCallsInterestingMeasure method}|hyperpage}{25}
+\indexentry{is\_applicable() (CountCallsInterestingMeasure method)@\spxentry{is\_applicable()}\spxextra{CountCallsInterestingMeasure method}|hyperpage}{25}
+\indexentry{supports\_weights() (CountCallsInterestingMeasure method)@\spxentry{supports\_weights()}\spxextra{CountCallsInterestingMeasure method}|hyperpage}{25}
+\indexentry{GeneralizationAwareQF (class in pysubgroup.measures)@\spxentry{GeneralizationAwareQF}\spxextra{class in pysubgroup.measures}|hyperpage}{25}
+\indexentry{calculate\_constant\_statistics() (GeneralizationAwareQF method)@\spxentry{calculate\_constant\_statistics()}\spxextra{GeneralizationAwareQF method}|hyperpage}{25}
+\indexentry{calculate\_statistics() (GeneralizationAwareQF method)@\spxentry{calculate\_statistics()}\spxextra{GeneralizationAwareQF method}|hyperpage}{25}
+\indexentry{evaluate() (GeneralizationAwareQF method)@\spxentry{evaluate()}\spxextra{GeneralizationAwareQF method}|hyperpage}{25}
+\indexentry{GeneralizationAwareQF.ga\_tuple (class in pysubgroup.measures)@\spxentry{GeneralizationAwareQF.ga\_tuple}\spxextra{class in pysubgroup.measures}|hyperpage}{25}
+\indexentry{generalisation\_quality() (GeneralizationAwareQF.ga\_tuple property)@\spxentry{generalisation\_quality()}\spxextra{GeneralizationAwareQF.ga\_tuple property}|hyperpage}{25}
+\indexentry{subgroup\_quality() (GeneralizationAwareQF.ga\_tuple property)@\spxentry{subgroup\_quality()}\spxextra{GeneralizationAwareQF.ga\_tuple property}|hyperpage}{25}
+\indexentry{get\_qual\_and\_previous\_qual() (GeneralizationAwareQF method)@\spxentry{get\_qual\_and\_previous\_qual()}\spxextra{GeneralizationAwareQF method}|hyperpage}{25}
+\indexentry{is\_applicable() (GeneralizationAwareQF method)@\spxentry{is\_applicable()}\spxextra{GeneralizationAwareQF method}|hyperpage}{25}
+\indexentry{supports\_weights() (GeneralizationAwareQF method)@\spxentry{supports\_weights()}\spxextra{GeneralizationAwareQF method}|hyperpage}{25}
+\indexentry{GeneralizationAwareQF\_stats (class in pysubgroup.measures)@\spxentry{GeneralizationAwareQF\_stats}\spxextra{class in pysubgroup.measures}|hyperpage}{25}
+\indexentry{calculate\_constant\_statistics() (GeneralizationAwareQF\_stats method)@\spxentry{calculate\_constant\_statistics()}\spxextra{GeneralizationAwareQF\_stats method}|hyperpage}{25}
+\indexentry{calculate\_statistics() (GeneralizationAwareQF\_stats method)@\spxentry{calculate\_statistics()}\spxextra{GeneralizationAwareQF\_stats method}|hyperpage}{25}
+\indexentry{evaluate() (GeneralizationAwareQF\_stats method)@\spxentry{evaluate()}\spxextra{GeneralizationAwareQF\_stats method}|hyperpage}{25}
+\indexentry{ga\_tuple (GeneralizationAwareQF\_stats attribute)@\spxentry{ga\_tuple}\spxextra{GeneralizationAwareQF\_stats attribute}|hyperpage}{25}
+\indexentry{get\_max() (GeneralizationAwareQF\_stats method)@\spxentry{get\_max()}\spxextra{GeneralizationAwareQF\_stats method}|hyperpage}{25}
+\indexentry{get\_stats\_and\_previous\_stats() (GeneralizationAwareQF\_stats method)@\spxentry{get\_stats\_and\_previous\_stats()}\spxextra{GeneralizationAwareQF\_stats method}|hyperpage}{25}
+\indexentry{is\_applicable() (GeneralizationAwareQF\_stats method)@\spxentry{is\_applicable()}\spxextra{GeneralizationAwareQF\_stats method}|hyperpage}{25}
+\indexentry{supports\_weights() (GeneralizationAwareQF\_stats method)@\spxentry{supports\_weights()}\spxextra{GeneralizationAwareQF\_stats method}|hyperpage}{25}
+\indexentry{maximum\_statistic\_filter() (in module pysubgroup.measures)@\spxentry{maximum\_statistic\_filter()}\spxextra{in module pysubgroup.measures}|hyperpage}{25}
+\indexentry{minimum\_quality\_filter() (in module pysubgroup.measures)@\spxentry{minimum\_quality\_filter()}\spxextra{in module pysubgroup.measures}|hyperpage}{25}
+\indexentry{minimum\_statistic\_filter() (in module pysubgroup.measures)@\spxentry{minimum\_statistic\_filter()}\spxextra{in module pysubgroup.measures}|hyperpage}{25}
+\indexentry{overlap\_filter() (in module pysubgroup.measures)@\spxentry{overlap\_filter()}\spxextra{in module pysubgroup.measures}|hyperpage}{26}
+\indexentry{overlaps\_list() (in module pysubgroup.measures)@\spxentry{overlaps\_list()}\spxextra{in module pysubgroup.measures}|hyperpage}{26}
+\indexentry{unique\_attributes() (in module pysubgroup.measures)@\spxentry{unique\_attributes()}\spxextra{in module pysubgroup.measures}|hyperpage}{26}
+\indexentry{pysubgroup.model\_target (module)@\spxentry{pysubgroup.model\_target}\spxextra{module}|hyperpage}{26}
+\indexentry{EMM\_Likelihood (class in pysubgroup.model\_target)@\spxentry{EMM\_Likelihood}\spxextra{class in pysubgroup.model\_target}|hyperpage}{26}
+\indexentry{calculate\_constant\_statistics() (EMM\_Likelihood method)@\spxentry{calculate\_constant\_statistics()}\spxextra{EMM\_Likelihood method}|hyperpage}{26}
+\indexentry{calculate\_statistics() (EMM\_Likelihood method)@\spxentry{calculate\_statistics()}\spxextra{EMM\_Likelihood method}|hyperpage}{26}
+\indexentry{evaluate() (EMM\_Likelihood method)@\spxentry{evaluate()}\spxextra{EMM\_Likelihood method}|hyperpage}{26}
+\indexentry{get\_tuple() (EMM\_Likelihood method)@\spxentry{get\_tuple()}\spxextra{EMM\_Likelihood method}|hyperpage}{26}
+\indexentry{gp\_get\_params() (EMM\_Likelihood method)@\spxentry{gp\_get\_params()}\spxextra{EMM\_Likelihood method}|hyperpage}{26}
+\indexentry{is\_applicable() (EMM\_Likelihood method)@\spxentry{is\_applicable()}\spxextra{EMM\_Likelihood method}|hyperpage}{26}
+\indexentry{supports\_weights() (EMM\_Likelihood method)@\spxentry{supports\_weights()}\spxextra{EMM\_Likelihood method}|hyperpage}{26}
+\indexentry{tpl (EMM\_Likelihood attribute)@\spxentry{tpl}\spxextra{EMM\_Likelihood attribute}|hyperpage}{26}
+\indexentry{PolyRegression\_ModelClass (class in pysubgroup.model\_target)@\spxentry{PolyRegression\_ModelClass}\spxextra{class in pysubgroup.model\_target}|hyperpage}{26}
+\indexentry{calculate\_constant\_statistics() (PolyRegression\_ModelClass method)@\spxentry{calculate\_constant\_statistics()}\spxextra{PolyRegression\_ModelClass method}|hyperpage}{26}
+\indexentry{fit() (PolyRegression\_ModelClass method)@\spxentry{fit()}\spxextra{PolyRegression\_ModelClass method}|hyperpage}{26}
+\indexentry{gp\_get\_null\_vector() (PolyRegression\_ModelClass method)@\spxentry{gp\_get\_null\_vector()}\spxextra{PolyRegression\_ModelClass method}|hyperpage}{26}
+\indexentry{gp\_get\_params() (PolyRegression\_ModelClass method)@\spxentry{gp\_get\_params()}\spxextra{PolyRegression\_ModelClass method}|hyperpage}{26}
+\indexentry{gp\_get\_stats() (PolyRegression\_ModelClass method)@\spxentry{gp\_get\_stats()}\spxextra{PolyRegression\_ModelClass method}|hyperpage}{26}
+\indexentry{gp\_merge() (PolyRegression\_ModelClass static method)@\spxentry{gp\_merge()}\spxextra{PolyRegression\_ModelClass static method}|hyperpage}{26}
+\indexentry{likelihood() (PolyRegression\_ModelClass method)@\spxentry{likelihood()}\spxextra{PolyRegression\_ModelClass method}|hyperpage}{26}
+\indexentry{loglikelihood() (PolyRegression\_ModelClass method)@\spxentry{loglikelihood()}\spxextra{PolyRegression\_ModelClass method}|hyperpage}{26}
+\indexentry{beta\_tuple (class in pysubgroup.model\_target)@\spxentry{beta\_tuple}\spxextra{class in pysubgroup.model\_target}|hyperpage}{26}
+\indexentry{beta() (beta\_tuple property)@\spxentry{beta()}\spxextra{beta\_tuple property}|hyperpage}{26}
+\indexentry{size() (beta\_tuple property)@\spxentry{size()}\spxextra{beta\_tuple property}|hyperpage}{26}
+\indexentry{pysubgroup.numeric\_target (module)@\spxentry{pysubgroup.numeric\_target}\spxextra{module}|hyperpage}{27}
+\indexentry{GAStandardQFNumeric (class in pysubgroup.numeric\_target)@\spxentry{GAStandardQFNumeric}\spxextra{class in pysubgroup.numeric\_target}|hyperpage}{27}
+\indexentry{evaluate\_from\_dataset() (GAStandardQFNumeric method)@\spxentry{evaluate\_from\_dataset()}\spxextra{GAStandardQFNumeric method}|hyperpage}{27}
+\indexentry{is\_applicable() (GAStandardQFNumeric method)@\spxentry{is\_applicable()}\spxextra{GAStandardQFNumeric method}|hyperpage}{27}
+\indexentry{supports\_weights() (GAStandardQFNumeric method)@\spxentry{supports\_weights()}\spxextra{GAStandardQFNumeric method}|hyperpage}{27}
+\indexentry{NumericTarget (class in pysubgroup.numeric\_target)@\spxentry{NumericTarget}\spxextra{class in pysubgroup.numeric\_target}|hyperpage}{27}
+\indexentry{calculate\_statistics() (NumericTarget method)@\spxentry{calculate\_statistics()}\spxextra{NumericTarget method}|hyperpage}{27}
+\indexentry{get\_attributes() (NumericTarget method)@\spxentry{get\_attributes()}\spxextra{NumericTarget method}|hyperpage}{27}
+\indexentry{get\_base\_statistics() (NumericTarget method)@\spxentry{get\_base\_statistics()}\spxextra{NumericTarget method}|hyperpage}{27}
+\indexentry{StandardQFNumeric (class in pysubgroup.numeric\_target)@\spxentry{StandardQFNumeric}\spxextra{class in pysubgroup.numeric\_target}|hyperpage}{27}
+\indexentry{StandardQFNumeric.Average\_Estimator (class in pysubgroup.numeric\_target)@\spxentry{StandardQFNumeric.Average\_Estimator}\spxextra{class in pysubgroup.numeric\_target}|hyperpage}{27}
+\indexentry{calculate\_constant\_statistics() (StandardQFNumeric.Average\_Estimator method)@\spxentry{calculate\_constant\_statistics()}\spxextra{StandardQFNumeric.Average\_Estimator method}|hyperpage}{27}
+\indexentry{get\_data() (StandardQFNumeric.Average\_Estimator method)@\spxentry{get\_data()}\spxextra{StandardQFNumeric.Average\_Estimator method}|hyperpage}{27}
+\indexentry{get\_estimate() (StandardQFNumeric.Average\_Estimator method)@\spxentry{get\_estimate()}\spxextra{StandardQFNumeric.Average\_Estimator method}|hyperpage}{27}
+\indexentry{StandardQFNumeric.Ordering\_Estimator (class in pysubgroup.numeric\_target)@\spxentry{StandardQFNumeric.Ordering\_Estimator}\spxextra{class in pysubgroup.numeric\_target}|hyperpage}{27}
+\indexentry{calculate\_constant\_statistics() (StandardQFNumeric.Ordering\_Estimator method)@\spxentry{calculate\_constant\_statistics()}\spxextra{StandardQFNumeric.Ordering\_Estimator method}|hyperpage}{27}
+\indexentry{get\_data() (StandardQFNumeric.Ordering\_Estimator method)@\spxentry{get\_data()}\spxextra{StandardQFNumeric.Ordering\_Estimator method}|hyperpage}{27}
+\indexentry{get\_estimate() (StandardQFNumeric.Ordering\_Estimator method)@\spxentry{get\_estimate()}\spxextra{StandardQFNumeric.Ordering\_Estimator method}|hyperpage}{27}
+\indexentry{get\_estimate\_numpy() (StandardQFNumeric.Ordering\_Estimator method)@\spxentry{get\_estimate\_numpy()}\spxextra{StandardQFNumeric.Ordering\_Estimator method}|hyperpage}{27}
+\indexentry{StandardQFNumeric.Summation\_Estimator (class in pysubgroup.numeric\_target)@\spxentry{StandardQFNumeric.Summation\_Estimator}\spxextra{class in pysubgroup.numeric\_target}|hyperpage}{27}
+\indexentry{calculate\_constant\_statistics() (StandardQFNumeric.Summation\_Estimator method)@\spxentry{calculate\_constant\_statistics()}\spxextra{StandardQFNumeric.Summation\_Estimator method}|hyperpage}{27}
+\indexentry{get\_data() (StandardQFNumeric.Summation\_Estimator method)@\spxentry{get\_data()}\spxextra{StandardQFNumeric.Summation\_Estimator method}|hyperpage}{27}
+\indexentry{get\_estimate() (StandardQFNumeric.Summation\_Estimator method)@\spxentry{get\_estimate()}\spxextra{StandardQFNumeric.Summation\_Estimator method}|hyperpage}{27}
+\indexentry{calculate\_constant\_statistics() (StandardQFNumeric method)@\spxentry{calculate\_constant\_statistics()}\spxextra{StandardQFNumeric method}|hyperpage}{27}
+\indexentry{calculate\_statistics() (StandardQFNumeric method)@\spxentry{calculate\_statistics()}\spxextra{StandardQFNumeric method}|hyperpage}{27}
+\indexentry{evaluate() (StandardQFNumeric method)@\spxentry{evaluate()}\spxextra{StandardQFNumeric method}|hyperpage}{27}
+\indexentry{is\_applicable() (StandardQFNumeric method)@\spxentry{is\_applicable()}\spxextra{StandardQFNumeric method}|hyperpage}{27}
+\indexentry{optimistic\_estimate() (StandardQFNumeric method)@\spxentry{optimistic\_estimate()}\spxextra{StandardQFNumeric method}|hyperpage}{27}
+\indexentry{standard\_qf\_numeric() (StandardQFNumeric static method)@\spxentry{standard\_qf\_numeric()}\spxextra{StandardQFNumeric static method}|hyperpage}{27}
+\indexentry{supports\_weights() (StandardQFNumeric method)@\spxentry{supports\_weights()}\spxextra{StandardQFNumeric method}|hyperpage}{28}
+\indexentry{tpl (StandardQFNumeric attribute)@\spxentry{tpl}\spxextra{StandardQFNumeric attribute}|hyperpage}{28}
+\indexentry{get\_max\_generalization\_mean() (in module pysubgroup.numeric\_target)@\spxentry{get\_max\_generalization\_mean()}\spxextra{in module pysubgroup.numeric\_target}|hyperpage}{28}
+\indexentry{pysubgroup.refinement\_operator (module)@\spxentry{pysubgroup.refinement\_operator}\spxextra{module}|hyperpage}{28}
+\indexentry{RefinementOperator (class in pysubgroup.refinement\_operator)@\spxentry{RefinementOperator}\spxextra{class in pysubgroup.refinement\_operator}|hyperpage}{28}
+\indexentry{StaticGeneralizationOperator (class in pysubgroup.refinement\_operator)@\spxentry{StaticGeneralizationOperator}\spxextra{class in pysubgroup.refinement\_operator}|hyperpage}{28}
+\indexentry{refinements() (StaticGeneralizationOperator method)@\spxentry{refinements()}\spxextra{StaticGeneralizationOperator method}|hyperpage}{28}
+\indexentry{StaticSpecializationOperator (class in pysubgroup.refinement\_operator)@\spxentry{StaticSpecializationOperator}\spxextra{class in pysubgroup.refinement\_operator}|hyperpage}{28}
+\indexentry{refinements() (StaticSpecializationOperator method)@\spxentry{refinements()}\spxextra{StaticSpecializationOperator method}|hyperpage}{28}
+\indexentry{pysubgroup.representations (module)@\spxentry{pysubgroup.representations}\spxextra{module}|hyperpage}{28}
+\indexentry{BitSetRepresentation (class in pysubgroup.representations)@\spxentry{BitSetRepresentation}\spxextra{class in pysubgroup.representations}|hyperpage}{28}
+\indexentry{Conjunction (BitSetRepresentation attribute)@\spxentry{Conjunction}\spxextra{BitSetRepresentation attribute}|hyperpage}{28}
+\indexentry{Disjunction (BitSetRepresentation attribute)@\spxentry{Disjunction}\spxextra{BitSetRepresentation attribute}|hyperpage}{28}
+\indexentry{patch\_classes() (BitSetRepresentation method)@\spxentry{patch\_classes()}\spxextra{BitSetRepresentation method}|hyperpage}{28}
+\indexentry{patch\_selector() (BitSetRepresentation method)@\spxentry{patch\_selector()}\spxextra{BitSetRepresentation method}|hyperpage}{28}
+\indexentry{BitSet\_Conjunction (class in pysubgroup.representations)@\spxentry{BitSet\_Conjunction}\spxextra{class in pysubgroup.representations}|hyperpage}{28}
+\indexentry{append\_and() (BitSet\_Conjunction method)@\spxentry{append\_and()}\spxextra{BitSet\_Conjunction method}|hyperpage}{28}
+\indexentry{compute\_representation() (BitSet\_Conjunction method)@\spxentry{compute\_representation()}\spxextra{BitSet\_Conjunction method}|hyperpage}{28}
+\indexentry{n\_instances (BitSet\_Conjunction attribute)@\spxentry{n\_instances}\spxextra{BitSet\_Conjunction attribute}|hyperpage}{28}
+\indexentry{size() (BitSet\_Conjunction property)@\spxentry{size()}\spxextra{BitSet\_Conjunction property}|hyperpage}{28}
+\indexentry{BitSet\_Disjunction (class in pysubgroup.representations)@\spxentry{BitSet\_Disjunction}\spxextra{class in pysubgroup.representations}|hyperpage}{28}
+\indexentry{append\_or() (BitSet\_Disjunction method)@\spxentry{append\_or()}\spxextra{BitSet\_Disjunction method}|hyperpage}{28}
+\indexentry{compute\_representation() (BitSet\_Disjunction method)@\spxentry{compute\_representation()}\spxextra{BitSet\_Disjunction method}|hyperpage}{28}
+\indexentry{size() (BitSet\_Disjunction property)@\spxentry{size()}\spxextra{BitSet\_Disjunction property}|hyperpage}{28}
+\indexentry{NumpySetRepresentation (class in pysubgroup.representations)@\spxentry{NumpySetRepresentation}\spxextra{class in pysubgroup.representations}|hyperpage}{28}
+\indexentry{Conjunction (NumpySetRepresentation attribute)@\spxentry{Conjunction}\spxextra{NumpySetRepresentation attribute}|hyperpage}{28}
+\indexentry{patch\_classes() (NumpySetRepresentation method)@\spxentry{patch\_classes()}\spxextra{NumpySetRepresentation method}|hyperpage}{28}
+\indexentry{patch\_selector() (NumpySetRepresentation method)@\spxentry{patch\_selector()}\spxextra{NumpySetRepresentation method}|hyperpage}{29}
+\indexentry{NumpySet\_Conjunction (class in pysubgroup.representations)@\spxentry{NumpySet\_Conjunction}\spxextra{class in pysubgroup.representations}|hyperpage}{29}
+\indexentry{all\_set (NumpySet\_Conjunction attribute)@\spxentry{all\_set}\spxextra{NumpySet\_Conjunction attribute}|hyperpage}{29}
+\indexentry{append\_and() (NumpySet\_Conjunction method)@\spxentry{append\_and()}\spxextra{NumpySet\_Conjunction method}|hyperpage}{29}
+\indexentry{compute\_representation() (NumpySet\_Conjunction method)@\spxentry{compute\_representation()}\spxextra{NumpySet\_Conjunction method}|hyperpage}{29}
+\indexentry{size() (NumpySet\_Conjunction property)@\spxentry{size()}\spxextra{NumpySet\_Conjunction property}|hyperpage}{29}
+\indexentry{RepresentationBase (class in pysubgroup.representations)@\spxentry{RepresentationBase}\spxextra{class in pysubgroup.representations}|hyperpage}{29}
+\indexentry{patch\_all\_selectors() (RepresentationBase method)@\spxentry{patch\_all\_selectors()}\spxextra{RepresentationBase method}|hyperpage}{29}
+\indexentry{patch\_classes() (RepresentationBase method)@\spxentry{patch\_classes()}\spxextra{RepresentationBase method}|hyperpage}{29}
+\indexentry{patch\_selector() (RepresentationBase method)@\spxentry{patch\_selector()}\spxextra{RepresentationBase method}|hyperpage}{29}
+\indexentry{undo\_patch\_classes() (RepresentationBase method)@\spxentry{undo\_patch\_classes()}\spxextra{RepresentationBase method}|hyperpage}{29}
+\indexentry{SetRepresentation (class in pysubgroup.representations)@\spxentry{SetRepresentation}\spxextra{class in pysubgroup.representations}|hyperpage}{29}
+\indexentry{Conjunction (SetRepresentation attribute)@\spxentry{Conjunction}\spxextra{SetRepresentation attribute}|hyperpage}{29}
+\indexentry{patch\_classes() (SetRepresentation method)@\spxentry{patch\_classes()}\spxextra{SetRepresentation method}|hyperpage}{29}
+\indexentry{patch\_selector() (SetRepresentation method)@\spxentry{patch\_selector()}\spxextra{SetRepresentation method}|hyperpage}{29}
+\indexentry{Set\_Conjunction (class in pysubgroup.representations)@\spxentry{Set\_Conjunction}\spxextra{class in pysubgroup.representations}|hyperpage}{29}
+\indexentry{all\_set (Set\_Conjunction attribute)@\spxentry{all\_set}\spxextra{Set\_Conjunction attribute}|hyperpage}{29}
+\indexentry{append\_and() (Set\_Conjunction method)@\spxentry{append\_and()}\spxextra{Set\_Conjunction method}|hyperpage}{29}
+\indexentry{compute\_representation() (Set\_Conjunction method)@\spxentry{compute\_representation()}\spxextra{Set\_Conjunction method}|hyperpage}{29}
+\indexentry{size() (Set\_Conjunction property)@\spxentry{size()}\spxextra{Set\_Conjunction property}|hyperpage}{29}
+\indexentry{pysubgroup.subgroup (module)@\spxentry{pysubgroup.subgroup}\spxextra{module}|hyperpage}{29}
+\indexentry{EqualitySelector (class in pysubgroup.subgroup)@\spxentry{EqualitySelector}\spxextra{class in pysubgroup.subgroup}|hyperpage}{29}
+\indexentry{attribute\_name() (EqualitySelector property)@\spxentry{attribute\_name()}\spxextra{EqualitySelector property}|hyperpage}{29}
+\indexentry{attribute\_value() (EqualitySelector property)@\spxentry{attribute\_value()}\spxextra{EqualitySelector property}|hyperpage}{29}
+\indexentry{compute\_descriptions() (EqualitySelector class method)@\spxentry{compute\_descriptions()}\spxextra{EqualitySelector class method}|hyperpage}{29}
+\indexentry{covers() (EqualitySelector method)@\spxentry{covers()}\spxextra{EqualitySelector method}|hyperpage}{29}
+\indexentry{set\_descriptions() (EqualitySelector method)@\spxentry{set\_descriptions()}\spxextra{EqualitySelector method}|hyperpage}{29}
+\indexentry{IntervalSelector (class in pysubgroup.subgroup)@\spxentry{IntervalSelector}\spxextra{class in pysubgroup.subgroup}|hyperpage}{29}
+\indexentry{attribute\_name() (IntervalSelector property)@\spxentry{attribute\_name()}\spxextra{IntervalSelector property}|hyperpage}{30}
+\indexentry{compute\_descriptions() (IntervalSelector class method)@\spxentry{compute\_descriptions()}\spxextra{IntervalSelector class method}|hyperpage}{30}
+\indexentry{compute\_string() (IntervalSelector class method)@\spxentry{compute\_string()}\spxextra{IntervalSelector class method}|hyperpage}{30}
+\indexentry{covers() (IntervalSelector method)@\spxentry{covers()}\spxextra{IntervalSelector method}|hyperpage}{30}
+\indexentry{lower\_bound() (IntervalSelector property)@\spxentry{lower\_bound()}\spxextra{IntervalSelector property}|hyperpage}{30}
+\indexentry{set\_descriptions() (IntervalSelector method)@\spxentry{set\_descriptions()}\spxextra{IntervalSelector method}|hyperpage}{30}
+\indexentry{upper\_bound() (IntervalSelector property)@\spxentry{upper\_bound()}\spxextra{IntervalSelector property}|hyperpage}{30}
+\indexentry{NegatedSelector (class in pysubgroup.subgroup)@\spxentry{NegatedSelector}\spxextra{class in pysubgroup.subgroup}|hyperpage}{30}
+\indexentry{attribute\_name() (NegatedSelector property)@\spxentry{attribute\_name()}\spxextra{NegatedSelector property}|hyperpage}{30}
+\indexentry{covers() (NegatedSelector method)@\spxentry{covers()}\spxextra{NegatedSelector method}|hyperpage}{30}
+\indexentry{set\_descriptions() (NegatedSelector method)@\spxentry{set\_descriptions()}\spxextra{NegatedSelector method}|hyperpage}{30}
+\indexentry{SelectorBase (class in pysubgroup.subgroup)@\spxentry{SelectorBase}\spxextra{class in pysubgroup.subgroup}|hyperpage}{30}
+\indexentry{set\_descriptions() (SelectorBase method)@\spxentry{set\_descriptions()}\spxextra{SelectorBase method}|hyperpage}{30}
+\indexentry{Subgroup (class in pysubgroup.subgroup)@\spxentry{Subgroup}\spxextra{class in pysubgroup.subgroup}|hyperpage}{30}
+\indexentry{calculate\_statistics() (Subgroup method)@\spxentry{calculate\_statistics()}\spxextra{Subgroup method}|hyperpage}{30}
+\indexentry{covers() (Subgroup method)@\spxentry{covers()}\spxextra{Subgroup method}|hyperpage}{30}
+\indexentry{get\_base\_statistics() (Subgroup method)@\spxentry{get\_base\_statistics()}\spxextra{Subgroup method}|hyperpage}{30}
+\indexentry{create\_nominal\_selectors() (in module pysubgroup.subgroup)@\spxentry{create\_nominal\_selectors()}\spxextra{in module pysubgroup.subgroup}|hyperpage}{30}
+\indexentry{create\_nominal\_selectors\_for\_attribute() (in module pysubgroup.subgroup)@\spxentry{create\_nominal\_selectors\_for\_attribute()}\spxextra{in module pysubgroup.subgroup}|hyperpage}{30}
+\indexentry{create\_numeric\_selector\_for\_attribute() (in module pysubgroup.subgroup)@\spxentry{create\_numeric\_selector\_for\_attribute()}\spxextra{in module pysubgroup.subgroup}|hyperpage}{30}
+\indexentry{create\_numeric\_selectors() (in module pysubgroup.subgroup)@\spxentry{create\_numeric\_selectors()}\spxextra{in module pysubgroup.subgroup}|hyperpage}{30}
+\indexentry{create\_selectors() (in module pysubgroup.subgroup)@\spxentry{create\_selectors()}\spxextra{in module pysubgroup.subgroup}|hyperpage}{30}
+\indexentry{remove\_target\_attributes() (in module pysubgroup.subgroup)@\spxentry{remove\_target\_attributes()}\spxextra{in module pysubgroup.subgroup}|hyperpage}{30}
+\indexentry{pysubgroup.utils (module)@\spxentry{pysubgroup.utils}\spxextra{module}|hyperpage}{30}
+\indexentry{SubgroupDiscoveryResult (class in pysubgroup.utils)@\spxentry{SubgroupDiscoveryResult}\spxextra{class in pysubgroup.utils}|hyperpage}{30}
+\indexentry{supportSetVisualization() (SubgroupDiscoveryResult method)@\spxentry{supportSetVisualization()}\spxextra{SubgroupDiscoveryResult method}|hyperpage}{30}
+\indexentry{to\_dataframe() (SubgroupDiscoveryResult method)@\spxentry{to\_dataframe()}\spxextra{SubgroupDiscoveryResult method}|hyperpage}{30}
+\indexentry{to\_descriptions() (SubgroupDiscoveryResult method)@\spxentry{to\_descriptions()}\spxextra{SubgroupDiscoveryResult method}|hyperpage}{30}
+\indexentry{to\_subgroups() (SubgroupDiscoveryResult method)@\spxentry{to\_subgroups()}\spxextra{SubgroupDiscoveryResult method}|hyperpage}{31}
+\indexentry{add\_if\_required() (in module pysubgroup.utils)@\spxentry{add\_if\_required()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{as\_df() (in module pysubgroup.utils)@\spxentry{as\_df()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{conditional\_invert() (in module pysubgroup.utils)@\spxentry{conditional\_invert()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{count\_bits() (in module pysubgroup.utils)@\spxentry{count\_bits()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{effective\_sample\_size() (in module pysubgroup.utils)@\spxentry{effective\_sample\_size()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{equal\_frequency\_discretization() (in module pysubgroup.utils)@\spxentry{equal\_frequency\_discretization()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{find\_set\_bits() (in module pysubgroup.utils)@\spxentry{find\_set\_bits()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{float\_formatter() (in module pysubgroup.utils)@\spxentry{float\_formatter()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{intersect\_of\_ordered\_list() (in module pysubgroup.utils)@\spxentry{intersect\_of\_ordered\_list()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{is\_categorical\_attribute() (in module pysubgroup.utils)@\spxentry{is\_categorical\_attribute()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{is\_numerical\_attribute() (in module pysubgroup.utils)@\spxentry{is\_numerical\_attribute()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{minimum\_required\_quality() (in module pysubgroup.utils)@\spxentry{minimum\_required\_quality()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{overlap() (in module pysubgroup.utils)@\spxentry{overlap()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{perc\_formatter() (in module pysubgroup.utils)@\spxentry{perc\_formatter()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{powerset() (in module pysubgroup.utils)@\spxentry{powerset()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{print\_result\_set() (in module pysubgroup.utils)@\spxentry{print\_result\_set()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{remove\_selectors\_with\_attributes() (in module pysubgroup.utils)@\spxentry{remove\_selectors\_with\_attributes()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{result\_as\_table() (in module pysubgroup.utils)@\spxentry{result\_as\_table()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{results\_as\_df() (in module pysubgroup.utils)@\spxentry{results\_as\_df()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{results\_df\_autoround() (in module pysubgroup.utils)@\spxentry{results\_df\_autoround()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{to\_bits() (in module pysubgroup.utils)@\spxentry{to\_bits()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{to\_latex() (in module pysubgroup.utils)@\spxentry{to\_latex()}\spxextra{in module pysubgroup.utils}|hyperpage}{31}
+\indexentry{pysubgroup.visualization (module)@\spxentry{pysubgroup.visualization}\spxextra{module}|hyperpage}{32}
+\indexentry{compare\_distributions\_numeric() (in module pysubgroup.visualization)@\spxentry{compare\_distributions\_numeric()}\spxextra{in module pysubgroup.visualization}|hyperpage}{32}
+\indexentry{plot\_distribution\_numeric() (in module pysubgroup.visualization)@\spxentry{plot\_distribution\_numeric()}\spxextra{in module pysubgroup.visualization}|hyperpage}{32}
+\indexentry{plot\_npspace() (in module pysubgroup.visualization)@\spxentry{plot\_npspace()}\spxextra{in module pysubgroup.visualization}|hyperpage}{32}
+\indexentry{plot\_roc() (in module pysubgroup.visualization)@\spxentry{plot\_roc()}\spxextra{in module pysubgroup.visualization}|hyperpage}{32}
+\indexentry{plot\_sgbars() (in module pysubgroup.visualization)@\spxentry{plot\_sgbars()}\spxextra{in module pysubgroup.visualization}|hyperpage}{32}
+\indexentry{similarity\_dendrogram() (in module pysubgroup.visualization)@\spxentry{similarity\_dendrogram()}\spxextra{in module pysubgroup.visualization}|hyperpage}{32}
+\indexentry{similarity\_sgs() (in module pysubgroup.visualization)@\spxentry{similarity\_sgs()}\spxextra{in module pysubgroup.visualization}|hyperpage}{32}
+\indexentry{pysubgroup (module)@\spxentry{pysubgroup}\spxextra{module}|hyperpage}{32}

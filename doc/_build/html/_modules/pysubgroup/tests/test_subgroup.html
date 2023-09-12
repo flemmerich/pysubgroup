@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pysubgroup.tests.test_subgroup &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pysubgroup.tests.test_subgroup</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pysubgroup</span> <span class="k">as</span> <span class="nn">ps</span>
+
+
+<div class="viewcode-block" id="TestRelationsMethods"><a class="viewcode-back" href="../../../source/pysubgroup.tests.html#pysubgroup.tests.test_subgroup.TestRelationsMethods">[docs]</a><span class="k">class</span> <span class="nc">TestRelationsMethods</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="TestRelationsMethods.test_NominalSelector_ordering"><a class="viewcode-back" href="../../../source/pysubgroup.tests.html#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_NominalSelector_ordering">[docs]</a>    <span class="k">def</span> <span class="nf">test_NominalSelector_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">A1</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">A1_clone</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">A2</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;AA&quot;</span><span class="p">)</span>
+        <span class="n">B1</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">A1_clone</span> <span class="ow">is</span> <span class="n">A1</span><span class="p">)</span>
+
+        <span class="n">B1_clone</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">A1</span> <span class="o">&lt;</span> <span class="n">B1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">A1</span> <span class="o">&lt;</span> <span class="n">A2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">A2</span> <span class="o">&lt;</span> <span class="n">B1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">B1</span> <span class="o">==</span> <span class="n">B1_clone</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">B1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">B1_clone</span><span class="p">))</span>
+
+        <span class="n">C1</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;checking_status&quot;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;&lt;0&quot;</span><span class="p">)</span>
+        <span class="n">C2</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;checking_status&quot;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;&lt;0&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">C1</span> <span class="o">==</span> <span class="n">C2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">C1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">C2</span><span class="p">))</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="n">A1</span><span class="p">,</span> <span class="n">A2</span><span class="p">,</span> <span class="n">B1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">A1</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">A2</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">B1</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestRelationsMethods.test_NumericSelector_ordering"><a class="viewcode-back" href="../../../source/pysubgroup.tests.html#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_NumericSelector_ordering">[docs]</a>    <span class="k">def</span> <span class="nf">test_NumericSelector_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">S1</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NumericSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mf">1.2345</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">S1_clone</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NumericSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mf">1.2345</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">S1_clone</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NumericSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mf">1.2345</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">S2</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NumericSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mf">1.2345</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span>
+        <span class="n">S3</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NumericSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mf">1.2346</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span>
+        <span class="n">S4</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NumericSelector</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">S1</span> <span class="o">&lt;</span> <span class="n">S2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">S1</span> <span class="o">&lt;</span> <span class="n">S3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">S2</span> <span class="o">&lt;</span> <span class="n">S3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">S3</span> <span class="o">&lt;</span> <span class="n">S4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">S1</span> <span class="o">==</span> <span class="n">S1_clone</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">S1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">S1_clone</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">S1</span> <span class="ow">is</span> <span class="n">S1_clone</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestRelationsMethods.test_Conjunction_ordering"><a class="viewcode-back" href="../../../source/pysubgroup.tests.html#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_Conjunction_ordering">[docs]</a>    <span class="k">def</span> <span class="nf">test_Conjunction_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assert_class_ordering</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestRelationsMethods.assert_class_ordering"><a class="viewcode-back" href="../../../source/pysubgroup.tests.html#pysubgroup.tests.test_subgroup.TestRelationsMethods.assert_class_ordering">[docs]</a>    <span class="k">def</span> <span class="nf">assert_class_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+        <span class="n">A1</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">A2</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;AA&quot;</span><span class="p">)</span>
+        <span class="n">B1</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">SGD1</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">([</span><span class="n">A1</span><span class="p">,</span> <span class="n">A2</span><span class="p">])</span>
+        <span class="n">SGD1_clone</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">([</span><span class="n">A1</span><span class="p">,</span> <span class="n">A2</span><span class="p">])</span>
+        <span class="n">SGD1_order</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">([</span><span class="n">A2</span><span class="p">,</span> <span class="n">A1</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">SGD1</span> <span class="o">==</span> <span class="n">SGD1_clone</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">SGD1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">SGD1_clone</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">SGD1</span> <span class="o">==</span> <span class="n">SGD1_order</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">SGD1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">SGD1_order</span><span class="p">))</span>
+
+        <span class="n">SGD2</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">([</span><span class="n">A1</span><span class="p">,</span> <span class="n">A2</span><span class="p">,</span> <span class="n">B1</span><span class="p">])</span>
+        <span class="n">SGD3</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">([</span><span class="n">B1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">SGD1</span> <span class="o">&gt;</span> <span class="n">SGD2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">SGD2</span> <span class="o">&lt;</span> <span class="n">SGD3</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestRelationsMethods.test_Disjunction_ordering"><a class="viewcode-back" href="../../../source/pysubgroup.tests.html#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_Disjunction_ordering">[docs]</a>    <span class="k">def</span> <span class="nf">test_Disjunction_ordering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assert_class_ordering</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">Disjunction</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestRelationsMethods.test_nominal_selector_covers"><a class="viewcode-back" href="../../../source/pysubgroup.tests.html#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_nominal_selector_covers">[docs]</a>    <span class="k">def</span> <span class="nf">test_nominal_selector_covers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">A1</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;columnA&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">A0</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;columnA&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">])</span>
+        <span class="n">BA</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;columnB&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">)</span>
+        <span class="n">BC</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;columnB&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">)</span>
+
+        <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">CA</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;columnC&quot;</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)</span>
+        <span class="n">CNan</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">NominalSelector</span><span class="p">(</span><span class="s2">&quot;columnC&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="s2">&quot;columnA&quot;</span><span class="p">:</span> <span class="n">A</span><span class="p">,</span> <span class="s2">&quot;columnB&quot;</span><span class="p">:</span> <span class="n">B</span><span class="p">,</span> <span class="s2">&quot;columnC&quot;</span><span class="p">:</span> <span class="n">C</span><span class="p">})</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_array_equal</span><span class="p">(</span><span class="n">A1</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="n">A</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_array_equal</span><span class="p">(</span><span class="n">A0</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">A</span><span class="p">))</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_array_equal</span><span class="p">(</span><span class="n">BA</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_array_equal</span><span class="p">(</span><span class="n">BC</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_array_equal</span><span class="p">(</span><span class="n">CA</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_array_equal</span><span class="p">(</span><span class="n">CNan</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials/introduction2.html">How pysubgroup works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Selectors.html">Selectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../targets.html">Targets and Quality Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/modules.html">pysubgroup</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

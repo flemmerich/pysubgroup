@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Selectors &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="GP-Growth" href="gp_growth.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="selectors">
+<h1>Selectors<a class="headerlink" href="#selectors" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basic-selectors">
+<h2>Basic Selectors<a class="headerlink" href="#basic-selectors" title="Permalink to this headline">¶</a></h2>
+<p>Selectors are objects that if applied to a dataset yield a set of instances. If an instance is retured from a selector we say that the selectors covers that instance. The pysubgroup package provides two basic selectors: The EqualitySelector and the IntervalSelector.
+Lets start by exploring the EqualitySelector:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pysubgroup</span> <span class="kn">as</span> <span class="nn">ps</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="c1"># create dataset</span>
+<span class="n">first_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Alex&#39;</span><span class="p">,</span> <span class="s1">&#39;Anna&#39;</span><span class="p">,</span> <span class="s1">&#39;Alex&#39;</span><span class="p">]</span>
+<span class="n">sur_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Smith&#39;</span><span class="p">,</span> <span class="s1">&#39;Johnson&#39;</span><span class="p">,</span> <span class="s1">&#39;Williams&#39;</span><span class="p">]</span>
+<span class="n">ages</span> <span class="o">=</span>  <span class="p">[</span><span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">32</span><span class="p">]</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="s1">&#39;First_name&#39;</span><span class="p">:</span><span class="n">first_names</span><span class="p">,</span> <span class="s1">&#39;sur_name&#39;</span><span class="p">:</span> <span class="n">sur_names</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span><span class="n">ages</span><span class="p">})</span>
+
+<span class="c1"># create selector</span>
+<span class="n">alex_selector</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">EqualitySelector</span><span class="p">(</span><span class="s1">&#39;First_name&#39;</span><span class="p">,</span> <span class="s1">&#39;Alex&#39;</span><span class="p">)</span>
+<span class="n">age_selector</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">EqualitySelector</span><span class="p">(</span><span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="s1">&#39;22&#39;</span><span class="p">)</span>
+<span class="c1"># apply selectors to dataframe</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;instances with &#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">alex_selector</span><span class="p">),</span> <span class="n">alex_selector</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;instances with&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">age_selector</span><span class="p">),</span> <span class="n">age_selector</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The output of the above code is <code class="code docutils literal notranslate"><span class="pre">instances</span> <span class="pre">with</span> <span class="pre">first_name=Alex</span> <span class="pre">[True,</span> <span class="pre">False,</span> <span class="pre">True]</span></code> which indicates that the first and third instance in the dataset have a first name that is equal to <code class="code docutils literal notranslate"><span class="pre">'Alex'</span></code>.
+The second output is <code class="code docutils literal notranslate"><span class="pre">instances</span> <span class="pre">with</span> <span class="pre">age=22</span> <span class="pre">[False,</span> <span class="pre">False,</span> <span class="pre">False]</span></code> which shows that None of the instances in our dataset are of age 22.
+The EqualitySelector selector can be used on many different datatypes, but is most useful on binary, string and categorical data.
+In addition to the EqualitySelector the pysubgroup package also provides the IntervalSelector. The following codes selects all instances from the database, which are in the age range 18 (included) to 40 (excluded).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">interval_selector</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">IntervalSelector</span><span class="p">(</span><span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">age_selector</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The code above produces the output <code class="code docutils literal notranslate"><span class="pre">[False,</span> <span class="pre">True,</span> <span class="pre">True]</span></code> showing that the second and third instance in our dataset have an age within the interval <span class="math notranslate nohighlight">\([18,40)\)</span>.</p>
+<p>Selectors are the building block of all rules generated with the pysubgroup package. If you want to write your own custom selector that is not a problem see TODO for references.</p>
+<div class="section" id="negations">
+<h3>Negations<a class="headerlink" href="#negations" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+<div class="section" id="conjunctions">
+<h3>Conjunctions<a class="headerlink" href="#conjunctions" title="Permalink to this headline">¶</a></h3>
+<p>Most of the rules that are generated with the pysubgroup package use conjunctions to form more complex queries. Continuing the running example from above we can find all persons whose name is Alex and which have an age in the interval <span class="math notranslate nohighlight">\([18,40)\)</span> like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">conj</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">([</span><span class="n">interval_selector</span><span class="p">,</span> <span class="n">alex_selector</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;instances with&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">conj</span><span class="p">),</span> <span class="n">conj</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="code docutils literal notranslate"><span class="pre">instances</span> <span class="pre">with</span> <span class="pre">age</span> <span class="pre">in</span> <span class="pre">[18,40[</span> <span class="pre">and</span> <span class="pre">name='Alex'</span> <span class="pre">[False,</span> <span class="pre">False,</span> <span class="pre">True]</span></code> which shows that only the last instance is covered by our conjunction.</p>
+</div>
+<div class="section" id="disjunctions">
+<h3>Disjunctions<a class="headerlink" href="#disjunctions" title="Permalink to this headline">¶</a></h3>
+<p>The pysubgroup package also provides disjunctions with the <code class="code docutils literal notranslate"><span class="pre">Disjunction</span></code> class. Continuing the running example we can find all persons whose name is Alex <em>or</em> which have an age in the interval <span class="math notranslate nohighlight">\([18,40)\)</span> like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">disj</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">Disjunction</span><span class="p">([</span><span class="n">interval_selector</span><span class="p">,</span> <span class="n">alex_selector</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;instances with&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">disj</span><span class="p">),</span> <span class="n">disj</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="code docutils literal notranslate"><span class="pre">instances</span> <span class="pre">with</span> <span class="pre">age</span> <span class="pre">in</span> <span class="pre">[18,40[</span> <span class="pre">or</span> <span class="pre">name='Alex'</span> <span class="pre">[True,</span> <span class="pre">True,</span> <span class="pre">True]</span></code> which shows that all of our instances either have a first name that is equal to Alex or have an age in the interval <span class="math notranslate nohighlight">\([18,40)\)</span>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Selectors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-selectors">Basic Selectors</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="gp_growth.html" title="previous chapter">GP-Growth</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/Concepts.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

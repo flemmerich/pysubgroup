@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pysubgroup.tests package &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="pysubgroup-tests-package">
+<h1>pysubgroup.tests package<a class="headerlink" href="#pysubgroup-tests-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pysubgroup.tests.DataSets">
+<span id="pysubgroup-tests-datasets-module"></span><h2>pysubgroup.tests.DataSets module<a class="headerlink" href="#module-pysubgroup.tests.DataSets" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pysubgroup.tests.DataSets.get_credit_data">
+<code class="sig-prename descclassname">pysubgroup.tests.DataSets.</code><code class="sig-name descname">get_credit_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/DataSets.html#get_credit_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.DataSets.get_credit_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pysubgroup.tests.DataSets.get_titanic_data">
+<code class="sig-prename descclassname">pysubgroup.tests.DataSets.</code><code class="sig-name descname">get_titanic_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/DataSets.html#get_titanic_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.DataSets.get_titanic_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pysubgroup.tests.algorithms_testing">
+<span id="pysubgroup-tests-algorithms-testing-module"></span><h2>pysubgroup.tests.algorithms_testing module<a class="headerlink" href="#module-pysubgroup.tests.algorithms_testing" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.algorithms_testing.</code><code class="sig-name descname">TestAlgorithmsBase</code><a class="reference internal" href="../_modules/pysubgroup/tests/algorithms_testing.html#TestAlgorithmsBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<dl class="method">
+<dt id="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase.evaluate_result">
+<code class="sig-name descname">evaluate_result</code><span class="sig-paren">(</span><em class="sig-param">algorithm_result</em>, <em class="sig-param">result</em>, <em class="sig-param">qualities</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/algorithms_testing.html#TestAlgorithmsBase.evaluate_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase.evaluate_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase.runAlgorithm">
+<code class="sig-name descname">runAlgorithm</code><span class="sig-paren">(</span><em class="sig-param">algorithm</em>, <em class="sig-param">name</em>, <em class="sig-param">result</em>, <em class="sig-param">qualities</em>, <em class="sig-param">task</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/algorithms_testing.html#TestAlgorithmsBase.runAlgorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase.runAlgorithm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="pysubgroup-tests-t-combined-im-module">
+<h2>pysubgroup.tests.t_combined_im module<a class="headerlink" href="#pysubgroup-tests-t-combined-im-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="pysubgroup-tests-t-numeric-targets-module">
+<h2>pysubgroup.tests.t_numeric_targets module<a class="headerlink" href="#pysubgroup-tests-t-numeric-targets-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="pysubgroup-tests-t-numeric-targets2-module">
+<h2>pysubgroup.tests.t_numeric_targets2 module<a class="headerlink" href="#pysubgroup-tests-t-numeric-targets2-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="pysubgroup-tests-t-simple-dfs-module">
+<h2>pysubgroup.tests.t_simple_dfs module<a class="headerlink" href="#pysubgroup-tests-t-simple-dfs-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="pysubgroup-tests-t-titanic-module">
+<h2>pysubgroup.tests.t_titanic module<a class="headerlink" href="#pysubgroup-tests-t-titanic-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pysubgroup.tests.test_ChiSquaredQF">
+<span id="pysubgroup-tests-test-chisquaredqf-module"></span><h2>pysubgroup.tests.test_ChiSquaredQF module<a class="headerlink" href="#module-pysubgroup.tests.test_ChiSquaredQF" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pysubgroup.tests.test_algorithms_boolean">
+<span id="pysubgroup-tests-test-algorithms-boolean-module"></span><h2>pysubgroup.tests.test_algorithms_boolean module<a class="headerlink" href="#module-pysubgroup.tests.test_algorithms_boolean" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_algorithms_boolean.</code><code class="sig-name descname">BooleanTargetBase</code><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#BooleanTargetBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_Apriori">
+<code class="sig-name descname">test_Apriori</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#BooleanTargetBase.test_Apriori"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_Apriori" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_BeamSearch">
+<code class="sig-name descname">test_BeamSearch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#BooleanTargetBase.test_BeamSearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_BeamSearch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_BestFirstSearch">
+<code class="sig-name descname">test_BestFirstSearch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#BooleanTargetBase.test_BestFirstSearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_BestFirstSearch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_DFS_bitset">
+<code class="sig-name descname">test_DFS_bitset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#BooleanTargetBase.test_DFS_bitset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_DFS_bitset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_DFS_numpy_sets">
+<code class="sig-name descname">test_DFS_numpy_sets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#BooleanTargetBase.test_DFS_numpy_sets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_DFS_numpy_sets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_DFS_set">
+<code class="sig-name descname">test_DFS_set</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#BooleanTargetBase.test_DFS_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_DFS_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_SimpleDFS">
+<code class="sig-name descname">test_SimpleDFS</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#BooleanTargetBase.test_SimpleDFS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_SimpleDFS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_SimpleSearch">
+<code class="sig-name descname">test_SimpleSearch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#BooleanTargetBase.test_SimpleSearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase.test_SimpleSearch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pysubgroup.tests.test_algorithms_boolean.TestAlgorithms">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_algorithms_boolean.</code><code class="sig-name descname">TestAlgorithms</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#TestAlgorithms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.TestAlgorithms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase" title="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.algorithms_testing.TestAlgorithmsBase</span></code></a>, <a class="reference internal" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase" title="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.TestAlgorithms.setUp">
+<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#TestAlgorithms.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.TestAlgorithms.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pysubgroup.tests.test_algorithms_boolean.TestAlgorithms2">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_algorithms_boolean.</code><code class="sig-name descname">TestAlgorithms2</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#TestAlgorithms2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.TestAlgorithms2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase" title="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.algorithms_testing.TestAlgorithmsBase</span></code></a>, <a class="reference internal" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase" title="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.TestAlgorithms2.setUp">
+<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#TestAlgorithms2.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.TestAlgorithms2.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pysubgroup.tests.test_algorithms_boolean.TestAlgorithms3">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_algorithms_boolean.</code><code class="sig-name descname">TestAlgorithms3</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#TestAlgorithms3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.TestAlgorithms3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase" title="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.algorithms_testing.TestAlgorithmsBase</span></code></a>, <a class="reference internal" href="#pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase" title="pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.test_algorithms_boolean.BooleanTargetBase</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_boolean.TestAlgorithms3.setUp">
+<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_boolean.html#TestAlgorithms3.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_boolean.TestAlgorithms3.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pysubgroup.tests.test_algorithms_numeric">
+<span id="pysubgroup-tests-test-algorithms-numeric-module"></span><h2>pysubgroup.tests.test_algorithms_numeric module<a class="headerlink" href="#module-pysubgroup.tests.test_algorithms_numeric" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_algorithms_numeric.</code><code class="sig-name descname">TestAlgorithmsWithNumericTarget</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_numeric.html#TestAlgorithmsWithNumericTarget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase" title="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.algorithms_testing.TestAlgorithmsBase</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget.setUp">
+<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_numeric.html#TestAlgorithmsWithNumericTarget.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget.test_Apriori">
+<code class="sig-name descname">test_Apriori</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_numeric.html#TestAlgorithmsWithNumericTarget.test_Apriori"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget.test_Apriori" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget.test_DFSNumeric">
+<code class="sig-name descname">test_DFSNumeric</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_numeric.html#TestAlgorithmsWithNumericTarget.test_DFSNumeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget.test_DFSNumeric" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget.test_SimpleDFS">
+<code class="sig-name descname">test_SimpleDFS</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_algorithms_numeric.html#TestAlgorithmsWithNumericTarget.test_SimpleDFS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_algorithms_numeric.TestAlgorithmsWithNumericTarget.test_SimpleDFS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pysubgroup.tests.test_boolean_expressions">
+<span id="pysubgroup-tests-test-boolean-expressions-module"></span><h2>pysubgroup.tests.test_boolean_expressions module<a class="headerlink" href="#module-pysubgroup.tests.test_boolean_expressions" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pysubgroup.tests.test_boolean_expressions.TestRelationsMethods">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_boolean_expressions.</code><code class="sig-name descname">TestRelationsMethods</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_boolean_expressions.html#TestRelationsMethods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_boolean_expressions.TestRelationsMethods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_boolean_expressions.TestRelationsMethods.check_dataframe_query">
+<code class="sig-name descname">check_dataframe_query</code><span class="sig-paren">(</span><em class="sig-param">selector</em>, <em class="sig-param">result</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_boolean_expressions.html#TestRelationsMethods.check_dataframe_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_boolean_expressions.TestRelationsMethods.check_dataframe_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_boolean_expressions.TestRelationsMethods.test_DNF">
+<code class="sig-name descname">test_DNF</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_boolean_expressions.html#TestRelationsMethods.test_DNF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_boolean_expressions.TestRelationsMethods.test_DNF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_boolean_expressions.TestRelationsMethods.test_equality_expressions">
+<code class="sig-name descname">test_equality_expressions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_boolean_expressions.html#TestRelationsMethods.test_equality_expressions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_boolean_expressions.TestRelationsMethods.test_equality_expressions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pysubgroup.tests.test_fi_target">
+<span id="pysubgroup-tests-test-fi-target-module"></span><h2>pysubgroup.tests.test_fi_target module<a class="headerlink" href="#module-pysubgroup.tests.test_fi_target" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pysubgroup.tests.test_fi_target.TestAreaQF">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_fi_target.</code><code class="sig-name descname">TestAreaQF</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_fi_target.html#TestAreaQF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_fi_target.TestAreaQF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase" title="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.algorithms_testing.TestAlgorithmsBase</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_fi_target.TestAreaQF.setUp">
+<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_fi_target.html#TestAreaQF.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_fi_target.TestAreaQF.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_fi_target.TestAreaQF.test_SimpleSearch">
+<code class="sig-name descname">test_SimpleSearch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_fi_target.html#TestAreaQF.test_SimpleSearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_fi_target.TestAreaQF.test_SimpleSearch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pysubgroup.tests.test_fi_target.TestCountQF">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_fi_target.</code><code class="sig-name descname">TestCountQF</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_fi_target.html#TestCountQF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_fi_target.TestCountQF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase" title="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.algorithms_testing.TestAlgorithmsBase</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_fi_target.TestCountQF.setUp">
+<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_fi_target.html#TestCountQF.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_fi_target.TestCountQF.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_fi_target.TestCountQF.test_Apriori">
+<code class="sig-name descname">test_Apriori</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_fi_target.html#TestCountQF.test_Apriori"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_fi_target.TestCountQF.test_Apriori" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_fi_target.TestCountQF.test_DFS">
+<code class="sig-name descname">test_DFS</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_fi_target.html#TestCountQF.test_DFS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_fi_target.TestCountQF.test_DFS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pysubgroup.tests.test_generalisations">
+<span id="pysubgroup-tests-test-generalisations-module"></span><h2>pysubgroup.tests.test_generalisations module<a class="headerlink" href="#module-pysubgroup.tests.test_generalisations" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pysubgroup.tests.test_generalisations.BooleanTargetBase">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_generalisations.</code><code class="sig-name descname">BooleanTargetBase</code><a class="reference internal" href="../_modules/pysubgroup/tests/test_generalisations.html#BooleanTargetBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_generalisations.BooleanTargetBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pysubgroup.tests.algorithms_testing.TestAlgorithmsBase" title="pysubgroup.tests.algorithms_testing.TestAlgorithmsBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.algorithms_testing.TestAlgorithmsBase</span></code></a></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_generalisations.BooleanTargetBase.test_GeneralisingApriori">
+<code class="sig-name descname">test_GeneralisingApriori</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_generalisations.html#BooleanTargetBase.test_GeneralisingApriori"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_generalisations.BooleanTargetBase.test_GeneralisingApriori" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_generalisations.BooleanTargetBase.test_GeneralisingBFS">
+<code class="sig-name descname">test_GeneralisingBFS</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_generalisations.html#BooleanTargetBase.test_GeneralisingBFS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_generalisations.BooleanTargetBase.test_GeneralisingBFS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pysubgroup.tests.test_generalisations.TestAlgorithms">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_generalisations.</code><code class="sig-name descname">TestAlgorithms</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_generalisations.html#TestAlgorithms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_generalisations.TestAlgorithms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pysubgroup.tests.test_generalisations.BooleanTargetBase" title="pysubgroup.tests.test_generalisations.BooleanTargetBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysubgroup.tests.test_generalisations.BooleanTargetBase</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_generalisations.TestAlgorithms.setUp">
+<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_generalisations.html#TestAlgorithms.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_generalisations.TestAlgorithms.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook method for setting up the test fixture before exercising it.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pysubgroup.tests.test_subgroup">
+<span id="pysubgroup-tests-test-subgroup-module"></span><h2>pysubgroup.tests.test_subgroup module<a class="headerlink" href="#module-pysubgroup.tests.test_subgroup" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pysubgroup.tests.test_subgroup.TestRelationsMethods">
+<em class="property">class </em><code class="sig-prename descclassname">pysubgroup.tests.test_subgroup.</code><code class="sig-name descname">TestRelationsMethods</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_subgroup.html#TestRelationsMethods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_subgroup.TestRelationsMethods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="pysubgroup.tests.test_subgroup.TestRelationsMethods.assert_class_ordering">
+<code class="sig-name descname">assert_class_ordering</code><span class="sig-paren">(</span><em class="sig-param">cls</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_subgroup.html#TestRelationsMethods.assert_class_ordering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_subgroup.TestRelationsMethods.assert_class_ordering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_subgroup.TestRelationsMethods.test_Conjunction_ordering">
+<code class="sig-name descname">test_Conjunction_ordering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_subgroup.html#TestRelationsMethods.test_Conjunction_ordering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_Conjunction_ordering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_subgroup.TestRelationsMethods.test_Disjunction_ordering">
+<code class="sig-name descname">test_Disjunction_ordering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_subgroup.html#TestRelationsMethods.test_Disjunction_ordering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_Disjunction_ordering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_subgroup.TestRelationsMethods.test_NominalSelector_ordering">
+<code class="sig-name descname">test_NominalSelector_ordering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_subgroup.html#TestRelationsMethods.test_NominalSelector_ordering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_NominalSelector_ordering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_subgroup.TestRelationsMethods.test_NumericSelector_ordering">
+<code class="sig-name descname">test_NumericSelector_ordering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_subgroup.html#TestRelationsMethods.test_NumericSelector_ordering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_NumericSelector_ordering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysubgroup.tests.test_subgroup.TestRelationsMethods.test_nominal_selector_covers">
+<code class="sig-name descname">test_nominal_selector_covers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pysubgroup/tests/test_subgroup.html#TestRelationsMethods.test_nominal_selector_covers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysubgroup.tests.test_subgroup.TestRelationsMethods.test_nominal_selector_covers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="pysubgroup-tests-test-visualization-module">
+<h2>pysubgroup.tests.test_visualization module<a class="headerlink" href="#pysubgroup-tests-test-visualization-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pysubgroup.tests">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pysubgroup.tests" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Selectors.html">Selectors</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/pysubgroup.tests.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,467 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pysubgroup.nominal_target &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pysubgroup.nominal_target</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on 29.09.2017</span>
+
+<span class="sd">@author: lemmerfn</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">total_ordering</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span>
+
+<span class="kn">import</span> <span class="nn">pysubgroup</span> <span class="k">as</span> <span class="nn">ps</span>
+
+<span class="kn">from</span> <span class="nn">pysubgroup.subgroup</span> <span class="k">import</span> <span class="n">EqualitySelector</span>
+
+
+<span class="nd">@total_ordering</span>
+<span class="k">class</span> <span class="nc">NominalTarget</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_selector</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new target for the boolean model class (classic subgroup discovery).</span>
+<span class="sd">        If target_attribute and target_value are given, the target_selector is computed using attribute and value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">target_attribute</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">target_selector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">BaseException</span><span class="p">(</span><span class="s2">&quot;NominalTarget is to be constructed EITHER by a selector OR by attribute/value pair&quot;</span><span class="p">)</span>
+            <span class="n">target_selector</span> <span class="o">=</span> <span class="n">EqualitySelector</span><span class="p">(</span><span class="n">target_attribute</span><span class="p">,</span> <span class="n">target_value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">target_selector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">BaseException</span><span class="p">(</span><span class="s2">&quot;No target selector given&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_selector</span> <span class="o">=</span> <span class="n">target_selector</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;T: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_selector</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="vm">__dict__</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">covers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_selector</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_selector</span><span class="o">.</span><span class="n">get_attribute_name</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">get_base_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+
+        <span class="n">sg_instances</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">positives</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">instances_subgroup</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sg_instances</span><span class="p">)</span>
+        <span class="n">positives_dataset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">positives</span><span class="p">)</span>
+        <span class="n">instances_dataset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">positives_subgroup</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">sg_instances</span><span class="p">,</span> <span class="n">positives</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">instances_dataset</span><span class="p">,</span> <span class="n">positives_dataset</span><span class="p">,</span> <span class="n">instances_subgroup</span><span class="p">,</span> <span class="n">positives_subgroup</span>
+
+
+    <span class="k">def</span> <span class="nf">calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="p">(</span><span class="n">instances_dataset</span><span class="p">,</span> <span class="n">positives_dataset</span><span class="p">,</span> <span class="n">instances_subgroup</span><span class="p">,</span> <span class="n">positives_subgroup</span><span class="p">)</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_base_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;size_sg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">instances_subgroup</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;size_dataset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">instances_dataset</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;positives_sg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">positives_subgroup</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;positives_dataset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">positives_dataset</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;size_complement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">instances_dataset</span> <span class="o">-</span> <span class="n">instances_subgroup</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;relative_size_sg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">instances_subgroup</span> <span class="o">/</span> <span class="n">instances_dataset</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;relative_size_complement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">instances_dataset</span> <span class="o">-</span> <span class="n">instances_subgroup</span><span class="p">)</span> <span class="o">/</span> <span class="n">instances_dataset</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;coverage_sg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">positives_subgroup</span> <span class="o">/</span> <span class="n">positives_dataset</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;coverage_complement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">positives_dataset</span> <span class="o">-</span> <span class="n">positives_subgroup</span><span class="p">)</span> <span class="o">/</span> <span class="n">positives_dataset</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;target_share_sg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">positives_subgroup</span> <span class="o">/</span> <span class="n">instances_subgroup</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;target_share_complement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">positives_dataset</span> <span class="o">-</span> <span class="n">positives_subgroup</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">instances_dataset</span> <span class="o">-</span> <span class="n">instances_subgroup</span><span class="p">)</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;target_share_dataset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">positives_dataset</span> <span class="o">/</span> <span class="n">instances_dataset</span>
+        <span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;lift&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">positives_subgroup</span> <span class="o">/</span> <span class="n">instances_subgroup</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">positives_dataset</span> <span class="o">/</span> <span class="n">instances_dataset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">statistics</span>
+
+
+
+<span class="k">class</span> <span class="nc">SimplePositivesQF</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">AbstractInterestingnessMeasure</span><span class="p">):</span> <span class="c1"># pylint: disable=abstract-method</span>
+    <span class="n">tpl</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;PositivesQF_parameters&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;positives_count&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datatset_statistics</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">positives</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_stat_attrs</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;positives_count&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">calculate_constant_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">NominalTarget</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">positives</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datatset_statistics</span> <span class="o">=</span> <span class="n">SimplePositivesQF</span><span class="o">.</span><span class="n">tpl</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positives</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="s2">&quot;representation&quot;</span><span class="p">):</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span>
+            <span class="c1"># https://stackoverflow.com/questions/36188429/retrieve-length-of-slice-from-slice-object-in-python</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">*</span><span class="n">subgroup</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positives</span><span class="p">))))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">cover_arr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SimplePositivesQF</span><span class="o">.</span><span class="n">tpl</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">positives</span><span class="p">[</span><span class="n">cover_arr</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">subgroup</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">NominalTarget</span><span class="p">)</span>
+
+
+
+<span class="c1"># TODO Make ChiSquared useful for real nominal data not just binary</span>
+<span class="c1"># TODO Introduce Enum for direction</span>
+<span class="c1"># TODO Maybe it is possible to give a optimistic estimate for ChiSquared</span>
+<div class="viewcode-block" id="ChiSquaredQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.nominal_target.ChiSquaredQF">[docs]</a><span class="k">class</span> <span class="nc">ChiSquaredQF</span><span class="p">(</span><span class="n">SimplePositivesQF</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ChiSquaredQF which test for statistical independence of a subgroup against it&#39;s complement</span>
+
+<span class="sd">    ...</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ChiSquaredQF.chi_squared_qf"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.nominal_target.ChiSquaredQF.chi_squared_qf">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">chi_squared_qf</span><span class="p">(</span><span class="n">instances_dataset</span><span class="p">,</span> <span class="n">positives_dataset</span><span class="p">,</span> <span class="n">instances_subgroup</span><span class="p">,</span> <span class="n">positives_subgroup</span><span class="p">,</span> <span class="n">min_instances</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">bidirect</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">direction_positive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs chi2 test of statistical independence</span>
+
+<span class="sd">        Test whether a subgroup is statistically independent from it&#39;s complement (see scipy.stats.chi2_contingency).</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        instances_dataset, positives_dataset, instances_subgroup, positives_subgroup : int</span>
+<span class="sd">            counts of subgroup and dataset</span>
+<span class="sd">        min_instances : int, optional</span>
+<span class="sd">            number of required instances, if less -inf is returned for that subgroup</span>
+<span class="sd">        bidirect : bool, optional</span>
+<span class="sd">            If true both directions are considered interesting else direction_positive decides which direction is interesting</span>
+<span class="sd">        direction_positive: bool, optional</span>
+<span class="sd">            Only used if bidirect=False; specifies whether you are interested in positive (True) or negative deviations</span>
+<span class="sd">        index : {0, 1}, optional</span>
+<span class="sd">            decides whether the test statistic (0) or the p-value (1) should be used</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">instances_subgroup</span> <span class="o">&lt;</span> <span class="n">min_instances</span><span class="p">)</span> <span class="ow">or</span> <span class="p">((</span><span class="n">instances_dataset</span> <span class="o">-</span> <span class="n">instances_subgroup</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_instances</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">)</span>
+
+        <span class="n">negatives_subgroup</span> <span class="o">=</span>  <span class="n">instances_subgroup</span> <span class="o">-</span> <span class="n">positives_subgroup</span> <span class="c1"># pylint: disable=bad-whitespace</span>
+        <span class="n">negatives_dataset</span> <span class="o">=</span>    <span class="n">instances_dataset</span> <span class="o">-</span> <span class="n">positives_dataset</span> <span class="c1"># pylint: disable=bad-whitespace</span>
+        <span class="n">negatives_complement</span> <span class="o">=</span> <span class="n">negatives_dataset</span> <span class="o">-</span> <span class="n">negatives_subgroup</span>
+        <span class="n">positives_complement</span> <span class="o">=</span> <span class="n">positives_dataset</span> <span class="o">-</span> <span class="n">positives_subgroup</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">chi2_contingency</span><span class="p">([[</span><span class="n">positives_subgroup</span><span class="p">,</span> <span class="n">positives_complement</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="n">negatives_subgroup</span><span class="p">,</span> <span class="n">negatives_complement</span><span class="p">]],</span> <span class="n">correction</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bidirect</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="n">p_subgroup</span> <span class="o">=</span> <span class="n">positives_subgroup</span> <span class="o">/</span> <span class="n">instances_subgroup</span>
+        <span class="n">p_dataset</span> <span class="o">=</span> <span class="n">positives_dataset</span> <span class="o">/</span> <span class="n">instances_dataset</span>
+        <span class="k">if</span> <span class="n">direction_positive</span> <span class="ow">and</span> <span class="n">p_subgroup</span> <span class="o">&gt;</span> <span class="n">p_dataset</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">direction_positive</span> <span class="ow">and</span> <span class="n">p_subgroup</span> <span class="o">&lt;</span> <span class="n">p_dataset</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">val</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">chi_squared_qf_weighted</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="p">,</span> <span class="n">effective_sample_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">min_instances</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="p">):</span>
+        <span class="p">(</span><span class="n">instancesDataset</span><span class="p">,</span> <span class="n">positivesDataset</span><span class="p">,</span> <span class="n">instancesSubgroup</span><span class="p">,</span> <span class="n">positivesSubgroup</span><span class="p">)</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">get_base_statistics</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">instancesSubgroup</span> <span class="o">&lt;</span> <span class="n">min_instances</span><span class="p">)</span> <span class="ow">or</span> <span class="p">((</span><span class="n">instancesDataset</span> <span class="o">-</span> <span class="n">instancesSubgroup</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">effective_sample_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">effective_sample_size</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">effective_sample_size</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">weighting_attribute</span><span class="p">])</span>
+        <span class="c1"># p_subgroup = positivesSubgroup / instancesSubgroup</span>
+        <span class="c1"># p_dataset = positivesDataset / instancesDataset</span>
+
+        <span class="n">negatives_subgroup</span> <span class="o">=</span> <span class="n">instancesSubgroup</span> <span class="o">-</span> <span class="n">positivesSubgroup</span>
+        <span class="n">negatives_dataset</span> <span class="o">=</span> <span class="n">instancesDataset</span> <span class="o">-</span> <span class="n">positivesDataset</span>
+        <span class="n">positives_complement</span> <span class="o">=</span> <span class="n">positivesDataset</span> <span class="o">-</span> <span class="n">positivesSubgroup</span>
+        <span class="n">negatives_complement</span> <span class="o">=</span> <span class="n">negatives_dataset</span> <span class="o">-</span> <span class="n">negatives_subgroup</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">chi2_contingency</span><span class="p">([[</span><span class="n">positivesSubgroup</span><span class="p">,</span> <span class="n">positives_complement</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="n">negatives_subgroup</span><span class="p">,</span> <span class="n">negatives_complement</span><span class="p">]],</span> <span class="n">correction</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">chi2</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">val</span> <span class="o">*</span> <span class="n">effective_sample_size</span> <span class="o">/</span> <span class="n">instancesDataset</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">min_instances</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="s1">&#39;chi2&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        direction : {&#39;both&#39;, &#39;positive&#39;, &#39;negative&#39;}</span>
+<span class="sd">            direction of deviation that is of interest</span>
+<span class="sd">        min_instances : int, optional</span>
+<span class="sd">            number of required instances, if less -inf is returned for that subgroup</span>
+<span class="sd">        stat : {&#39;chi2&#39;, &#39;p&#39;}</span>
+<span class="sd">            whether to report the test statistic or the p-value (see scipy.stats.chi2_contingency)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;both&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bidirect</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">direction_positive</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bidirect</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">direction_positive</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;negative&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bidirect</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">direction_positive</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_instances</span> <span class="o">=</span> <span class="n">min_instances</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;chi2&#39;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}[</span><span class="n">stat</span><span class="p">]</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="n">datatset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datatset_statistics</span>
+        <span class="k">return</span> <span class="n">ChiSquaredQF</span><span class="o">.</span><span class="n">chi_squared_qf</span><span class="p">(</span><span class="n">datatset</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">datatset</span><span class="o">.</span><span class="n">positives_count</span><span class="p">,</span> <span class="n">statistics</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">statistics</span><span class="o">.</span><span class="n">positives_count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_instances</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bidirect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction_positive</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+
+<div class="viewcode-block" id="StandardQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.nominal_target.StandardQF">[docs]</a><span class="k">class</span> <span class="nc">StandardQF</span><span class="p">(</span><span class="n">SimplePositivesQF</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">BoundedInterestingnessMeasure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    StandardQF which weights the relative size against the difference in averages</span>
+
+<span class="sd">    The StandardQF is a general form of quality function which for different values of a is order equivalen to</span>
+<span class="sd">    many popular quality measures.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a : float</span>
+<span class="sd">        used as an exponent to scale the relative size to the difference in averages</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">standard_qf</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">instances_dataset</span><span class="p">,</span> <span class="n">positives_dataset</span><span class="p">,</span> <span class="n">instances_subgroup</span><span class="p">,</span> <span class="n">positives_subgroup</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instances_subgroup</span><span class="p">,</span> <span class="s1">&#39;__array_interface__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">instances_subgroup</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">p_subgroup</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">positives_subgroup</span><span class="p">,</span> <span class="n">instances_subgroup</span><span class="p">)</span>
+        <span class="c1">#if instances_subgroup == 0:</span>
+        <span class="c1">#    return 0</span>
+        <span class="c1">#p_subgroup = positives_subgroup / instances_subgroup</span>
+        <span class="n">p_dataset</span> <span class="o">=</span> <span class="n">positives_dataset</span> <span class="o">/</span> <span class="n">instances_dataset</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">instances_subgroup</span> <span class="o">/</span> <span class="n">instances_dataset</span><span class="p">)</span> <span class="o">**</span> <span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">p_subgroup</span> <span class="o">-</span> <span class="n">p_dataset</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        a : float</span>
+<span class="sd">            exponent to scale the relative size to the difference in means</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="n">datatset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datatset_statistics</span>
+        <span class="k">return</span> <span class="n">StandardQF</span><span class="o">.</span><span class="n">standard_qf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">datatset</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">datatset</span><span class="o">.</span><span class="n">positives_count</span><span class="p">,</span> <span class="n">statistics</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">statistics</span><span class="o">.</span><span class="n">positives_count</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">optimistic_estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="n">datatset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datatset_statistics</span>
+        <span class="k">return</span> <span class="n">StandardQF</span><span class="o">.</span><span class="n">standard_qf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">datatset</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">datatset</span><span class="o">.</span><span class="n">positives_count</span><span class="p">,</span> <span class="n">statistics</span><span class="o">.</span><span class="n">positives_count</span><span class="p">,</span> <span class="n">statistics</span><span class="o">.</span><span class="n">positives_count</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">optimistic_generalisation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="n">datatset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datatset_statistics</span>
+        <span class="n">pos_remaining</span> <span class="o">=</span> <span class="n">datatset</span><span class="o">.</span><span class="n">positives_count</span> <span class="o">-</span> <span class="n">statistics</span><span class="o">.</span><span class="n">positives_count</span>
+        <span class="k">return</span> <span class="n">StandardQF</span><span class="o">.</span><span class="n">standard_qf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">datatset</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">datatset</span><span class="o">.</span><span class="n">positives_count</span><span class="p">,</span> <span class="n">statistics</span><span class="o">.</span><span class="n">size</span> <span class="o">+</span> <span class="n">pos_remaining</span><span class="p">,</span> <span class="n">datatset</span><span class="o">.</span><span class="n">positives_count</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+
+<div class="viewcode-block" id="LiftQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.nominal_target.LiftQF">[docs]</a><span class="k">class</span> <span class="nc">LiftQF</span><span class="p">(</span><span class="n">StandardQF</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lift Quality Function</span>
+
+<span class="sd">    LiftQF is a StandardQF with a=0.</span>
+<span class="sd">    Thus it treats the difference in ratios as the quality without caring about the relative size of a subgroup.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># TODO add true binomial quality function as in https://opus.bibliothek.uni-wuerzburg.de/opus4-wuerzburg/frontdoor/index/index/docId/1786</span>
+<div class="viewcode-block" id="SimpleBinomialQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.nominal_target.SimpleBinomialQF">[docs]</a><span class="k">class</span> <span class="nc">SimpleBinomialQF</span><span class="p">(</span><span class="n">StandardQF</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple Binomial Quality Function</span>
+
+<span class="sd">    SimpleBinomialQF is a StandardQF with a=0.5.</span>
+<span class="sd">    It is an order equivalent approximation of the full binomial test if the subgroup size is much smaller than the size of the entire dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WRAccQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.nominal_target.WRAccQF">[docs]</a><span class="k">class</span> <span class="nc">WRAccQF</span><span class="p">(</span><span class="n">StandardQF</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Weighted Relative Accuracy Quality Function</span>
+
+<span class="sd">    WRAccQF is a StandardQF with a=1.</span>
+<span class="sd">    It is order equivalent to the difference in the observed and expected number of positive instances.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+
+<span class="c1">#####</span>
+<span class="c1"># GeneralizationAware Interestingness Measures</span>
+<span class="c1">#####</span>
+<div class="viewcode-block" id="GeneralizationAware_StandardQF"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.nominal_target.GeneralizationAware_StandardQF">[docs]</a><span class="k">class</span> <span class="nc">GeneralizationAware_StandardQF</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">GeneralizationAwareQF_stats</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">StandardQF</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span>
+
+
+    <span class="k">def</span> <span class="nf">get_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">max_ratio</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">max_stats</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">stat</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ratio</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">positives_count</span> <span class="o">/</span> <span class="n">stat</span><span class="o">.</span><span class="n">size</span>
+                <span class="k">if</span> <span class="n">ratio</span> <span class="o">&gt;</span> <span class="n">max_ratio</span><span class="p">:</span>
+                    <span class="n">max_ratio</span> <span class="o">=</span> <span class="n">ratio</span>
+                    <span class="n">max_stats</span> <span class="o">=</span> <span class="n">stat</span>
+        <span class="k">return</span> <span class="n">max_stats</span>
+
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics_or_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics_or_data</span><span class="p">)</span>
+        <span class="n">sg_stats</span> <span class="o">=</span> <span class="n">statistics</span><span class="o">.</span><span class="n">subgroup_stats</span>
+        <span class="n">general_stats</span> <span class="o">=</span> <span class="n">statistics</span><span class="o">.</span><span class="n">generalisation_stats</span>
+        <span class="k">if</span> <span class="n">sg_stats</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">general_stats</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="n">sg_ratio</span> <span class="o">=</span> <span class="n">sg_stats</span><span class="o">.</span><span class="n">positives_count</span> <span class="o">/</span> <span class="n">sg_stats</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">general_ratio</span> <span class="o">=</span> <span class="n">general_stats</span><span class="o">.</span><span class="n">positives_count</span> <span class="o">/</span> <span class="n">general_stats</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">sg_stats</span><span class="o">.</span><span class="n">size</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats0</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">sg_ratio</span> <span class="o">-</span> <span class="n">general_ratio</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction2.html">How pysubgroup works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Selectors.html">Selectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../targets.html">Targets and Quality Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules.html">pysubgroup</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

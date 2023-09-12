@@ -1,0 +1,235 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pysubgroup.model_target &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pysubgroup.model_target</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">norm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pysubgroup</span> <span class="k">as</span> <span class="nn">ps</span>
+<span class="n">beta_tuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;beta_tuple&#39;</span><span class="p">,[</span><span class="s1">&#39;beta&#39;</span><span class="p">,</span><span class="s1">&#39;size&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="EMM_Likelihood"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.EMM_Likelihood">[docs]</a><span class="k">class</span> <span class="nc">EMM_Likelihood</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">AbstractInterestingnessMeasure</span><span class="p">):</span>
+    <span class="n">tpl</span><span class="o">=</span><span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;EMM_Likelihood&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;model_params&#39;</span><span class="p">,</span><span class="s1">&#39;subgroup_likelihood&#39;</span><span class="p">,</span><span class="s1">&#39;inverse_likelihood&#39;</span><span class="p">,</span><span class="s1">&#39;size&#39;</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_stat_attrs</span> <span class="o">=</span> <span class="n">EMM_Likelihood</span><span class="o">.</span><span class="n">tpl</span><span class="o">.</span><span class="n">_fields</span>
+
+<div class="viewcode-block" id="EMM_Likelihood.calculate_constant_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.EMM_Likelihood.calculate_constant_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_constant_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="EMM_Likelihood.calculate_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.EMM_Likelihood.calculate_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="s2">&quot;__array_interface__&quot;</span><span class="p">):</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">sg_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">cover_arr</span><span class="p">)</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">cover_arr</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tuple</span><span class="p">(</span><span class="n">sg_size</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">cover_arr</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="EMM_Likelihood.get_tuple"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.EMM_Likelihood.get_tuple">[docs]</a>    <span class="k">def</span> <span class="nf">get_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_size</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">cover_arr</span><span class="p">):</span>
+        <span class="c1">#numeric stability?</span>
+        <span class="n">all_likelihood</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">likelihood</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_size</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">))</span>
+        <span class="n">sg_likelihood_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">all_likelihood</span><span class="p">[</span><span class="n">cover_arr</span><span class="p">])</span>
+        <span class="n">total_likelihood_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">all_likelihood</span><span class="p">)</span>
+        <span class="n">dataset_average</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_size</span> <span class="o">-</span> <span class="n">sg_size</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">dataset_average</span> <span class="o">=</span> <span class="p">(</span><span class="n">total_likelihood_sum</span> <span class="o">-</span> <span class="n">sg_likelihood_sum</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_size</span> <span class="o">-</span> <span class="n">sg_size</span><span class="p">)</span>
+        <span class="n">sg_average</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="n">sg_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sg_average</span> <span class="o">=</span> <span class="n">sg_likelihood_sum</span><span class="o">/</span><span class="n">sg_size</span>
+        <span class="k">return</span> <span class="n">EMM_Likelihood</span><span class="o">.</span><span class="n">tpl</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">sg_average</span><span class="p">,</span> <span class="n">dataset_average</span><span class="p">,</span> <span class="n">sg_size</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EMM_Likelihood.evaluate"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.EMM_Likelihood.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ensure_statistics</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="c1">#numeric stability?</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">statistics</span><span class="o">.</span><span class="n">subgroup_likelihood</span> <span class="o">-</span> <span class="n">statistics</span><span class="o">.</span><span class="n">inverse_likelihood</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EMM_Likelihood.gp_get_params"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.EMM_Likelihood.gp_get_params">[docs]</a>    <span class="k">def</span> <span class="nf">gp_get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cover_arr</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">gp_get_params</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">sg_size</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tuple</span><span class="p">(</span><span class="n">sg_size</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">cover_arr</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EMM_Likelihood.supports_weights"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.EMM_Likelihood.supports_weights">[docs]</a>    <span class="k">def</span> <span class="nf">supports_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="EMM_Likelihood.is_applicable"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.EMM_Likelihood.is_applicable">[docs]</a>    <span class="k">def</span> <span class="nf">is_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PolyRegression_ModelClass"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.PolyRegression_ModelClass">[docs]</a><span class="k">class</span> <span class="nc">PolyRegression_ModelClass</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_name</span> <span class="o">=</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">y_name</span> <span class="o">=</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">degree</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_name</span> <span class="o">=</span> <span class="n">x_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_name</span> <span class="o">=</span> <span class="n">y_name</span>
+        <span class="k">if</span> <span class="n">degree</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Currently only degree == 1 is supported&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">=</span> <span class="n">degree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="PolyRegression_ModelClass.calculate_constant_statistics"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.PolyRegression_ModelClass.calculate_constant_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_constant_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_name</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_name</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_constant_statistics</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="PolyRegression_ModelClass.gp_merge"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.PolyRegression_ModelClass.gp_merge">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">gp_merge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="n">v0</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">u0</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">v0</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">u0</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">v0</span> <span class="o">*</span> <span class="n">u0</span><span class="o">/</span><span class="p">(</span><span class="n">v0</span> <span class="o">+</span> <span class="n">u0</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">v0</span> <span class="o">-</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">u0</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">v0</span> <span class="o">-</span> <span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">u0</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">+=</span> <span class="n">v</span>
+        <span class="n">u</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+=</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="PolyRegression_ModelClass.gp_get_null_vector"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.PolyRegression_ModelClass.gp_get_null_vector">[docs]</a>    <span class="k">def</span> <span class="nf">gp_get_null_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PolyRegression_ModelClass.gp_get_stats"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.PolyRegression_ModelClass.gp_get_stats">[docs]</a>    <span class="k">def</span> <span class="nf">gp_get_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row_index</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">row_index</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">row_index</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="PolyRegression_ModelClass.gp_get_params"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.PolyRegression_ModelClass.gp_get_params">[docs]</a>    <span class="k">def</span> <span class="nf">gp_get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">beta_tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span> <span class="n">size</span><span class="p">)</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">slope</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">v</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">v</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">-</span> <span class="n">v1</span> <span class="o">*</span> <span class="n">v1</span><span class="p">)</span>
+        <span class="n">intersept</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">slope</span> <span class="o">*</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">beta_tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">slope</span><span class="p">,</span> <span class="n">intersept</span><span class="p">]),</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="PolyRegression_ModelClass.fit"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.PolyRegression_ModelClass.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subgroup</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">subgroup</span><span class="p">,</span> <span class="s2">&quot;__array_interface__&quot;</span><span class="p">):</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cover_arr</span> <span class="o">=</span> <span class="n">subgroup</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">cover_arr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">beta_tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span> <span class="n">size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">beta_tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">cover_arr</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">cover_arr</span><span class="p">],</span> <span class="n">deg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">),</span> <span class="n">size</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PolyRegression_ModelClass.likelihood"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.PolyRegression_ModelClass.likelihood">[docs]</a>    <span class="k">def</span> <span class="nf">likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">sg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">sg</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">sg</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">sg</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="PolyRegression_ModelClass.loglikelihood"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.model_target.PolyRegression_ModelClass.loglikelihood">[docs]</a>    <span class="k">def</span> <span class="nf">loglikelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">sg</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">norm</span><span class="o">.</span><span class="n">logpdf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">sg</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">sg</span><span class="p">])</span></div></div>
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction2.html">How pysubgroup works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Selectors.html">Selectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../targets.html">Targets and Quality Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules.html">pysubgroup</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,563 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pysubgroup.algorithms &#8212; pysubgroup 0.0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pysubgroup.algorithms</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on 29.04.2016</span>
+
+<span class="sd">@author: lemmerfn</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">factorial</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations</span><span class="p">,</span> <span class="n">chain</span>
+<span class="kn">from</span> <span class="nn">heapq</span> <span class="k">import</span> <span class="n">heappush</span><span class="p">,</span> <span class="n">heappop</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pysubgroup</span> <span class="k">as</span> <span class="nn">ps</span>
+
+
+<div class="viewcode-block" id="SubgroupDiscoveryTask"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.SubgroupDiscoveryTask">[docs]</a><span class="k">class</span> <span class="nc">SubgroupDiscoveryTask</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Capsulates all parameters required to perform standard subgroup discovery</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">search_space</span><span class="p">,</span> <span class="n">qf</span><span class="p">,</span> <span class="n">result_set_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">min_quality</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weighting_attribute</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search_space</span> <span class="o">=</span> <span class="n">search_space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qf</span> <span class="o">=</span> <span class="n">qf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result_set_size</span> <span class="o">=</span> <span class="n">result_set_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_quality</span> <span class="o">=</span> <span class="n">min_quality</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weighting_attribute</span> <span class="o">=</span> <span class="n">weighting_attribute</span></div>
+
+
+
+
+
+<div class="viewcode-block" id="Apriori"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.Apriori">[docs]</a><span class="k">class</span> <span class="nc">Apriori</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">representation_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">combination_name</span><span class="o">=</span><span class="s1">&#39;Conjunction&#39;</span><span class="p">,</span> <span class="n">use_numba</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combination_name</span> <span class="o">=</span> <span class="n">combination_name</span>
+
+        <span class="k">if</span> <span class="n">representation_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">representation_type</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">BitSetRepresentation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">representation_type</span> <span class="o">=</span> <span class="n">representation_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_vectorization</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_repruning</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimistic_estimate_name</span> <span class="o">=</span> <span class="s1">&#39;optimistic_estimate&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_next_level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compiled_func</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">use_numba</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">numba</span> <span class="c1"># pylint: disable=unused-import, import-outside-toplevel</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">next_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_next_level_numba</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Apriori: Using numba for speedup&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">pass</span>
+<div class="viewcode-block" id="Apriori.get_next_level_candidates"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.Apriori.get_next_level_candidates">[docs]</a>    <span class="k">def</span> <span class="nf">get_next_level_candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">next_level_candidates</span><span class="p">):</span>
+        <span class="n">promising_candidates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">optimistic_estimate_function</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimistic_estimate_name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">next_level_candidates</span><span class="p">:</span>
+            <span class="n">statistics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">add_if_required</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">),</span> <span class="n">task</span><span class="p">)</span>
+            <span class="n">optimistic_estimate</span> <span class="o">=</span> <span class="n">optimistic_estimate_function</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">optimistic_estimate</span> <span class="o">&gt;=</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+                <span class="n">promising_candidates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">optimistic_estimate</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">_selectors</span><span class="p">)))</span>
+        <span class="n">min_quality</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+        <span class="n">promising_candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">selectors</span> <span class="k">for</span> <span class="n">estimate</span><span class="p">,</span> <span class="n">selectors</span> <span class="ow">in</span> <span class="n">promising_candidates</span> <span class="k">if</span> <span class="n">estimate</span> <span class="o">&gt;</span> <span class="n">min_quality</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">promising_candidates</span></div>
+
+<div class="viewcode-block" id="Apriori.get_next_level_candidates_vectorized"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.Apriori.get_next_level_candidates_vectorized">[docs]</a>    <span class="k">def</span> <span class="nf">get_next_level_candidates_vectorized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">next_level_candidates</span><span class="p">):</span>
+        <span class="n">promising_candidates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">optimistic_estimate_function</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimistic_estimate_name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">next_level_candidates</span><span class="p">:</span>
+            <span class="n">statistics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">tpl_class</span> <span class="o">=</span> <span class="n">statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="n">vec_statistics</span> <span class="o">=</span> <span class="n">tpl_class</span><span class="o">.</span><span class="n">_make</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tpl</span><span class="p">)</span> <span class="k">for</span> <span class="n">tpl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">statistics</span><span class="p">))</span>
+        <span class="n">qualities</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">vec_statistics</span><span class="p">)</span>
+        <span class="n">optimistic_estimates</span> <span class="o">=</span> <span class="n">optimistic_estimate_function</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">vec_statistics</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">sg</span><span class="p">,</span> <span class="n">quality</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">next_level_candidates</span><span class="p">,</span> <span class="n">qualities</span><span class="p">):</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">add_if_required</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+        <span class="n">min_quality</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sg</span><span class="p">,</span> <span class="n">optimistic_estimate</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">next_level_candidates</span><span class="p">,</span> <span class="n">optimistic_estimates</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">optimistic_estimate</span> <span class="o">&gt;=</span> <span class="n">min_quality</span><span class="p">:</span>
+                <span class="n">promising_candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">_selectors</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">promising_candidates</span></div>
+
+
+<div class="viewcode-block" id="Apriori.reprune_lower_levels"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.Apriori.reprune_lower_levels">[docs]</a>    <span class="k">def</span> <span class="nf">reprune_lower_levels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">promising_candidates</span><span class="p">,</span> <span class="n">depth</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">depth</span><span class="p">):</span>
+            <span class="n">promising_candidates_k</span> <span class="o">=</span> <span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="n">selectors</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">selectors</span> <span class="ow">in</span> <span class="n">promising_candidates</span><span class="p">)</span>
+            <span class="n">combination_counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">promising_candidates_k</span><span class="p">))</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">depth</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">k</span>
+            <span class="n">unpromising_combinations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span> <span class="k">for</span> <span class="n">sel</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">combination_counter</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="n">d</span><span class="p">)</span>
+            <span class="n">promising_candidates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">selectors</span> <span class="k">for</span> <span class="n">selectors</span> <span class="ow">in</span> <span class="n">promising_candidates</span>
+                                        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unpromising_combinations</span> <span class="k">for</span> <span class="n">comb</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">selectors</span><span class="p">,</span> <span class="n">k</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">promising_candidates</span></div>
+
+<div class="viewcode-block" id="Apriori.get_next_level_numba"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.Apriori.get_next_level_numba">[docs]</a>    <span class="k">def</span> <span class="nf">get_next_level_numba</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">promising_candidates</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">numba</span> <span class="k">import</span> <span class="n">jit</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;compiled_func&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">compiled_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nd">@jit</span>
+            <span class="k">def</span> <span class="nf">getNewCandidates</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">hashes</span><span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">hashes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">hashes</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">l</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">result</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compiled_func</span> <span class="o">=</span> <span class="n">getNewCandidates</span>
+
+        <span class="n">all_selectors</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">promising_candidates</span><span class="p">))</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">selector</span><span class="p">:</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">selector</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_selectors</span><span class="p">)}</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span> <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">selectors</span><span class="p">)</span> <span class="k">for</span> <span class="n">selectors</span> <span class="ow">in</span> <span class="n">promising_candidates</span><span class="p">]</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">))</span>
+        <span class="n">hashes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">hash</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">l</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">candidates_int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compiled_func</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">hashes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">((</span><span class="o">*</span><span class="n">promising_candidates</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">promising_candidates</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">candidates_int</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Apriori.get_next_level"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.Apriori.get_next_level">[docs]</a>    <span class="k">def</span> <span class="nf">get_next_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">promising_candidates</span><span class="p">):</span>
+        <span class="n">precomputed_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sg</span><span class="p">),</span> <span class="n">sg</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sg</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sg</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">promising_candidates</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">((</span><span class="o">*</span><span class="n">sg1</span><span class="p">,</span> <span class="n">new_selector</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">sg1</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">hash_l</span><span class="p">,</span> <span class="n">selectors_l</span><span class="p">),</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">new_selector</span><span class="p">,</span> <span class="n">hash_r</span><span class="p">,</span> <span class="n">selectors_r</span><span class="p">)</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">precomputed_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">hash_l</span> <span class="o">==</span> <span class="n">hash_r</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">selectors_l</span> <span class="o">==</span> <span class="n">selectors_r</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="Apriori.execute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.Apriori.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">BoundedInterestingnessMeasure</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeWarning</span><span class="p">(</span><span class="s2">&quot;Quality function is unbounded, long runtime expected&quot;</span><span class="p">)</span>
+
+        <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">representation_type</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">)</span> <span class="k">as</span> <span class="n">representation</span><span class="p">:</span>
+            <span class="n">combine_selectors</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">representation</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">combination_name</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>    
+            <span class="c1"># init the first level</span>
+            <span class="n">next_level_candidates</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">:</span>
+                <span class="n">next_level_candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combine_selectors</span><span class="p">([</span><span class="n">sel</span><span class="p">]))</span>
+
+            <span class="c1"># level-wise search</span>
+            <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="n">next_level_candidates</span><span class="p">:</span>
+                <span class="c1"># check sgs from the last level</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_vectorization</span><span class="p">:</span>
+                    <span class="n">promising_candidates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_next_level_candidates_vectorized</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">next_level_candidates</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">promising_candidates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_next_level_candidates</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">next_level_candidates</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">depth</span> <span class="o">==</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_repruning</span><span class="p">:</span>
+                    <span class="n">promising_candidates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reprune_lower_levels</span><span class="p">(</span><span class="n">promising_candidates</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+
+                <span class="n">next_level_candidates_no_pruning</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_level</span><span class="p">(</span><span class="n">promising_candidates</span><span class="p">)</span>
+
+                <span class="c1"># select those selectors and build a subgroup from them</span>
+                <span class="c1">#   for which all subsets of length depth (=candidate length -1) are in the set of promising candidates</span>
+                <span class="n">set_promising_candidates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">promising_candidates</span><span class="p">)</span>
+                <span class="n">next_level_candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">combine_selectors</span><span class="p">(</span><span class="n">selectors</span><span class="p">)</span> <span class="k">for</span> <span class="n">selectors</span> <span class="ow">in</span> <span class="n">next_level_candidates_no_pruning</span>
+                                         <span class="k">if</span> <span class="nb">all</span><span class="p">((</span><span class="n">subset</span> <span class="ow">in</span> <span class="n">set_promising_candidates</span><span class="p">)</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">selectors</span><span class="p">,</span> <span class="n">depth</span><span class="p">))]</span>
+                <span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ps</span><span class="o">.</span><span class="n">SubgroupDiscoveryResult</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="BestFirstSearch"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.BestFirstSearch">[docs]</a><span class="k">class</span> <span class="nc">BestFirstSearch</span><span class="p">:</span>
+<div class="viewcode-block" id="BestFirstSearch.execute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.BestFirstSearch.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">queue</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span> <span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">([]))]</span>
+        <span class="n">operator</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">StaticSpecializationOperator</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">)</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="n">q</span><span class="p">,</span> <span class="n">old_description</span> <span class="o">=</span> <span class="n">heappop</span><span class="p">(</span><span class="n">queue</span><span class="p">)</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="o">-</span><span class="n">q</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">q</span> <span class="o">&gt;</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)):</span>
+                <span class="k">break</span>
+            <span class="k">for</span> <span class="n">candidate_description</span> <span class="ow">in</span> <span class="n">operator</span><span class="o">.</span><span class="n">refinements</span><span class="p">(</span><span class="n">old_description</span><span class="p">):</span>
+                <span class="n">sg</span> <span class="o">=</span> <span class="n">candidate_description</span>
+                <span class="n">statistics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">ps</span><span class="o">.</span><span class="n">add_if_required</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">),</span> <span class="n">task</span><span class="p">)</span>
+                <span class="n">optimistic_estimate</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">optimistic_estimate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+
+                <span class="c1"># compute refinements and fill the queue</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_description</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span> <span class="ow">and</span> <span class="n">optimistic_estimate</span> <span class="o">&gt;=</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+                    <span class="n">heappush</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="n">optimistic_estimate</span><span class="p">,</span> <span class="n">candidate_description</span><span class="p">))</span>
+
+        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ps</span><span class="o">.</span><span class="n">SubgroupDiscoveryResult</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="GeneralisingBFS"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.GeneralisingBFS">[docs]</a><span class="k">class</span> <span class="nc">GeneralisingBFS</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discarded</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refined</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+<div class="viewcode-block" id="GeneralisingBFS.execute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.GeneralisingBFS.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">queue</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">operator</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">StaticGeneralizationOperator</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">)</span>
+        <span class="c1"># init the first level</span>
+        <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">:</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span> <span class="n">ps</span><span class="o">.</span><span class="n">Disjunction</span><span class="p">([</span><span class="n">sel</span><span class="p">])))</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="n">q</span><span class="p">,</span> <span class="n">candidate_description</span> <span class="o">=</span> <span class="n">heappop</span><span class="p">(</span><span class="n">queue</span><span class="p">)</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="o">-</span><span class="n">q</span>
+            <span class="k">if</span> <span class="n">q</span> <span class="o">&lt;</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+                <span class="k">break</span>
+
+            <span class="n">sg</span> <span class="o">=</span> <span class="n">candidate_description</span>
+            <span class="n">statistics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">quality</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">add_if_required</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+
+            <span class="n">qual</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">quality</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="n">new_queue</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">q_tmp</span><span class="p">,</span> <span class="n">c_tmp</span> <span class="ow">in</span> <span class="n">queue</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="o">-</span><span class="n">q_tmp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">qual</span><span class="p">:</span>
+                        <span class="n">heappush</span><span class="p">(</span><span class="n">new_queue</span><span class="p">,</span> <span class="p">(</span><span class="n">q_tmp</span><span class="p">,</span> <span class="n">c_tmp</span><span class="p">))</span>
+                <span class="n">queue</span> <span class="o">=</span> <span class="n">new_queue</span>
+            <span class="n">optimistic_estimate</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">optimistic_estimate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#    ps.add_if_required(result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)</span>
+            <span class="c1">#    optimistic_estimate = task.qf.optimistic_generalisation_from_dataset(task.data, sg) if qf_is_bounded else float(&quot;inf&quot;)</span>
+
+            <span class="c1"># compute refinements and fill the queue</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_description</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span> <span class="ow">and</span> <span class="p">(</span><span class="n">optimistic_estimate</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">**</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_description</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+                <span class="c1"># print(qual)</span>
+                <span class="c1"># print(optimistic_estimate)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">refined</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_description</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="c1"># print(str(candidate_description))</span>
+                <span class="k">for</span> <span class="n">new_description</span> <span class="ow">in</span> <span class="n">operator</span><span class="o">.</span><span class="n">refinements</span><span class="p">(</span><span class="n">candidate_description</span><span class="p">):</span>
+                    <span class="n">heappush</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="n">optimistic_estimate</span><span class="p">,</span> <span class="n">new_description</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">discarded</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_description</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">qual</span><span class="p">,</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">qual</span><span class="p">,</span> <span class="n">sg</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;discarded &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discarded</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ps</span><span class="o">.</span><span class="n">SubgroupDiscoveryResult</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="BeamSearch"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.BeamSearch">[docs]</a><span class="k">class</span> <span class="nc">BeamSearch</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Implements the BeamSearch algorithm. Its a basic implementation</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">beam_width</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">beam_width_adaptive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beam_width</span> <span class="o">=</span> <span class="n">beam_width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beam_width_adaptive</span> <span class="o">=</span> <span class="n">beam_width_adaptive</span>
+
+<div class="viewcode-block" id="BeamSearch.execute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.BeamSearch.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="c1"># adapt beam width to the result set size if desired</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">beam_width_adaptive</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">beam_width</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">result_set_size</span>
+
+        <span class="c1"># check if beam size is to small for result set</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">beam_width</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">result_set_size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Beam width in the beam search algorithm is smaller than the result set size!&#39;</span><span class="p">)</span>
+
+        <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+
+        <span class="c1"># init</span>
+        <span class="n">beam</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">([]))]</span>
+        <span class="n">last_beam</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">beam</span> <span class="o">!=</span> <span class="n">last_beam</span> <span class="ow">and</span> <span class="n">depth</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span><span class="p">:</span>
+            <span class="n">last_beam</span> <span class="o">=</span> <span class="n">beam</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">last_sg</span><span class="p">)</span> <span class="ow">in</span> <span class="n">last_beam</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">last_sg</span><span class="p">,</span> <span class="s1">&#39;visited&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">last_sg</span><span class="p">,</span> <span class="s1">&#39;visited&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">:</span>
+                        <span class="c1"># create a clone</span>
+                        <span class="n">new_selectors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">last_sg</span><span class="o">.</span><span class="n">_selectors</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">sel</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_selectors</span><span class="p">:</span>
+                            <span class="n">new_selectors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span>
+                            <span class="n">sg</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">(</span><span class="n">new_selectors</span><span class="p">)</span>
+                            <span class="n">quality</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                            <span class="n">ps</span><span class="o">.</span><span class="n">add_if_required</span><span class="p">(</span><span class="n">beam</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">check_for_duplicates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">depth</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">beam</span><span class="p">[:</span><span class="n">task</span><span class="o">.</span><span class="n">result_set_size</span><span class="p">]</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ps</span><span class="o">.</span><span class="n">SubgroupDiscoveryResult</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SimpleSearch"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.SimpleSearch">[docs]</a><span class="k">class</span> <span class="nc">SimpleSearch</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_progress</span> <span class="o">=</span> <span class="n">show_progress</span>
+<div class="viewcode-block" id="SimpleSearch.execute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.SimpleSearch.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_selectors</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_progress</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+                <span class="k">def</span> <span class="nf">binomial</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">binom</span> <span class="o">=</span> <span class="n">factorial</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">//</span> <span class="n">factorial</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">//</span> <span class="n">factorial</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="n">binom</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">return</span> <span class="n">binom</span>
+                <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">binomial</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">),</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">all_selectors</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">all_selectors</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">for</span> <span class="n">selectors</span> <span class="ow">in</span> <span class="n">all_selectors</span><span class="p">:</span>
+            <span class="n">sg</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">(</span><span class="n">selectors</span><span class="p">)</span>
+            <span class="n">statistics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">quality</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">add_if_required</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ps</span><span class="o">.</span><span class="n">SubgroupDiscoveryResult</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SimpleDFS"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.SimpleDFS">[docs]</a><span class="k">class</span> <span class="nc">SimpleDFS</span><span class="p">:</span>
+<div class="viewcode-block" id="SimpleDFS.execute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.SimpleDFS.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">use_optimistic_estimates</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_internal</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="p">[],</span> <span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">,</span> <span class="p">[],</span> <span class="n">use_optimistic_estimates</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ps</span><span class="o">.</span><span class="n">SubgroupDiscoveryResult</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimpleDFS.search_internal"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.SimpleDFS.search_internal">[docs]</a>    <span class="k">def</span> <span class="nf">search_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">modification_set</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">use_optimistic_estimates</span><span class="p">):</span>
+        <span class="n">sg</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">prefix</span><span class="p">))</span>
+
+        <span class="n">statistics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">use_optimistic_estimates</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">BoundedInterestingnessMeasure</span><span class="p">):</span>
+            <span class="n">optimistic_estimate</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">optimistic_estimate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="n">optimistic_estimate</span> <span class="o">&gt;</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="n">result</span>
+        <span class="n">quality</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">add_if_required</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span><span class="p">:</span>
+            <span class="n">new_modification_set</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">modification_set</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">modification_set</span><span class="p">:</span>
+                <span class="n">prefix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span>
+                <span class="n">new_modification_set</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">search_internal</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">new_modification_set</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">use_optimistic_estimates</span><span class="p">)</span>
+                <span class="c1"># remove the sel again</span>
+                <span class="n">prefix</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+
+<div class="viewcode-block" id="DFS"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.DFS">[docs]</a><span class="k">class</span> <span class="nc">DFS</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implementation of a depth-first-search with look-ahead using a provided datastructure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apply_representation</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_bitset</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_representation</span> <span class="o">=</span> <span class="n">apply_representation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operator</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params_tpl</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;StandardQF_parameters&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;positives_count&#39;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="DFS.execute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.DFS.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operator</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">StaticSpecializationOperator</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">)</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_representation</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">)</span> <span class="k">as</span> <span class="n">representation</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_internal</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">representation</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">([]))</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[(</span><span class="n">quality</span><span class="p">,</span> <span class="n">sgd</span><span class="p">)</span> <span class="k">for</span> <span class="n">quality</span><span class="p">,</span> <span class="n">sgd</span> <span class="ow">in</span> <span class="n">result</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ps</span><span class="o">.</span><span class="n">SubgroupDiscoveryResult</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DFS.search_internal"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.DFS.search_internal">[docs]</a>    <span class="k">def</span> <span class="nf">search_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">):</span>
+        <span class="n">statistics</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">(</span><span class="n">sg</span><span class="p">)</span>
+        <span class="n">optimistic_estimate</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">optimistic_estimate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="n">optimistic_estimate</span> <span class="o">&gt;</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)):</span>
+            <span class="k">return</span>
+        <span class="n">quality</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">statistics</span><span class="p">)</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">add_if_required</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">depth</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span> <span class="ow">and</span> <span class="n">statistics</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">new_sg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="o">.</span><span class="n">refinements</span><span class="p">(</span><span class="n">sg</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">search_internal</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">new_sg</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="DFSNumeric"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.DFSNumeric">[docs]</a><span class="k">class</span> <span class="nc">DFSNumeric</span><span class="p">():</span>
+    <span class="n">tpl</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;size_mean_parameters&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_values</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bitsets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_calls</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="DFSNumeric.execute"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.DFSNumeric.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">StandardQFNumeric</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;BSD_numeric so far is only implemented for StandardQFNumeric&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">sorted_data</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">(),</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># generate target bitset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_values</span> <span class="o">=</span> <span class="n">sorted_data</span><span class="p">[</span><span class="n">task</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">()[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+
+        <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">calculate_constant_statistics</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">qf</span><span class="o">.</span><span class="n">evaluate</span>
+
+        <span class="c1"># generate selector bitsets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bitsets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">:</span>
+            <span class="c1"># generate bitset</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bitsets</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">covers</span><span class="p">(</span><span class="n">sorted_data</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_internal</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="p">[],</span> <span class="n">task</span><span class="o">.</span><span class="n">search_space</span><span class="p">,</span> <span class="p">[],</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sorted_data</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">))</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ps</span><span class="o">.</span><span class="n">SubgroupDiscoveryResult</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DFSNumeric.search_internal"><a class="viewcode-back" href="../../source/pysubgroup.html#pysubgroup.algorithms.DFSNumeric.search_internal">[docs]</a>    <span class="k">def</span> <span class="nf">search_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">modification_set</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">bitset</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">sg_size</span> <span class="o">=</span> <span class="n">bitset</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">sg_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="n">target_values_sg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_values</span><span class="p">[</span><span class="n">bitset</span><span class="p">]</span>
+
+        <span class="n">target_values_cs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">target_values_sg</span><span class="p">)</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_values_cs</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">mean_values_cs</span> <span class="o">=</span> <span class="n">target_values_cs</span> <span class="o">/</span> <span class="n">sizes</span>
+        <span class="n">tpl</span> <span class="o">=</span> <span class="n">DFSNumeric</span><span class="o">.</span><span class="n">tpl</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="n">mean_values_cs</span><span class="p">)</span>
+        <span class="n">qualities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">tpl</span><span class="p">)</span>
+        <span class="n">optimistic_estimate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">qualities</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">optimistic_estimate</span> <span class="o">&lt;=</span> <span class="n">ps</span><span class="o">.</span><span class="n">minimum_required_quality</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">task</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+        <span class="n">sg</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">Conjunction</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">prefix</span><span class="p">))</span>
+
+        <span class="n">quality</span> <span class="o">=</span> <span class="n">qualities</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">add_if_required</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">sg</span><span class="p">,</span> <span class="n">quality</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">task</span><span class="o">.</span><span class="n">depth</span><span class="p">:</span>
+            <span class="n">new_modification_set</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">modification_set</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">modification_set</span><span class="p">:</span>
+                <span class="n">prefix</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span>
+                <span class="n">new_bitset</span> <span class="o">=</span> <span class="n">bitset</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">bitsets</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span>
+                <span class="n">new_modification_set</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">search_internal</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">new_modification_set</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">new_bitset</span><span class="p">)</span>
+                <span class="c1"># remove the sel again</span>
+                <span class="n">prefix</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">pysubgroup</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction.html">Pysubgroup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/introduction2.html">How pysubgroup works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Selectors.html">Selectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../targets.html">Targets and Quality Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gp_growth.html">GP-Growth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules.html">pysubgroup</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017-2019, Florian Lemmerich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

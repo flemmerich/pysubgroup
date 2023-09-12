@@ -1,0 +1,149 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Pysubgroup\n",
+    "\n",
+    "**pysubgroup** is a Python package that enables subgroup discovery in Python+pandas (scipy stack) data analysis environment. It provides for a lightweight, easy-to-use, extensible and freely available implementation of state-of-the-art algorithms, interestingness measures and presentation options.\n",
+    "\n",
+    "As of 2018, this library is still in a prototype phase. It has, however, been already succeesfully employed in active application projects."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "\n",
+    "## Subgroup Discovery\n",
+    "\n",
+    "Subgroup Discovery is a well established data mining technique that allows you to identify patterns in your data.\n",
+    "More precisely, the goal of subgroup discovery is to identify descriptions of data subsets that show an interesting distribution with respect to a pre-specified target concept.\n",
+    "For example, given a dataset of patients in a hospital, we could be interested in subgroups of patients, for which a certain treatment X was successful.\n",
+    "One example result could then be stated as:\n",
+    "\n",
+    "_\"While in general the operation is successful in only 60% of the cases\", for the subgroup\n",
+    "of female patients under 50 that also have been treated with drug d, the successrate was 82%.\"_\n",
+    "\n",
+    "Here, a variable _operation success_ is the target concept, the identified subgroup has the interpretable description _female=True AND age<50 AND drug_D = True_. We call these single conditions (such as _female=True_) selection expressions or short _selectors_.\n",
+    "The interesting behavior for this subgroup is that the distribution of the target concept differs significantly from the distribution in the overall general dataset.\n",
+    "A discovered subgroup could also be seen as a rule:\n",
+    "```\n",
+    "female=True AND age<50 AND drug_D = True ==> Operation_outcome=SUCCESS\n",
+    "```\n",
+    "Computationally, subgroup discovery is challenging since a large number of such conjunctive subgroup descriptions have to be considered. Of course, finding computable criteria, which subgroups are likely interesting to a user is also an eternal struggle. \n",
+    "Therefore, a lot of literature has been devoted to the topic of subgroup discovery (including some of my own work). Recent overviews on the topic are for example:\n",
+    "\n",
+    "* Herrera, Franciso, et al. \"[An overview on subgroup discovery: foundations and applications.](https://scholar.google.de/scholar?q=Herrera%2C+Franciso%2C+et+al.+%E2%80%9CAn+overview+on+subgroup+discovery%3A+foundations+and+applications.%E2%80%9D+Knowledge+and+information+systems+29.3+(2011)%3A+495-525.)\" Knowledge and information systems 29.3 (2011): 495-525.\n",
+    "* Atzmueller, Martin. \"[Subgroup discovery.](https://scholar.google.de/scholar?q=Atzmueller%2C+Martin.+%E2%80%9CSubgroup+discovery.%E2%80%9D+Wiley+Interdisciplinary+Reviews%3A+Data+Mining+and+Knowledge+Discovery+5.1+(2015)%3A+35-49.)\" Wiley Interdisciplinary Reviews: Data Mining and Knowledge Discovery 5.1 (2015): 35-49.\n",
+    "* And of course, my point of view on the topic is [summarized in my dissertation](https://opus.bibliothek.uni-wuerzburg.de/files/9781/Dissertation-Lemmerich.pdf):\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Prerequisites and Installation\n",
+    "pysubgroup is built to fit in the standard Python data analysis environment from the scipy-stack.\n",
+    "Thus, it can be used just having pandas (including its dependencies numpy, scipy, and matplotlib) installed. Visualizations are carried out with the matplotlib library.\n",
+    "\n",
+    "pysubgroup consists of pure Python code. Thus, you can simply download the code from the repository and copy it in your `site-packages` directory.\n",
+    "pysubgroup is also on PyPI and should be installable using:  \n",
+    "\n",
+    "```\n",
+    "pip install pysubgroup\n",
+    "```"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## How to use:\n",
+    "A simple use case (here using the well known _titanic_ data) can be created in just a few lines of code:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pysubgroup as ps\n",
+    "\n",
+    "# Load the example dataset\n",
+    "from pysubgroup.tests.DataSets import get_titanic_data\n",
+    "data = get_titanic_data()\n",
+    "\n",
+    "target = ps.BinaryTarget ('Survived', True)\n",
+    "searchspace = ps.create_selectors(data, ignore=['Survived'])\n",
+    "task = ps.SubgroupDiscoveryTask (\n",
+    "    data, \n",
+    "    target, \n",
+    "    searchspace, \n",
+    "    result_set_size=5, \n",
+    "    depth=2, \n",
+    "    qf=ps.WRAccQF())\n",
+    "result = ps.BeamSearch().execute(task)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The first two lines imports _pysubgroup_ package.\n",
+    "The following lines load an example dataset (the popular titanic dataset).\n",
+    "\n",
+    "Therafter, we define a target, i.e., the property we are mainly interested in (_'survived'}.\n",
+    "Then, we define the searchspace as a list of basic selectors. Descriptions are built from this searchspace. We can create this list manually, or use an utility function.\n",
+    "Next, we create a SubgroupDiscoveryTask object that encapsulates what we want to find in our search.\n",
+    "In particular, that comprises the target, the search space, the depth of the search (maximum numbers of selectors combined in a subgroup description), and the interestingness measure for candidate scoring (here, the Weighted Relative Accuracy measure).\n",
+    "\n",
+    "The last line executes the defined task by performing a search with an algorithm---in this case beam search. The result of this algorithm execution is stored in a SubgroupDiscoveryResults object.\n",
+    "\n",
+    "To just print the result, we could for example do:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": "    quality                       description\n0  0.132150                     Sex=='female'\n1  0.101331        Parch==0 AND Sex=='female'\n2  0.079142    Sex=='female' AND SibSp: [0:1[\n3  0.077663  Cabin.isnull() AND Sex=='female'\n4  0.071746   Embarked=='S' AND Sex=='female'",
+      "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>quality</th>\n      <th>description</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>0.132150</td>\n      <td>Sex=='female'</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>0.101331</td>\n      <td>Parch==0 AND Sex=='female'</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>0.079142</td>\n      <td>Sex=='female' AND SibSp: [0:1[</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>0.077663</td>\n      <td>Cabin.isnull() AND Sex=='female'</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>0.071746</td>\n      <td>Embarked=='S' AND Sex=='female'</td>\n    </tr>\n  </tbody>\n</table>\n</div>"
+     },
+     "metadata": {},
+     "execution_count": 5
+    }
+   ],
+   "source": [
+    "result.to_dataframe()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.4-final"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
