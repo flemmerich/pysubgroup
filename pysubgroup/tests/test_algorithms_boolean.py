@@ -226,14 +226,14 @@ class TestAlgorithms3(TestAlgorithmsBase, BooleanTargetBase, unittest.TestCase):
 
 
 if __name__ == '__main__':
-
-    #unittest.main()
-    suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2))
-    #suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3))
-    complete_suite = unittest.TestSuite(suites)
-    unittest.TextTestRunner(verbosity=2).run(complete_suite)
+    import pytest
+    pytest.main([__file__])
+    #suites = []
+    #suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms))
+    #suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms2))
+    ##suites.append(unittest.TestLoader().loadTestsFromTestCase(TestAlgorithms3))
+    #complete_suite = unittest.TestSuite(suites)
+    #unittest.TextTestRunner(verbosity=2).run(complete_suite)
 
     #import cProfile
     # p=cProfile.Profile()
