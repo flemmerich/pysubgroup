@@ -157,7 +157,7 @@ class GpGrowth:
         cls_nodes = self.nodes_to_cls_nodes(nodes)
         if self.mode == "b_u":
             self.recurse(cls_nodes, tuple())
-        elif self.mode == "t_d":
+        else: # self.mode == "t_d"
             results = self.recurse_top_down(cls_nodes, root)
             results = self.calculate_quality_function_for_patterns(task, results, arrs)
             for quality, sg, stats in results:
@@ -259,10 +259,10 @@ class GpGrowth:
                         else:
                             is_single_path_now = len(nodes) == 1
                             new_tree = self.create_new_tree_from_nodes(nodes)
-                            if len(new_tree) > 0:
-                                self.recurse(
-                                    new_tree, (*prefix, cls), is_single_path_now
-                                )
+                            assert len(new_tree) > 0
+                            self.recurse(
+                                new_tree, (*prefix, cls), is_single_path_now
+                            )
 
     def recurse_top_down(self, cls_nodes, root, depth_in=0):
         # print(f"{depth_in}"+"\t"*depth_in+str(root.cls))
@@ -313,8 +313,8 @@ class GpGrowth:
                     results.append((prefix, stats_dict[init_root.cls]))
                 continue
             cls = prefix[-1]
-            if is_valid_class[cls]:
-                results.append((prefix, stats_dict[cls]))
+            assert is_valid_class[cls]
+            results.append((prefix, stats_dict[cls]))
 
         # suffixes = [((), root.stats)]
 
@@ -344,22 +344,22 @@ class GpGrowth:
                     )
                     # self.check_tree_is_ordered(new_root)
                     # self.check_tree_is_ordered(init_root)
-                    if len(nodes) > 0:
-                        new_cls_nodes = self.nodes_to_cls_nodes(nodes)
-                        # new_dict = self.get_stats_for_class(new_cls_nodes)
-                        # for key, value in new_dict.items():
-                        #    if isinstance(stats_dict[key], dict):
-                        #        continue
-                        #    assert stats_dict[key][0]>=value[0], \
-                        #       f"{stats_dict[key][0]} {value[0]}"
-                        #    assert stats_dict[key][1]>=value[1], \
-                        #       f"{stats_dict[key][1]} {value[1]}"
-                        # print("  " * curr_depth, cls, curr_depth, len(new_cls_nodes))
-                        suffixes.extend(
-                            self.recurse_top_down(
-                                new_cls_nodes, new_root, curr_depth + 1
-                            )
+                    assert len(nodes) > 0
+                    new_cls_nodes = self.nodes_to_cls_nodes(nodes)
+                    # new_dict = self.get_stats_for_class(new_cls_nodes)
+                    # for key, value in new_dict.items():
+                    #    if isinstance(stats_dict[key], dict):
+                    #        continue
+                    #    assert stats_dict[key][0]>=value[0], \
+                    #       f"{stats_dict[key][0]} {value[0]}"
+                    #    assert stats_dict[key][1]>=value[1], \
+                    #       f"{stats_dict[key][1]} {value[1]}"
+                    # print("  " * curr_depth, cls, curr_depth, len(new_cls_nodes))
+                    suffixes.extend(
+                        self.recurse_top_down(
+                            new_cls_nodes, new_root, curr_depth + 1
                         )
+                    )
         # if prefixes == [(12,), (13,)]:
         #    print(f"{depth_in}"+"\t"*depth_in+ "pre, suf", prefixes)
 
@@ -394,7 +394,7 @@ class GpGrowth:
         # during tree creation
         base_root = None
         nodes = []
-        if len(cls_nodes[cls]) > 0 and is_valid_class[cls]:
+        if len(cls_nodes[cls]) > 0 and is_valid_class[cls]: # pragma: no branch okay
             base_root = self.create_copy_of_tree_top_down(
                 cls_nodes[cls][0], nodes, is_valid_class=is_valid_class
             )
@@ -415,7 +415,7 @@ class GpGrowth:
         )
         nodes.append(new_root)
         for child_cls, child in from_root.children.items():
-            if is_valid_class is None or child_cls in is_valid_class:
+            if is_valid_class is None or child_cls in is_valid_class: # pragma: no branch okay
                 new_child = self.create_copy_of_tree_top_down(
                     child, nodes, new_root, is_valid_class=is_valid_class
                 )

@@ -75,7 +75,7 @@ class Apriori:
 
                 self.next_level = self.get_next_level_numba
                 print("Apriori: Using numba for speedup")
-            except ImportError:
+            except ImportError: # pragma: no cover
                 pass
 
     def get_next_level_candidates(self, task, result, next_level_candidates):
@@ -86,7 +86,7 @@ class Apriori:
             ps.add_if_required(
                 result,
                 sg,
-                task.qf.evaluate(sg, statistics, task.target, task.data),
+                task.qf.evaluate(sg, task.target, task.data, statistics),
                 task,
                 statistics=statistics,
             )
@@ -94,8 +94,7 @@ class Apriori:
                 sg, task.target, task.data, statistics
             )
 
-            if optimistic_estimate >= ps.minimum_required_quality(result, task):
-                if ps.constraints_satisfied(
+            if optimistic_estimate >= ps.minimum_required_quality(result, task) and ps.constraints_satisfied(
                     task.constraints_monotone, sg, statistics, task.data
                 ):
                     promising_candidates.append((optimistic_estimate, sg.selectors))
@@ -115,7 +114,7 @@ class Apriori:
             statistics.append(task.qf.calculate_statistics(sg, task.target, task.data))
         tpl_class = statistics[0].__class__
         vec_statistics = tpl_class._make(np.array(tpl) for tpl in zip(*statistics))
-        qualities = task.qf.evaluate(None, task.target, task.data, vec_statistics)
+        qualities = task.qf.evaluate(slice(None), task.target, task.data, vec_statistics)
         optimistic_estimates = optimistic_estimate_function(
             None, None, None, vec_statistics
         )
@@ -176,7 +175,7 @@ class Apriori:
         ]
 
     def execute(self, task):
-        if not isinstance(task.qf, ps.BoundedInterestingnessMeasure):
+        if not isinstance(task.qf, ps.BoundedInterestingnessMeasure): # pragma: no cover
             raise RuntimeWarning("Quality function is unbounded, long runtime expected")
 
         task.qf.calculate_constant_statistics(task.data, task.target)
@@ -251,9 +250,12 @@ class BestFirstSearch:
                     statistics=statistics,
                 )
                 if len(candidate_description) < task.depth:
-                    optimistic_estimate = task.qf.optimistic_estimate(
-                        sg, task.target, task.data, statistics
-                    )
+                    if hasattr(task.qf, 'optimistic_estimate'):
+                        optimistic_estimate = task.qf.optimistic_estimate(
+                            sg, task.target, task.data, statistics
+                        )
+                    else:
+                        optimistic_estimate = np.inf
 
                     # compute refinements and fill the queue
                     if optimistic_estimate >= ps.minimum_required_quality(result, task):
@@ -372,29 +374,29 @@ class BeamSearch:
         while beam != previous_beam and depth < task.depth:
             previous_beam = beam.copy()
             for _, last_sg, _ in previous_beam:
-                if not getattr(last_sg, "visited", False):
-                    setattr(last_sg, "visited", True)
-                    for sel in task.search_space:
-                        # create a clone
-                        new_selectors = list(last_sg.selectors)
-                        if sel not in new_selectors:
-                            new_selectors.append(sel)
-                            sg = ps.Conjunction(new_selectors)
-                            statistics = task.qf.calculate_statistics(
-                                sg, task.target, task.data
-                            )
-                            quality = task.qf.evaluate(
-                                sg, task.target, task.data, statistics
-                            )
-                            ps.add_if_required(
-                                beam,
-                                sg,
-                                quality,
-                                task,
-                                check_for_duplicates=True,
-                                statistics=statistics,
-                                explicit_result_set_size=beam_width,
-                            )
+                if getattr(last_sg, "visited", False):
+                    continue
+                setattr(last_sg, "visited", True)
+                for sel in task.search_space:
+                    # create a clone
+                    if sel in last_sg.selectors:
+                        continue
+                    sg = ps.Conjunction(last_sg.selectors + (sel,))
+                    statistics = task.qf.calculate_statistics(
+                        sg, task.target, task.data
+                    )
+                    quality = task.qf.evaluate(
+                        sg, task.target, task.data, statistics
+                    )
+                    ps.add_if_required(
+                        beam,
+                        sg,
+                        quality,
+                        task,
+                        check_for_duplicates=True,
+                        statistics=statistics,
+                        explicit_result_set_size=beam_width,
+                    )
             depth += 1
 
         # result = beam[-task.result_set_size:]
@@ -432,7 +434,7 @@ class SimpleSearch:
                     for k in range(1, task.depth + 1)
                 )
                 all_selectors = tqdm(all_selectors, total=total)
-            except ImportError:
+            except ImportError: # pragma: no cover
                 warnings.warn(
                     "tqdm not installed but show_progress=True", ImportWarning
                 )
@@ -496,8 +498,10 @@ class DFS:
     with look-ahead using a provided datastructure.
     """
 
-    def __init__(self, apply_representation):
+    def __init__(self, apply_representation=None):
         self.target_bitset = None
+        if apply_representation is None:
+            apply_representation = ps.BitSetRepresentation
         self.apply_representation = apply_representation
         self.operator = None
         self.params_tpl = namedtuple(

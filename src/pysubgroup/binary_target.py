@@ -464,11 +464,11 @@ class GeneralizationAware_StandardQF(GeneralizationAwareQF_stats):
         max_ratio = 0.0
         max_stats = None
         for stat in args:
-            if stat.size_sg > 0:
-                ratio = stat.positives_count / stat.size_sg
-                if ratio > max_ratio:
-                    max_ratio = ratio
-                    max_stats = stat
+            assert stat.size_sg > 0
+            ratio = stat.positives_count / stat.size_sg
+            if ratio > max_ratio:
+                max_ratio = ratio
+                max_stats = stat
         return max_stats
 
     def evaluate(self, subgroup, target, data, statistics=None):

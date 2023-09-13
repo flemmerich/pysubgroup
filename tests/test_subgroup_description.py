@@ -43,6 +43,7 @@ class TestBasics(unittest.TestCase):
     def test_get_size(self):
         df = get_credit_data()  #
         # len(df)==1000
+        self.assertEqual(ps.get_size(slice(None), data_len=len(df)), len(df))
         self.assertEqual(ps.get_size(slice(None), data=df), len(df))
         self.assertEqual(ps.get_size(slice(3, 11), data=df), 8)
         self.assertEqual(ps.get_size(slice(900, 1100), data=df), 100)
@@ -55,6 +56,11 @@ class TestBasics(unittest.TestCase):
         self.assertEqual(ps.get_size(np.array([1, 2, 3], dtype=np.int32)), 3)
         with self.assertRaises(NotImplementedError):
             ps.get_size(np.array(["s", "b"]))
+        with self.assertRaises(ValueError):
+            ps.get_size(slice(None))
+
+
+        self.assertTrue(ps.get_size(slice(None), data=df),152)
 
     def test_EqualitySelector(self):
         with self.assertRaises(TypeError):
@@ -66,6 +72,7 @@ class TestBasics(unittest.TestCase):
         sel = ps.EqualitySelector("A", np.nan)
 
         self.assertEqual(sel.selectors, (sel,))
+        self.assertFalse(sel == None)
 
     def test_NegatedSelector(self):
         df = pd.DataFrame.from_records(

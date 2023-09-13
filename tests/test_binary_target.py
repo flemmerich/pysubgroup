@@ -22,6 +22,16 @@ class TestBinaryTarget(unittest.TestCase):
         )
         self.selector = ps.EqualitySelector("A", 1)
 
+    def test_eq(self):
+        T1 = ps.BinaryTarget("A", 1)
+        T2 = ps.BinaryTarget("A", 1)
+        self.assertTrue(T1 == T2)
+
+    def test_lt(self):
+        T1 = ps.BinaryTarget("A", 1)
+        T2 = ps.BinaryTarget("B", 1)
+        self.assertTrue(T1 < T2)
+
     def test_init_errors(self):
         with self.assertRaises(ValueError):
             ps.BinaryTarget()

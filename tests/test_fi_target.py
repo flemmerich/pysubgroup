@@ -44,6 +44,8 @@ class TestFITarget(TestAlgorithmsBase, unittest.TestCase):
         )
         self.assertIs(statistics2, statistics)
 
+        self.assertTrue(ps.FITarget() == ps.FITarget())
+
 
 class TestCountQF(TestAlgorithmsBase, unittest.TestCase):
     def test_Apriori(self):
@@ -117,6 +119,17 @@ class TestAreaQF(TestAlgorithmsBase, unittest.TestCase):
         self.runAlgorithm(
             ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task
         )
+
+    def test_SimpleSearch2(self):
+        self.runAlgorithm(
+            ps.SimpleSearch(show_progress=False), "SimpleSearch2", self.result, self.qualities, self.task
+        )
+
+    def test_BestFirstSearch(self):
+        self.runAlgorithm(
+            ps.BestFirstSearch(), "SimpleSearch", self.result, self.qualities, self.task
+        )
+
 
     # 178: Cabin.isnull() AND Embarked=='S'
     # 164: Cabin.isnull() AND Sex=='male'
