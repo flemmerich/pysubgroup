@@ -138,7 +138,6 @@ class BooleanTargetBase:
             self.task,
         )
 
-
     @unittest.skipUnless(TestSettings.All or TestSettings.DFS_numpyset, "flag not set")
     def test_DFS_default(self):
         self.runAlgorithm(

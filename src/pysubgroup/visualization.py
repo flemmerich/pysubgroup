@@ -47,6 +47,7 @@ def plot_sgbars(
 
 def plot_roc(result_df, data, qf=ps.StandardQF(0.5), levels=40, annotate=False):
     from matplotlib import pyplot as plt  # pylint: disable=import-outside-toplevel
+
     assert isinstance(qf, ps.StandardQF)
 
     instances_dataset = len(data)
@@ -57,7 +58,8 @@ def plot_roc(result_df, data, qf=ps.StandardQF(0.5), levels=40, annotate=False):
     ylist = np.linspace(0.01, 0.99, 100)
     X, Y = np.meshgrid(xlist, ylist)
     f = np.vectorize(
-        partial(ps.StandardQF.standard_qf, qf.a, instances_dataset, positives_dataset), otypes=[np.float64]
+        partial(ps.StandardQF.standard_qf, qf.a, instances_dataset, positives_dataset),
+        otypes=[np.float64],
     )
     Z = f(X * negatives_dataset + Y * positives_dataset, Y * positives_dataset)
     max_val = np.max([np.max(Z), -np.min(Z)])
@@ -111,8 +113,8 @@ def plot_npspace(result_df, data, annotate=True, fixed_limits=False):
 
 def plot_distribution_numeric(sg, target, data, bins, show_dataset=True):
     from matplotlib import pyplot as plt  # pylint: disable=import-outside-toplevel
-    if isinstance(sg, (list, tuple)):
 
+    if isinstance(sg, (list, tuple)):
         if isinstance(sg[0], tuple):
             list_sgs = [subgroup for quality, subgroup in sg]
         else:
@@ -133,10 +135,11 @@ def plot_distribution_numeric(sg, target, data, bins, show_dataset=True):
             density=True,
         )
     if show_dataset:
-        plt.hist(target_values_data, bins, alpha=0.5, label="Overall Data", density=True)
+        plt.hist(
+            target_values_data, bins, alpha=0.5, label="Overall Data", density=True
+        )
     plt.legend(loc="upper right")
     return fig
-
 
 
 def similarity_sgs(sgd_results, data, color=True):
@@ -160,6 +163,7 @@ def similarity_dendrogram(result, data):
     from scipy.spatial.distance import (
         squareform,  # pylint: disable=import-outside-toplevel
     )
+
     if isinstance(result, ps.SubgroupDiscoveryResult):
         result = result.to_descriptions()
 

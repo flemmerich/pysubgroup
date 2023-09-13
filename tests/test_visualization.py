@@ -1,37 +1,30 @@
+import unittest
+
 import matplotlib.pyplot as plt
 
 import pysubgroup as ps
-from pysubgroup.datasets import get_titanic_data, get_credit_data
-
+from pysubgroup.datasets import get_credit_data, get_titanic_data
 
 plt.interactive(False)
-
-
-import unittest
-
-import pysubgroup as ps
-
 
 
 class TestVizualization(unittest.TestCase):
     def setUp(self):
         data = get_titanic_data()
 
-        target = ps.BinaryTarget ('Survived', True)
-        searchspace = ps.create_selectors(data, ignore=['Survived'])
-        task = ps.SubgroupDiscoveryTask (
-            data,
-            target,
-            searchspace,
-            result_set_size=5,
-            depth=2,
-            qf=ps.WRAccQF())
+        target = ps.BinaryTarget("Survived", True)
+        searchspace = ps.create_selectors(data, ignore=["Survived"])
+        task = ps.SubgroupDiscoveryTask(
+            data, target, searchspace, result_set_size=5, depth=2, qf=ps.WRAccQF()
+        )
         self.result = ps.DFS(ps.BitSetRepresentation).execute(task)
         self.result_df = self.result.to_dataframe()
-        self.data=data
+        self.data = data
 
     def test_plot_sgbars(self):
-        ps.plot_sgbars(self.result_df, )
+        ps.plot_sgbars(
+            self.result_df,
+        )
         ps.plot_sgbars(self.result_df, dynamic_widths=True)
 
     def test_plot_roc(self):
@@ -57,7 +50,6 @@ class TestVizualization(unittest.TestCase):
         ps.supportSetVisualization(self.result, drop_empty=False)
 
 
-
 class TestVizualization2(unittest.TestCase):
     def setUp(self):
         self.data = get_credit_data()
@@ -75,19 +67,24 @@ class TestVizualization2(unittest.TestCase):
             searchSpace,
             result_set_size=10,
             depth=2,
-            qf=ps.StandardQFNumeric(1, False, estimator="max", centroid='median'),
+            qf=ps.StandardQFNumeric(1, False, estimator="max", centroid="median"),
         )
         self.result = ps.DFS(ps.BitSetRepresentation).execute(task)
+
     def test_plot_distribution_numeric(self):
         ps.plot_distribution_numeric(self.result, self.target, self.data, 20)
-        ps.plot_distribution_numeric(self.result, self.target, self.data, 20, show_dataset=False)
-        ps.plot_distribution_numeric(self.result.to_descriptions(), self.target, self.data, 20)
-        ps.plot_distribution_numeric(self.result.to_descriptions()[0][1], self.target, self.data, 20)
+        ps.plot_distribution_numeric(
+            self.result, self.target, self.data, 20, show_dataset=False
+        )
+        ps.plot_distribution_numeric(
+            self.result.to_descriptions(), self.target, self.data, 20
+        )
+        ps.plot_distribution_numeric(
+            self.result.to_descriptions()[0][1], self.target, self.data, 20
+        )
 
         subgroups = [subgroup for quality, subgroup in self.result.to_descriptions()]
         ps.plot_distribution_numeric(subgroups, self.target, self.data, 20)
-
-
 
 
 if __name__ == "__main__":

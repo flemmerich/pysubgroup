@@ -75,7 +75,7 @@ class Apriori:
 
                 self.next_level = self.get_next_level_numba
                 print("Apriori: Using numba for speedup")
-            except ImportError: # pragma: no cover
+            except ImportError:  # pragma: no cover
                 pass
 
     def get_next_level_candidates(self, task, result, next_level_candidates):
@@ -94,10 +94,12 @@ class Apriori:
                 sg, task.target, task.data, statistics
             )
 
-            if optimistic_estimate >= ps.minimum_required_quality(result, task) and ps.constraints_satisfied(
-                    task.constraints_monotone, sg, statistics, task.data
-                ):
-                    promising_candidates.append((optimistic_estimate, sg.selectors))
+            if optimistic_estimate >= ps.minimum_required_quality(
+                result, task
+            ) and ps.constraints_satisfied(
+                task.constraints_monotone, sg, statistics, task.data
+            ):
+                promising_candidates.append((optimistic_estimate, sg.selectors))
         min_quality = ps.minimum_required_quality(result, task)
         promising_candidates = [
             selectors
@@ -114,7 +116,9 @@ class Apriori:
             statistics.append(task.qf.calculate_statistics(sg, task.target, task.data))
         tpl_class = statistics[0].__class__
         vec_statistics = tpl_class._make(np.array(tpl) for tpl in zip(*statistics))
-        qualities = task.qf.evaluate(slice(None), task.target, task.data, vec_statistics)
+        qualities = task.qf.evaluate(
+            slice(None), task.target, task.data, vec_statistics
+        )
         optimistic_estimates = optimistic_estimate_function(
             None, None, None, vec_statistics
         )
@@ -175,7 +179,9 @@ class Apriori:
         ]
 
     def execute(self, task):
-        if not isinstance(task.qf, ps.BoundedInterestingnessMeasure): # pragma: no cover
+        if not isinstance(
+            task.qf, ps.BoundedInterestingnessMeasure
+        ):  # pragma: no cover
             raise RuntimeWarning("Quality function is unbounded, long runtime expected")
 
         task.qf.calculate_constant_statistics(task.data, task.target)
@@ -250,7 +256,7 @@ class BestFirstSearch:
                     statistics=statistics,
                 )
                 if len(candidate_description) < task.depth:
-                    if hasattr(task.qf, 'optimistic_estimate'):
+                    if hasattr(task.qf, "optimistic_estimate"):
                         optimistic_estimate = task.qf.optimistic_estimate(
                             sg, task.target, task.data, statistics
                         )
@@ -385,9 +391,7 @@ class BeamSearch:
                     statistics = task.qf.calculate_statistics(
                         sg, task.target, task.data
                     )
-                    quality = task.qf.evaluate(
-                        sg, task.target, task.data, statistics
-                    )
+                    quality = task.qf.evaluate(sg, task.target, task.data, statistics)
                     ps.add_if_required(
                         beam,
                         sg,
@@ -434,7 +438,7 @@ class SimpleSearch:
                     for k in range(1, task.depth + 1)
                 )
                 all_selectors = tqdm(all_selectors, total=total)
-            except ImportError: # pragma: no cover
+            except ImportError:  # pragma: no cover
                 warnings.warn(
                     "tqdm not installed but show_progress=True", ImportWarning
                 )

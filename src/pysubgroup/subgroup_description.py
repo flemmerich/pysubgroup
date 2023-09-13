@@ -36,7 +36,11 @@ class SelectorBase(ABC):
         # check if selector is already in cache (__refs__)
         # if so, return cached instance
         if tmp in SelectorBase.__refs__:
-            for ref in SelectorBase.__refs__: # pragma no branch okay (not sure why we never have this case)
+            for (
+                ref
+            ) in (
+                SelectorBase.__refs__
+            ):  # pragma no branch okay (not sure why we never have this case)
                 if ref == tmp:
                     return ref
         # if not return
@@ -54,7 +58,7 @@ class SelectorBase(ABC):
         SelectorBase.__refs__.add(self)
 
     def __eq__(self, other):
-        if other is None: # pragma: no cover
+        if other is None:  # pragma: no cover
             return False
         return repr(self) == repr(other)
 

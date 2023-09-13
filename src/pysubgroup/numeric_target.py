@@ -38,7 +38,7 @@ class NumericTarget:
         return "T: " + str(self.target_variable)
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__ # pragma: no cover
+        return self.__dict__ == other.__dict__  # pragma: no cover
 
     def __lt__(self, other):
         return str(self) < str(other)  # pragma: no cover
@@ -90,20 +90,26 @@ class NumericTarget:
 def read_median(tpl):
     return tpl.median
 
+
 def read_mean(tpl):
     return tpl.mean
 
+
 def calc_sorted_median(arr):
-    half = (len(arr)-1) // 2
+    half = (len(arr) - 1) // 2
     if len(arr) % 2 == 0:
         return (arr[half] + arr[half + 1]) / 2
     else:
         return arr[half]
 
+
 class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
     tpl = namedtuple("StandardQFNumeric_parameters", ("size_sg", "mean", "estimate"))
     mean_tpl = tpl
-    median_tpl = namedtuple("StandardQFNumeric_median_parameters", ("size_sg", "median", "estimate"))
+    median_tpl = namedtuple(
+        "StandardQFNumeric_median_parameters", ("size_sg", "median", "estimate")
+    )
+
     @staticmethod
     def standard_qf_numeric(a, _, mean_dataset, instances_subgroup, mean_sg):
         return instances_subgroup**a * (mean_sg - mean_dataset)
@@ -121,7 +127,10 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
         if centroid == "median":
             if estimator == "default":
                 estimator = "max"
-            assert estimator in ("max", "order"), "For median only estimator = max or order are possible"
+            assert estimator in (
+                "max",
+                "order",
+            ), "For median only estimator = max or order are possible"
             self.required_stat_attrs = ("size_sg", "median")
             self.agg = np.median
             self.tpl = StandardQFNumeric.median_tpl
@@ -129,7 +138,10 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
         elif centroid == "sorted_median":
             if estimator == "default":
                 estimator = "max"
-            assert estimator in ("max", "order"), "For median only estimator = max or order are possible"
+            assert estimator in (
+                "max",
+                "order",
+            ), "For median only estimator = max or order are possible"
             self.required_stat_attrs = ("size_sg", "median")
             self.agg = calc_sorted_median
             self.tpl = StandardQFNumeric.median_tpl
@@ -142,7 +154,9 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             self.tpl = StandardQFNumeric.mean_tpl
             self.read_centroid = read_mean
         else:
-            raise ValueError(f"centroid was {centroid} which is not in (median, sorted_median, mean)")
+            raise ValueError(
+                f"centroid was {centroid} which is not in (median, sorted_median, mean)"
+            )
 
         if estimator == "sum":
             self.estimator = StandardQFNumeric.Summation_Estimator(self)
@@ -154,7 +168,9 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             if centroid == "mean":
                 self.estimator = StandardQFNumeric.MeanOrdering_Estimator(self)
             else:
-                raise NotImplementedError("Order estimation is not implemented for median qf")
+                raise NotImplementedError(
+                    "Order estimation is not implemented for median qf"
+                )
         else:
             raise ValueError(
                 "estimator is not one of the following: "
@@ -174,7 +190,11 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
         statistics = self.ensure_statistics(subgroup, target, data, statistics)
         dataset = self.dataset_statistics
         return StandardQFNumeric.standard_qf_numeric(
-            self.a, dataset.size_sg, self.read_centroid(dataset), statistics.size_sg, self.read_centroid(statistics)
+            self.a,
+            dataset.size_sg,
+            self.read_centroid(dataset),
+            statistics.size_sg,
+            self.read_centroid(statistics),
         )
 
     def calculate_statistics(self, subgroup, target, data, statistics=None):
@@ -210,7 +230,8 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             self, data, target
         ):  # pylint: disable=unused-argument
             self.indices_greater_centroid = (
-                self.qf.all_target_values > self.qf.read_centroid(self.qf.dataset_statistics)
+                self.qf.all_target_values
+                > self.qf.read_centroid(self.qf.dataset_statistics)
             )
             self.target_values_greater_centroid = (
                 self.qf.all_target_values
@@ -225,8 +246,8 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             size_greater_centroid = len(larger_than_centroid)
             sum_greater_centroid = np.sum(larger_than_centroid)
 
-            return (
-                sum_greater_centroid - size_greater_centroid * self.qf.read_centroid(self.qf.dataset_statistics)
+            return sum_greater_centroid - size_greater_centroid * self.qf.read_centroid(
+                self.qf.dataset_statistics
             )
 
     class Max_Estimator:
@@ -242,7 +263,8 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             self, data, target
         ):  # pylint: disable=unused-argument
             self.indices_greater_centroid = (
-                self.qf.all_target_values > self.qf.read_centroid(self.qf.dataset_statistics)
+                self.qf.all_target_values
+                > self.qf.read_centroid(self.qf.dataset_statistics)
             )
             self.target_values_greater_centroid = self.qf.all_target_values
 
@@ -274,32 +296,31 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             return data
 
         def calculate_constant_statistics(self, data, target):
-            if self.use_numba and not self.numba_in_place:
-                try:
-                    from numba import (
-                        njit,  # pylint: disable=unused-import, import-outside-toplevel
-                    )
+            if not self.use_numba or self.numba_in_place:
+                return
+            try:
+                from numba import njit  # pylint: disable=import-outside-toplevel
 
-                    # print('StandardQf_Numeric: Using numba for speedup')
-                except ImportError: # pragma: no cover
-                    return
+                # print('StandardQf_Numeric: Using numba for speedup')
+            except ImportError:  # pragma: no cover
+                return
 
-                @njit
-                def estimate_numba(values_sg, a, mean_dataset): #pragma: no cover
-                    n = 1
-                    sum_values = 0
-                    max_value = -(10**10)
-                    for val in values_sg:
-                        sum_values += val
-                        mean_sg = sum_values / n
-                        quality = n**a * (mean_sg - mean_dataset)
-                        if quality > max_value:
-                            max_value = quality
-                        n += 1
-                    return max_value
+            @njit
+            def estimate_numba(values_sg, a, mean_dataset):  # pragma: no cover
+                n = 1
+                sum_values = 0
+                max_value = -(10**10)
+                for val in values_sg:
+                    sum_values += val
+                    mean_sg = sum_values / n
+                    quality = n**a * (mean_sg - mean_dataset)
+                    if quality > max_value:
+                        max_value = quality
+                    n += 1
+                return max_value
 
-                self._get_estimate = estimate_numba
-                self.numba_in_place = True
+            self._get_estimate = estimate_numba
+            self.numba_in_place = True
 
         def get_estimate(
             self, subgroup, sg_size, sg_mean, cover_arr, target_values_sg
@@ -325,10 +346,21 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
 
 class StandardQFNumericMedian(ps.BoundedInterestingnessMeasure):
     tpl = namedtuple(
-        "StandardQFNumericMedian_parameters", ("size_sg", "median", "estimate") # this is here to allow older pickles to be loaded
+        "StandardQFNumericMedian_parameters",
+        (
+            "size_sg",
+            "median",
+            "estimate",
+        ),  # this is here to allow older pickles to be loaded
     )
-    def __init__(self, ):
-        raise NotImplementedError("StandardQFNumericMedian is no longer supported use StandardQFNumeric(centroid='median' instead)") # pragma: no cover
+
+    def __init__(
+        self,
+    ):
+        raise NotImplementedError(
+            "StandardQFNumericMedian is no longer supported use "
+            "StandardQFNumeric(centroid='median' instead)"
+        )  # pragma: no cover
 
 
 class StandardQFNumericTscore(ps.BoundedInterestingnessMeasure):
@@ -389,7 +421,6 @@ class StandardQFNumericTscore(ps.BoundedInterestingnessMeasure):
     def optimistic_estimate(self, subgroup, target, data, statistics=None):
         statistics = self.ensure_statistics(subgroup, target, data, statistics)
         return statistics.estimate
-
 
 
 # TODO Update to new format

@@ -1,9 +1,6 @@
 import unittest
 
-
-
 import pysubgroup as ps
-
 
 
 class TestGeneralisationAwareQf(unittest.TestCase):

@@ -59,8 +59,7 @@ class TestBasics(unittest.TestCase):
         with self.assertRaises(ValueError):
             ps.get_size(slice(None))
 
-
-        self.assertTrue(ps.get_size(slice(None), data=df),152)
+        self.assertTrue(ps.get_size(slice(None), data=df), 152)
 
     def test_EqualitySelector(self):
         with self.assertRaises(TypeError):
@@ -72,7 +71,7 @@ class TestBasics(unittest.TestCase):
         sel = ps.EqualitySelector("A", np.nan)
 
         self.assertEqual(sel.selectors, (sel,))
-        self.assertFalse(sel == None)
+        self.assertFalse(sel is None)
 
     def test_NegatedSelector(self):
         df = pd.DataFrame.from_records(

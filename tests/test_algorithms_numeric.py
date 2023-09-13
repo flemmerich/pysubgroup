@@ -1,13 +1,10 @@
 # flake8: noqa: E501
 
-from copy import copy
-from t_utils import conjunctions_from_str
-
-
-
 import unittest
+from copy import copy
 
 from algorithms_testing import TestAlgorithmsBase
+from t_utils import conjunctions_from_str
 
 import pysubgroup as ps
 from pysubgroup.datasets import get_credit_data
@@ -31,38 +28,35 @@ class TestStandardQFNumeric(unittest.TestCase):
             ps.StandardQFNumeric(0, estimator="bla")
 
 
-
 class TestStandardQFNumericMedian(TestAlgorithmsBase, unittest.TestCase):
     def test_constructor(self):
-        ps.StandardQFNumeric(0, centroid='median')
-        ps.StandardQFNumeric(1.0, centroid='median')
-        ps.StandardQFNumeric(0, invert=True, centroid='median')
-        ps.StandardQFNumeric(0, invert=False, centroid='median')
+        ps.StandardQFNumeric(0, centroid="median")
+        ps.StandardQFNumeric(1.0, centroid="median")
+        ps.StandardQFNumeric(0, invert=True, centroid="median")
+        ps.StandardQFNumeric(0, invert=False, centroid="median")
 
-        ps.StandardQFNumeric(0, centroid='sorted_median')
-
-        with self.assertRaises(ValueError):
-            ps.StandardQFNumeric("test", centroid='median')
+        ps.StandardQFNumeric(0, centroid="sorted_median")
 
         with self.assertRaises(ValueError):
-            ps.StandardQFNumeric(0, centroid='bla')
+            ps.StandardQFNumeric("test", centroid="median")
 
-        ps.StandardQFNumeric(0, estimator="max", centroid='median')
-        #ps.StandardQFNumeric(0, estimator="order", centroid='median')
+        with self.assertRaises(ValueError):
+            ps.StandardQFNumeric(0, centroid="bla")
 
-        with self.assertRaises(AssertionError):
-            ps.StandardQFNumeric(0, estimator="sum", centroid='median')
-        with self.assertRaises(AssertionError):
-            ps.StandardQFNumeric(0, estimator="average", centroid='median')
-
+        ps.StandardQFNumeric(0, estimator="max", centroid="median")
+        # ps.StandardQFNumeric(0, estimator="order", centroid='median')
 
         with self.assertRaises(AssertionError):
-            ps.StandardQFNumeric(0, estimator="bla", centroid='median')
+            ps.StandardQFNumeric(0, estimator="sum", centroid="median")
+        with self.assertRaises(AssertionError):
+            ps.StandardQFNumeric(0, estimator="average", centroid="median")
 
-
+        with self.assertRaises(AssertionError):
+            ps.StandardQFNumeric(0, estimator="bla", centroid="median")
 
     def setUp(self):
-        l = conjunctions_from_str("""316646.0    job=='b'high qualif/self emp/mgmt''
+        l = conjunctions_from_str(
+            """316646.0    job=='b'high qualif/self emp/mgmt''
    310615.0    foreign_worker=='b'yes'' AND job=='b'high qualif/self emp/mgmt''
    297844.5    foreign_worker=='b'yes'' AND own_telephone=='b'yes'' AND property_magnitude=='b'no known property''
    297844.5    own_telephone=='b'yes'' AND property_magnitude=='b'no known property''
@@ -71,9 +65,10 @@ class TestStandardQFNumericMedian(TestAlgorithmsBase, unittest.TestCase):
    282217.5    class=='b'bad'' AND own_telephone=='b'yes''
    282000.0    other_parties=='b'none'' AND own_telephone=='b'yes''
    276312.5    foreign_worker=='b'yes'' AND job=='b'high qualif/self emp/mgmt'' AND own_telephone=='b'yes''
-   275467.5    foreign_worker=='b'yes'' AND other_parties=='b'none'' AND own_telephone=='b'yes'' """)
-        self.result = [conjunction for quality, conjunction in l ]
-        self.qualities = [quality for quality, conjunction in l ]
+   275467.5    foreign_worker=='b'yes'' AND other_parties=='b'none'' AND own_telephone=='b'yes'' """
+        )
+        self.result = [conjunction for quality, conjunction in l]
+        self.qualities = [quality for quality, conjunction in l]
 
         data = get_credit_data()
         target = ps.NumericTarget("credit_amount")
@@ -90,12 +85,12 @@ class TestStandardQFNumericMedian(TestAlgorithmsBase, unittest.TestCase):
             searchSpace,
             result_set_size=10,
             depth=5,
-            qf=ps.StandardQFNumeric(1, False, estimator="max", centroid='median'),
+            qf=ps.StandardQFNumeric(1, False, estimator="max", centroid="median"),
         )
 
     def Atest_Apriori_no_numba(self):
         algorithm = ps.Apriori(use_numba=False)
-        algorithm.use_vectorization=False
+        algorithm.use_vectorization = False
         self.runAlgorithm(
             algorithm,
             "Median Apriori, use_numba=False",
@@ -104,16 +99,21 @@ class TestStandardQFNumericMedian(TestAlgorithmsBase, unittest.TestCase):
             self.task,
         )
 
-
     def test_Apriori_no_numba_sorted_median(self):
         algorithm = ps.Apriori(use_numba=False)
-        algorithm.use_vectorization=False
+        algorithm.use_vectorization = False
 
-        qf = ps.StandardQFNumeric(1, False, estimator="max", centroid='sorted_median')
+        qf = ps.StandardQFNumeric(1, False, estimator="max", centroid="sorted_median")
         df = self.task.data
         df = df.sort_values(by=self.task.target.target_variable)
-        task = ps.SubgroupDiscoveryTask(df,self.task.target, self.task.search_space, qf, result_set_size=10,
-            depth=5,)
+        task = ps.SubgroupDiscoveryTask(
+            df,
+            self.task.target,
+            self.task.search_space,
+            qf,
+            result_set_size=10,
+            depth=5,
+        )
         self.runAlgorithm(
             algorithm,
             "Quick Median Apriori, use_numba=False",
@@ -122,24 +122,19 @@ class TestStandardQFNumericMedian(TestAlgorithmsBase, unittest.TestCase):
             task,
         )
 
+
 #    def test_SimpleDFS(self): # terribly slow
 #        self.runAlgorithm(
 #            ps.SimpleDFS(), "Median SimpleDFS", self.result, self.qualities, self.task
 #        )
 
+
 class TestNumericTarget(unittest.TestCase):
     def setUp(self):
-        records = [(1, 20),
-                   (1, 10),
-                   (1, 10),
-                   (1, 0),
-                   (0, -20),
-                   (0, -10),
-                   (0, -10)]
+        records = [(1, 20), (1, 10), (1, 10), (1, 0), (0, -20), (0, -10), (0, -10)]
         self.df = pd.DataFrame.from_records(records, columns=("A", "target"))
 
     def test_get_base_statistics(self):
-
         sg = ps.EqualitySelector("A", 1)
         target = ps.NumericTarget("target")
         self.assertEqual(target.get_base_statistics(sg, self.df), (7, 0.0, 4, 10.0))
@@ -148,24 +143,28 @@ class TestNumericTarget(unittest.TestCase):
         target = ps.NumericTarget("target")
         sg = ps.EqualitySelector("A", 1)
         statistics = target.calculate_statistics(sg, self.df, None)
-        statistics2 =  target.calculate_statistics(sg, self.df, cached_statistics=statistics)
+        statistics2 = target.calculate_statistics(
+            sg, self.df, cached_statistics=statistics
+        )
         self.assertIs(statistics, statistics2)
         del statistics["size_sg"]
-        statistics3 =  target.calculate_statistics(sg, self.df, cached_statistics=statistics)
-
-
+        statistics3 = target.calculate_statistics(
+            sg, self.df, cached_statistics=statistics
+        )
 
 
 class TestStandardQFNumericTscore(unittest.TestCase):
     def test_basics(self):
         epsilon = 0.001
-        records = [(1, 20),
-                   (1, 10),
-                   (1, 10+epsilon),
-                   (1, 0),
-                   (0, -20),
-                   (0, -10),
-                   (0, -10-epsilon)]
+        records = [
+            (1, 20),
+            (1, 10),
+            (1, 10 + epsilon),
+            (1, 0),
+            (0, -20),
+            (0, -10),
+            (0, -10 - epsilon),
+        ]
         df = pd.DataFrame.from_records(records, columns=("A", "target"))
         target = ps.NumericTarget("target")
         sg = ps.EqualitySelector("A", 1)
@@ -263,7 +262,7 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
 
     def test_DFS_order_no_numba(self):
         self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, "order")
-        self.task.qf.estimator.use_numba=False
+        self.task.qf.estimator.use_numba = False
         self.runAlgorithm(
             ps.DFS(ps.BitSetRepresentation),
             "DFS order no numba",
@@ -339,21 +338,16 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
     # def test_SimpleSearch(self):
     #   self.runAlgorithm(ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task)
 
+
 import pandas as pd
 
 
 class TestNumericEstimators(unittest.TestCase):
     def test_estimator1(self):
-        records = [(1, 100),
-                   (1, 75),
-                   (1, 53),
-                   (1, 12),
-                   (0, 11),
-                   (0, 49)]
+        records = [(1, 100), (1, 75), (1, 53), (1, 12), (0, 11), (0, 49)]
         df = pd.DataFrame.from_records(records, columns=["A", "Target"])
         T = ps.NumericTarget("Target")
         sel = ps.EqualitySelector("A", 1)
-
 
         qf = ps.StandardQFNumeric(a=1)
         self.assertEqual(qf.optimistic_estimate(sel, T, df), 78)
@@ -361,7 +355,6 @@ class TestNumericEstimators(unittest.TestCase):
         for a in [1, 0.5, 0]:
             qf = ps.StandardQFNumeric(a=a, estimator="max")
             self.assertEqual(qf.optimistic_estimate(sel, T, df), 3**a * 50)
-
 
 
 if __name__ == "__main__":
