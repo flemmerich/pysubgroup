@@ -35,14 +35,12 @@ class SelectorBase(ABC):
 
         # check if selector is already in cache (__refs__)
         # if so, return cached instance
-        if tmp in SelectorBase.__refs__:
-            for (
-                ref
-            ) in (
-                SelectorBase.__refs__
-            ):  # pragma no branch okay (not sure why we never have this case)
-                if ref == tmp:
-                    return ref
+        if tmp not in SelectorBase.__refs__:
+            return tmp  # new selector
+        # (not sure why we never have the below case)
+        for ref in SelectorBase.__refs__:  # pragma no branch okay
+            if ref == tmp:
+                return ref
         # if not return
         return tmp
 
