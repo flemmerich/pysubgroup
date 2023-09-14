@@ -20,7 +20,7 @@ class FITarget(ps.BaseTarget):
         return self.__dict__ == other.__dict__
 
     def __lt__(self, other):
-        return str(self) < str(other)
+        return str(self) < str(other)  # pragma: no cover
 
     def get_attributes(self):
         return []

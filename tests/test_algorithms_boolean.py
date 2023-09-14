@@ -138,6 +138,16 @@ class BooleanTargetBase:
             self.task,
         )
 
+    @unittest.skipUnless(TestSettings.All or TestSettings.DFS_numpyset, "flag not set")
+    def test_DFS_default(self):
+        self.runAlgorithm(
+            ps.DFS(),
+            "DFS default",
+            self.result,
+            self.qualities,
+            self.task,
+        )
+
     # pylint: enable=no-member
 
 

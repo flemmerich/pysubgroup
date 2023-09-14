@@ -9,6 +9,8 @@ test_gp_fi.txt
 test_gp_model.txt
 program.prof
 import.log
+doc/_build
+Untitled.ipynb
 
 
 # Temporary and binary files
@@ -26,6 +28,8 @@ __pycache__/*
 .*.swp
 */.ipynb_checkpoints/*
 .DS_Store
+__pycache__
+.ipynb_checkpoints
 
 # Project files
 .ropeproject

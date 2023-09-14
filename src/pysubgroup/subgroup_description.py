@@ -35,10 +35,12 @@ class SelectorBase(ABC):
 
         # check if selector is already in cache (__refs__)
         # if so, return cached instance
-        if tmp in SelectorBase.__refs__:
-            for ref in SelectorBase.__refs__:
-                if ref == tmp:
-                    return ref
+        if tmp not in SelectorBase.__refs__:
+            return tmp  # new selector
+        # (not sure why we never have the below case)
+        for ref in SelectorBase.__refs__:  # pragma no branch okay
+            if ref == tmp:
+                return ref
         # if not return
         return tmp
 
@@ -54,7 +56,7 @@ class SelectorBase(ABC):
         SelectorBase.__refs__.add(self)
 
     def __eq__(self, other):
-        if other is None:
+        if other is None:  # pragma: no cover
             return False
         return repr(self) == repr(other)
 
@@ -66,7 +68,7 @@ class SelectorBase(ABC):
 
     @abstractmethod
     def set_descriptions(self, *args, **kwargs):
-        pass  # pragma: no-cover
+        pass  # pragma: no cover
 
 
 def get_cover_array_and_size(subgroup, data_len=None, data=None):
@@ -96,7 +98,7 @@ def get_cover_array_and_size(subgroup, data_len=None, data=None):
                 f"Currently a typechar of {type_char} is not supported."
             )
     else:
-        assert type(data).__name__ == "DataFrame"
+        assert type(data).__name__ == "DataFrame", str(type(data))
         cover_arr = subgroup.covers(data)
         size = np.count_nonzero(cover_arr)
     return cover_arr, size

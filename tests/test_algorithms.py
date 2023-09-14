@@ -26,6 +26,12 @@ class TestAlgorithms(unittest.TestCase):
     def test_BeamSearch_adaptive(self):
         ps.BeamSearch(1, beam_width_adaptive=True).execute(self.task)
 
+    def test_Apriori_default_representation(self):
+        ps.Apriori()
+
+    def test_Apriori_set_representation(self):
+        ps.Apriori(ps.SetRepresentation)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,7 +7,7 @@ import pysubgroup as ps
 
 def plot_sgbars(
     result_df,
-    _,
+    *,
     ylabel="target share",
     title="Discovered Subgroups",
     dynamic_widths=False,
@@ -48,6 +48,8 @@ def plot_sgbars(
 def plot_roc(result_df, data, qf=ps.StandardQF(0.5), levels=40, annotate=False):
     from matplotlib import pyplot as plt  # pylint: disable=import-outside-toplevel
 
+    assert isinstance(qf, ps.StandardQF)
+
     instances_dataset = len(data)
     positives_dataset = np.max(result_df["positives_dataset"])
     negatives_dataset = instances_dataset - positives_dataset
@@ -56,20 +58,21 @@ def plot_roc(result_df, data, qf=ps.StandardQF(0.5), levels=40, annotate=False):
     ylist = np.linspace(0.01, 0.99, 100)
     X, Y = np.meshgrid(xlist, ylist)
     f = np.vectorize(
-        partial(qf.evaluate, instances_dataset, positives_dataset), otypes=[np.float]
+        partial(ps.StandardQF.standard_qf, qf.a, instances_dataset, positives_dataset),
+        otypes=[np.float64],
     )
     Z = f(X * negatives_dataset + Y * positives_dataset, Y * positives_dataset)
     max_val = np.max([np.max(Z), -np.min(Z)])
 
     fig, ax = plt.subplots()
-    cm = plt.cm.get_cmap("bwr")
+    cm = plt.colormaps["bwr"]
 
     plt.contourf(X, Y, Z, levels, cmap=cm, vmin=-max_val, vmax=max_val)
 
     for i, sg in result_df.iterrows():
         rel_positives_sg = sg["positives_sg"] / positives_dataset
         rel_negatives_sg = (sg["size_sg"] - sg["positives_sg"]) / negatives_dataset
-        ax.plot(rel_negatives_sg, rel_positives_sg, "ro", color="black")
+        ax.plot(rel_negatives_sg, rel_positives_sg, "o", color="black")
         if annotate:
             label_margin = 0.01
             ax.annotate(
@@ -93,7 +96,7 @@ def plot_npspace(result_df, data, annotate=True, fixed_limits=False):
     for i, sg in result_df.iterrows():
         target_share_sg = sg["target_share_sg"]
         size_sg = sg["size_sg"]
-        ax.plot(size_sg, target_share_sg, "ro", color="black")
+        ax.plot(size_sg, target_share_sg, "o", color="black")
         if annotate:
             ax.annotate(str(i), (size_sg + 5, target_share_sg + 0.001))
 
@@ -108,36 +111,32 @@ def plot_npspace(result_df, data, annotate=True, fixed_limits=False):
     return fig
 
 
-def plot_distribution_numeric(sg, data, bins):
+def plot_distribution_numeric(sg, target, data, bins, show_dataset=True):
     from matplotlib import pyplot as plt  # pylint: disable=import-outside-toplevel
 
+    if isinstance(sg, (list, tuple)):
+        if isinstance(sg[0], tuple):
+            list_sgs = [subgroup for quality, subgroup in sg]
+        else:
+            list_sgs = sg
+    elif isinstance(sg, ps.SubgroupDiscoveryResult):
+        list_sgs = [subgroup for quality, subgroup in sg.to_descriptions()]
+    else:
+        list_sgs = [sg]
     fig, _ = plt.subplots()
-    target_values_sg = data[sg.covers(data)][sg.target.get_attributes()].values
-    target_values_data = data[sg.target.get_attributes()].values
-    plt.hist(
-        target_values_sg,
-        bins,
-        alpha=0.5,
-        label=str(sg.subgroup_description),
-        density=True,
-    )
-    plt.hist(target_values_data, bins, alpha=0.5, label="Overall Data", density=True)
-    plt.legend(loc="upper right")
-    return fig
-
-
-def compare_distributions_numeric(sgs, data, bins):
-    from matplotlib import pyplot as plt  # pylint: disable=import-outside-toplevel
-
-    fig, _ = plt.subplots()
-    for sg in sgs:
-        target_values_sg = data[sg.covers(data)][sg.target.get_attributes()].values
+    for sg in list_sgs:
+        target_values_sg = data[sg.covers(data)][target.get_attributes()].values
+        target_values_data = data[target.get_attributes()].values
         plt.hist(
             target_values_sg,
             bins,
-            alpha=0.3,
-            label=str(sg.subgroup_description),
+            alpha=0.5,
+            label=str(sg),
             density=True,
+        )
+    if show_dataset:
+        plt.hist(
+            target_values_data, bins, alpha=0.5, label="Overall Data", density=True
         )
     plt.legend(loc="upper right")
     return fig
@@ -165,6 +164,9 @@ def similarity_dendrogram(result, data):
         squareform,  # pylint: disable=import-outside-toplevel
     )
 
+    if isinstance(result, ps.SubgroupDiscoveryResult):
+        result = result.to_descriptions()
+
     fig, _ = plt.subplots()
     dist_df = similarity_sgs(result, data, color=False)
     mat = 1 - dist_df.values
@@ -179,7 +181,7 @@ def supportSetVisualization(result, in_order=True, drop_empty=True):
     n_items = len(result.task.data)
     n_SGDs = len(result.results)
     covs = np.zeros((n_items, n_SGDs), dtype=bool)
-    for i, (_, r, _) in enumerate(result.to_subgroups):
+    for i, (_, r) in enumerate(result.to_descriptions()):
         covs[:, i] = r.covers(df)
 
     img_arr = covs.copy()
