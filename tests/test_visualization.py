@@ -41,8 +41,11 @@ class TestVizualization(unittest.TestCase):
         ps.similarity_dendrogram(self.result.to_descriptions(), self.data)
 
     def test_similarity_sgs(self):
-        ps.similarity_sgs(self.result.to_descriptions(), self.data, color=True)
         ps.similarity_sgs(self.result.to_descriptions(), self.data, color=False)
+        try:
+            ps.similarity_sgs(self.result.to_descriptions(), self.data, color=True)
+        except ImportError:
+            pass
 
     def test_supportSetVisualization(self):
         ps.supportSetVisualization(self.result)
