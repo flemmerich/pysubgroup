@@ -21,7 +21,6 @@ class TestSettings:
     SimpleSearch = False
 
 
-
 class BooleanTargetBase(TestAlgorithmsBase):
     # pylint: disable=no-member
     @unittest.skipUnless(TestSettings.All or TestSettings.Apriori, "flag not set")
