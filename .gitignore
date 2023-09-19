@@ -10,7 +10,7 @@ test_gp_model.txt
 program.prof
 import.log
 doc/_build
-Untitled.ipynb
+
 
 
 # Temporary and binary files
@@ -69,3 +69,7 @@ MANIFEST
 .venv*/
 .conda*/
 .python-version
+
+
+Untitled1.ipynb
+Untitled.ipynb

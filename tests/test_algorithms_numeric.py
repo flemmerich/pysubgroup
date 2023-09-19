@@ -3,6 +3,7 @@
 import unittest
 from copy import copy
 
+import pandas as pd
 from algorithms_testing import TestAlgorithmsBase
 from t_utils import conjunctions_from_str
 
@@ -58,8 +59,8 @@ class TestStandardQFNumericMedian(TestAlgorithmsBase, unittest.TestCase):
         l = conjunctions_from_str(
             """316646.0    job=='b'high qualif/self emp/mgmt''
    310615.0    foreign_worker=='b'yes'' AND job=='b'high qualif/self emp/mgmt''
-   297844.5    foreign_worker=='b'yes'' AND own_telephone=='b'yes'' AND property_magnitude=='b'no known property''
    297844.5    own_telephone=='b'yes'' AND property_magnitude=='b'no known property''
+    297844.5    foreign_worker=='b'yes'' AND own_telephone=='b'yes'' AND property_magnitude=='b'no known property''
    288480.5    job=='b'high qualif/self emp/mgmt'' AND own_telephone=='b'yes''
    283002.0    own_telephone=='b'yes''
    282217.5    class=='b'bad'' AND own_telephone=='b'yes''
@@ -248,7 +249,7 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
 
     def test_DFS_order_with_numba(self):
         try:
-            import numba
+            import numba  # pylint: disable=import-outside-toplevel, unused-import
         except ImportError:
             self.skipTest("No numba installed")
         self.task.qf = ps.StandardQFNumeric(self.task.qf.a, False, "order")
@@ -337,9 +338,6 @@ class TestAlgorithmsWithNumericTarget(TestAlgorithmsBase, unittest.TestCase):
 
     # def test_SimpleSearch(self):
     #   self.runAlgorithm(ps.SimpleSearch(), "SimpleSearch", self.result, self.qualities, self.task)
-
-
-import pandas as pd
 
 
 class TestNumericEstimators(unittest.TestCase):

@@ -72,65 +72,45 @@ class TestRepresentation(unittest.TestCase):
         with ps.SetRepresentation(
             self.df, [self.A1, self.A0, self.BA, self.BC, self.CA, self.CNan]
         ) as representation:
-            self.assertEqual(
-                self.A1.representation, {2, 3, 6, 7, 8, 9}
-            )  # pylint: disable=no-member
-            self.assertEqual(
-                self.A0.representation, {0, 1, 4, 5}
-            )  # pylint: disable=no-member
+            # pylint: disable=no-member
+            self.assertEqual(self.A1.representation, {2, 3, 6, 7, 8, 9})
+            self.assertEqual(self.A0.representation, {0, 1, 4, 5})
 
-            self.assertEqual(
-                self.BA.representation, {0, 5, 7, 8, 9}
-            )  # pylint: disable=no-member
-            self.assertEqual(
-                self.BC.representation, {2, 3}
-            )  # pylint: disable=no-member
+            self.assertEqual(self.BA.representation, {0, 5, 7, 8, 9})
+            self.assertEqual(self.BC.representation, {2, 3})
 
-            self.assertEqual(
-                self.CA.representation, {2, 3}
-            )  # pylint: disable=no-member
-            self.assertEqual(
-                self.CNan.representation, {0, 1}
-            )  # pylint: disable=no-member
+            self.assertEqual(self.CA.representation, {2, 3})
+            self.assertEqual(self.CNan.representation, {0, 1})
 
             self.assertEqual(
                 representation.Conjunction([self.BA, self.CNan]).representation, {0}
-            )  # pylint: disable=no-member
+            )
             self.assertEqual(
                 representation.Conjunction([self.A0, self.CNan]).representation, {0, 1}
-            )  # pylint: disable=no-member
+            )
+            # pylint: enable=no-member
 
     def test_NumpySet(self):
         with ps.NumpySetRepresentation(
             self.df, [self.A1, self.A0, self.BA, self.BC, self.CA, self.CNan]
         ) as representation:
-            np.testing.assert_array_equal(
-                self.A1.representation, [2, 3, 6, 7, 8, 9]
-            )  # pylint: disable=no-member
-            np.testing.assert_array_equal(
-                self.A0.representation, [0, 1, 4, 5]
-            )  # pylint: disable=no-member
+            # pylint: disable=no-member
+            np.testing.assert_array_equal(self.A1.representation, [2, 3, 6, 7, 8, 9])
+            np.testing.assert_array_equal(self.A0.representation, [0, 1, 4, 5])
 
-            np.testing.assert_array_equal(
-                self.BA.representation, [0, 5, 7, 8, 9]
-            )  # pylint: disable=no-member
-            np.testing.assert_array_equal(
-                self.BC.representation, [2, 3]
-            )  # pylint: disable=no-member
+            np.testing.assert_array_equal(self.BA.representation, [0, 5, 7, 8, 9])
+            np.testing.assert_array_equal(self.BC.representation, [2, 3])
 
-            np.testing.assert_array_equal(
-                self.CA.representation, [2, 3]
-            )  # pylint: disable=no-member
-            np.testing.assert_array_equal(
-                self.CNan.representation, [0, 1]
-            )  # pylint: disable=no-member
+            np.testing.assert_array_equal(self.CA.representation, [2, 3])
+            np.testing.assert_array_equal(self.CNan.representation, [0, 1])
 
             np.testing.assert_array_equal(
                 representation.Conjunction([self.BA, self.CNan]).representation, [0]
-            )  # pylint: disable=no-member
+            )
             np.testing.assert_array_equal(
                 representation.Conjunction([self.A0, self.CNan]).representation, [0, 1]
-            )  # pylint: disable=no-member
+            )
+            # pylint: enable=no-member
 
 
 if __name__ == "__main__":

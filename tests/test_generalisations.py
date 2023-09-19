@@ -1,16 +1,15 @@
 import unittest
 
+import pytest
 from algorithms_testing import TestAlgorithmsBase
 
 import pysubgroup as ps
 from pysubgroup.datasets import get_credit_data
 
-skip_long_running = True
-
 
 class BooleanTargetBase(TestAlgorithmsBase):
     # pylint: disable=no-member
-    @unittest.skipIf(skip_long_running, "as skip_long_running flag is True")
+    @pytest.mark.slow
     def test_GeneralisingBFS(self):
         self.runAlgorithm(
             ps.GeneralisingBFS(),

@@ -24,7 +24,7 @@ def minimum_required_quality(result, task):
 
 def prepare_subgroup_discovery_result(result, task):
     result_filtered = [tpl for tpl in result if tpl[0] > task.min_quality]
-    result_filtered.sort(key=lambda x: x[0], reverse=True)
+    result_filtered.sort(reverse=True)
     result_filtered = result_filtered[: task.result_set_size]
     return result_filtered
 
@@ -202,11 +202,13 @@ def intersect_of_ordered_list(list_1, list_2):
 
 class BaseTarget:
     def all_statistics_present(self, cached_statistics):
+        # pylint: disable=no-member
         if isinstance(cached_statistics, dict) and all(
             expected_value in cached_statistics
             for expected_value in self.__class__.statistic_types
-        ):  # pylint: disable=no-member
+        ):
             return True
+        # pylint: enable=no-member
         return False
 
 

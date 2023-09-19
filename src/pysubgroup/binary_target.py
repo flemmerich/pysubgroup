@@ -455,31 +455,143 @@ class WRAccQF(StandardQF):
 #####
 # GeneralizationAware Interestingness Measures
 #####
-class GeneralizationAware_StandardQF(GeneralizationAwareQF_stats):
-    def __init__(self, a):
-        super().__init__(StandardQF(0))
+class GeneralizationAware_StandardQF(
+    GeneralizationAwareQF_stats, BoundedInterestingnessMeasure
+):
+    ga_sQF_agg_tuple = namedtuple(
+        "ga_sQF_agg_tuple", ["max_p", "min_delta_negatives", "min_negatives"]
+    )
+
+    def __init__(self, a, optimistic_estimate_strategy="default"):
+        super().__init__(StandardQF(a))
+        if optimistic_estimate_strategy in ("default", "difference"):
+            self.optimistic_estimate = self.difference_based_optimistic_estimate
+            self.aggregate_statistics = self.difference_based_agg_function
+            self.read_p = self.difference_based_read_p
+        elif optimistic_estimate_strategy == "max":
+            self.optimistic_estimate = self.max_based_optimistic_estimate
+            self.aggregate_statistics = self.max_based_aggregate_statistics
+            self.read_p = self.max_based_read_p
+        else:
+            raise ValueError(
+                "optimistic_estimate_strategy should be one of "
+                "('default', 'max', 'difference')"
+            )
         self.a = a
 
-    def get_max(self, *args):
-        max_ratio = 0.0
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
+        sg_stats = statistics.subgroup_stats
+        general_stats = statistics.generalisation_stats
+        if sg_stats.size_sg == 0:
+            return np.nan
+        sg_ratio = sg_stats.positives_count / sg_stats.size_sg
+        return (sg_stats.size_sg / self.stats0.size_sg) ** self.a * (
+            sg_ratio - self.read_p(general_stats)
+        )
+
+    def max_based_aggregate_statistics(self, stats_subgroup, list_of_pairs):
+        if len(list_of_pairs) == 0:
+            return stats_subgroup
+        max_ratio = -100
         max_stats = None
-        for stat in args:
-            assert stat.size_sg > 0
-            ratio = stat.positives_count / stat.size_sg
-            if ratio > max_ratio:
-                max_ratio = ratio
-                max_stats = stat
+        for pair in list_of_pairs:
+            ratio = -np.inf
+            for agg_stat in pair:
+                if agg_stat.size_sg == 0:  # pragma: no cover
+                    continue
+                ratio = agg_stat.positives_count / agg_stat.size_sg
+                if ratio > max_ratio:
+                    max_ratio = ratio
+                    max_stats = agg_stat
+
         return max_stats
 
-    def evaluate(self, subgroup, target, data, statistics=None):
+    def max_based_optimistic_estimate(self, subgroup, target, data, statistics=None):
+        """
+        Computes the oe as the hypothetical subgroup containing only positive instances
+        """
         statistics = self.ensure_statistics(subgroup, target, data, statistics)
         sg_stats = statistics.subgroup_stats
         general_stats = statistics.generalisation_stats
         if sg_stats.size_sg == 0 or general_stats.size_sg == 0:
             return np.nan
 
-        sg_ratio = sg_stats.positives_count / sg_stats.size_sg
         general_ratio = general_stats.positives_count / general_stats.size_sg
-        return (sg_stats.size_sg / self.stats0.size_sg) ** self.a * (
-            sg_ratio - general_ratio
+        return (sg_stats.positives_count / self.stats0.size_sg) ** self.a * (
+            1 - general_ratio
         )
+
+    def max_based_read_p(self, agg_tuple):
+        return agg_tuple.positives_count / agg_tuple.size_sg
+
+    def difference_based_optimistic_estimate(self, subgroup, target, data, statistics):
+        sg_stats, agg_stats = self.ensure_statistics(subgroup, target, data, statistics)
+        if np.isposinf(agg_stats.min_delta_negatives):
+            return np.inf
+        delta_n = agg_stats.min_delta_negatives
+        size_dataset = self.qf.dataset_statistics.size_sg
+        tau_diff = 0
+        if self.qf.a == 0:
+            pos = 1
+            # return delta_n /(1 + delta_n)
+        elif self.qf.a == 1.0:
+            pos = sg_stats.positives_count
+            # return pos / size_dataset * delta_n /(pos + delta_n)
+        else:
+            a = self.qf.a
+            p_hat = min(np.ceil(a * delta_n / (1 - a)), sg_stats.positives_count)
+            pos = p_hat
+            # return (p_hat / size_dataset) ** a * delta_n /(p_hat+delta_n)
+        tau_diff = pos / (pos + delta_n)
+        if sg_stats.size_sg > 0:
+            tau_sg = sg_stats.positives_count / sg_stats.size_sg
+        else:
+            tau_sg = -1
+        tau_max = max(tau_diff, tau_sg, agg_stats.max_p)
+        return (sg_stats.positives_count / size_dataset) ** self.a * (1 - tau_max)
+
+    def difference_based_agg_function(self, stats_subgroup, list_of_pairs):
+        """
+        list_of_pairs is a list of (stats, agg_tuple) for all the generalizations
+        """
+
+        def get_negatives_count(sg_stats):
+            return sg_stats.size_sg - sg_stats.positives_count
+
+        def get_percentage_positives(sg_stats):
+            if sg_stats.size_sg == 0:
+                return np.nan
+            return sg_stats.positives_count / sg_stats.size_sg
+
+        if len(list_of_pairs) == 0:  # empty pattern
+            return GeneralizationAware_StandardQF.ga_sQF_agg_tuple(
+                get_percentage_positives(stats_subgroup), np.infty, np.infty
+            )
+
+        subgroup_negatives = stats_subgroup.size_sg - stats_subgroup.positives_count
+        min_immediate_generalizations_negatives = min(
+            get_negatives_count(x.subgroup_stats) for x in list_of_pairs
+        )
+        min_immediate_generalizations_delta_negatives = min(
+            x.generalisation_stats.min_delta_negatives for x in list_of_pairs
+        )
+        max_percentage_positives = max(
+            max(
+                get_percentage_positives(x.subgroup_stats), x.generalisation_stats.max_p
+            )
+            for x in list_of_pairs
+        )
+
+        sg_delta_negatives = (
+            min_immediate_generalizations_negatives - subgroup_negatives
+        )
+        min_delta_negatives = min(
+            sg_delta_negatives, min_immediate_generalizations_delta_negatives
+        )
+        return GeneralizationAware_StandardQF.ga_sQF_agg_tuple(
+            max_percentage_positives, min_delta_negatives, sg_delta_negatives
+        )
+
+    def difference_based_read_p(self, agg_tuple):
+        return agg_tuple.max_p

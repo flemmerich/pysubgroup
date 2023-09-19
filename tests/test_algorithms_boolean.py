@@ -22,8 +22,6 @@ class TestSettings:
     GpGrowth = False
 
 
-skip_long_running = True
-
 
 class BooleanTargetBase:
     # pylint: disable=no-member

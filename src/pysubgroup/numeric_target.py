@@ -197,7 +197,9 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             self.read_centroid(statistics),
         )
 
-    def calculate_statistics(self, subgroup, target, data, statistics=None):
+    def calculate_statistics(
+        self, subgroup, target, data, statistics=None
+    ):  # pylint: disable=unused-argument
         cover_arr, sg_size = ps.get_cover_array_and_size(
             subgroup, len(self.all_target_values), data
         )
@@ -218,12 +220,22 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
         return statistics.estimate
 
     class Summation_Estimator:
+        r"""\
+        This estimator calculates the optimistic estimate as a hyppothetical subgroup\
+         which contains only instances with value greater than the dataset mean and\
+         is of maximal size.
+        .. math::
+            oe(sg) = \sum_{x \in sg, T(x)>0} (T(sg) - \mu_0)
+
+        From Florian Lemmerich's Dissertation [section 4.2.2.1, Theorem 2 (page 81)]
+        """
+
         def __init__(self, qf):
             self.qf = qf
             self.indices_greater_centroid = None
             self.target_values_greater_centroid = None
 
-        def get_data(self, data, target):
+        def get_data(self, data, target):  # pylint: disable=unused-argument
             return data
 
         def calculate_constant_statistics(
@@ -251,12 +263,19 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             )
 
     class Max_Estimator:
+        r"""
+        This estimator calculates the optimistic estimate
+        .. math::
+            oe(sg) = n_{>\mu_0}^a (T^{\max}(sg) - \mu_0)
+        From Florian Lemmerich's Dissertation [section 4.2.2.1, Theorem 4 (page 82)]
+        """
+
         def __init__(self, qf):
             self.qf = qf
             self.indices_greater_centroid = None
             self.target_values_greater_centroid = None
 
-        def get_data(self, data, target):
+        def get_data(self, data, target):  # pylint: disable=unused-argument
             return data
 
         def calculate_constant_statistics(
@@ -295,7 +314,9 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             data.sort_values(target.get_attributes()[0], ascending=False, inplace=True)
             return data
 
-        def calculate_constant_statistics(self, data, target):
+        def calculate_constant_statistics(
+            self, data, target
+        ):  # pylint: disable=unused-argument
             if not self.use_numba or self.numba_in_place:
                 return
             try:
@@ -402,7 +423,9 @@ class StandardQFNumericTscore(ps.BoundedInterestingnessMeasure):
             statistics.std,
         )
 
-    def calculate_statistics(self, subgroup, target, data, statistics=None):
+    def calculate_statistics(
+        self, subgroup, target, data, statistics=None
+    ):  # pylint: disable=unused-argument
         cover_arr, sg_size = ps.get_cover_array_and_size(
             subgroup, len(self.all_target_values), data
         )
@@ -423,35 +446,34 @@ class StandardQFNumericTscore(ps.BoundedInterestingnessMeasure):
         return statistics.estimate
 
 
-# TODO Update to new format
-# class GAStandardQFNumeric(ps.AbstractInterestingnessMeasure):
-#    def __init__(self, a, invert=False):
-#        self.a = a
-#        self.invert = invert
-#
-#    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-#        (instances_dataset, _, instances_subgroup, mean_sg) = \
-#           subgroup.get_base_statistics(data, weighting_attribute)
-#        if instances_subgroup in (0, instances_dataset):
-#            return 0
-#        max_mean = get_max_generalization_mean(data, subgroup, weighting_attribute)
-#        relative_size = (instances_subgroup / instances_dataset)
-#        return ps.conditional_invert(
-#           relative_size ** self.a * (mean_sg - max_mean), self.invert)
+class GeneralizationAware_StandardQFNumeric(ps.GeneralizationAwareQF_stats):
+    def __init__(self, a, invert=False, estimator="default", centroid="mean"):
+        super().__init__(
+            StandardQFNumeric(a, invert=invert, estimator=estimator, centroid=centroid)
+        )
 
-#    def supports_weights(self):
-#        return True
+    def evaluate(self, subgroup, target, data, statistics=None):
+        statistics = self.ensure_statistics(subgroup, target, data, statistics)
+        sg_stats = statistics.subgroup_stats
+        general_stats = statistics.generalisation_stats
+        if sg_stats.size_sg == 0:
+            return np.nan
+        read_centroid = self.qf.read_centroid
+        return (sg_stats.size_sg / self.stats0.size_sg) ** self.qf.a * (
+            read_centroid(sg_stats) - read_centroid(general_stats)
+        )
 
-#    def is_applicable(self, subgroup):
-#        return isinstance(subgroup.target, NumericTarget)
-
-
-# def get_max_generalization_mean(data, subgroup, weighting_attribute=None):
-#    selectors = subgroup.subgroup_description.selectors
-#    generalizations = ps.powerset(selectors)
-#    max_mean = 0
-#    for sels in generalizations:
-#        sg = ps.Subgroup(subgroup.target, ps.Conjunction(list(sels)))
-#        mean_sg = sg.get_base_statistics(data, weighting_attribute)[3]
-#        max_mean = max(max_mean, mean_sg)
-#    return max_mean
+    def aggregate_statistics(self, stats_subgroup, list_of_pairs):
+        read_centroid = self.qf.read_centroid
+        if len(list_of_pairs) == 0:
+            return stats_subgroup
+        max_centroid = 0.0
+        max_stats = None
+        for stat, agg_stat in list_of_pairs:
+            if stat.size_sg == 0:
+                continue
+            centroid = max(read_centroid(agg_stat), read_centroid(stat))
+            if centroid > max_centroid:
+                max_centroid = centroid
+                max_stats = stat
+        return max_stats
