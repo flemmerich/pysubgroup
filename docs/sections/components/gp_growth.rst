@@ -23,12 +23,11 @@ The basic usage of the gp-growth algorithm is not very different from the usage 
     from pysubgroup.datasets import get_titanic_data
     data = get_titanic_data()
 
-    target = ps.NominalSelector ('Survived', True)
+    target = ps.BinaryTarget ('Survived', True)
     searchspace = ps.create_selectors(data, ignore=['Survived'])
-    task = ps.SubgroupDiscoveryTask (data, target, dearchspace, result_set_size=5, depth=2, qf=ps.WRAccQF())
-    GpGrowth.execute(task)
+    task = ps.SubgroupDiscoveryTask (data, target, searchspace, result_set_size=5, depth=2, qf=ps.WRAccQF())
+    result = ps.GpGrowth().execute(task)
 
-But beware that gp-growth is using an exhaustive search strategy! This can greatly increase the runtime for high search depth.
 You can specify the :code:`mode` argument in the constructor of GpGrowth to run gp-growth either bottom up (:code:`mode='b_u'`) or top down (:code:`mode='b_u'`).
 As gp growth is a generalisation of fp-growth you can also perform standard fp-growth using gp_growth by using the CountQF (:ref:`countqf`) quality function.
 

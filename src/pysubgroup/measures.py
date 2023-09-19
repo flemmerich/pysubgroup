@@ -190,6 +190,10 @@ class CountCallsInterestingMeasure(BoundedInterestingnessMeasure):
 # GeneralizationAware Interestingness Measures
 #####
 class GeneralizationAwareQF(AbstractInterestingnessMeasure):
+    """A class that computes the generalization aware qf as follows:
+    qf(sg) = qf(sg) - max_{generalizations} qf(sq)
+    """
+
     ga_tuple = namedtuple("ga_tuple", ["subgroup_quality", "generalisation_quality"])
 
     def __init__(self, qf):
@@ -241,6 +245,8 @@ class GeneralizationAwareQF(AbstractInterestingnessMeasure):
 # GeneralizationAware Interestingness Measures
 #####
 class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
+    """An abstract base class that implements aggregation of stats of generalisations"""
+
     ga_tuple = namedtuple("ga_stats_tuple", ["subgroup_stats", "generalisation_stats"])
 
     def __init__(self, qf):
@@ -263,30 +269,34 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
     def calculate_statistics(self, subgroup, target, data, statistics=None):
         sg_repr = repr(subgroup)
         if sg_repr in self.cache:
-            return GeneralizationAwareQF_stats.ga_tuple(*self.cache[sg_repr])
+            return self.cache[sg_repr]
 
-        (stats_sg, stats_prev) = self.get_stats_and_previous_stats(
-            subgroup, target, data
-        )
-        self.cache[sg_repr] = (stats_sg, stats_prev)
-        return GeneralizationAwareQF_stats.ga_tuple(stats_sg, stats_prev)
+        tpl = self.get_stats_and_previous_stats(subgroup, target, data)
+        self.cache[sg_repr] = tpl
+        return tpl
 
     def get_stats_and_previous_stats(self, subgroup, target, data):
         stats_subgroup = self.qf.calculate_statistics(subgroup, target, data)
-        max_stats = self.stats0
-        selectors = subgroup.selectors
-        if len(selectors) > 0:
-            # compute quality of all generalizations
-            generalizations = combinations(selectors, len(selectors) - 1)
+        # pylint: disable=no-member
+        if len(subgroup.selectors) == 0:
+            return GeneralizationAwareQF_stats.ga_tuple(
+                stats_subgroup, self.aggregate_statistics(stats_subgroup, [])
+            )
 
-            for sels in generalizations:
-                sgd = ps.Conjunction(list(sels))
-                (stats_sg, stats_prev) = self.calculate_statistics(sgd, target, data)
-                max_stats = self.get_max(max_stats, stats_sg, stats_prev)
-        return (stats_subgroup, max_stats)
+        selectors = subgroup.selectors
+        immediate_generalizations = combinations(selectors, len(selectors) - 1)
+
+        list_of_pairs = []
+        for sels in immediate_generalizations:
+            sgd = ps.Conjunction(list(sels))
+            list_of_pairs.append(self.calculate_statistics(sgd, target, data))
+        agg_stats = self.aggregate_statistics(stats_subgroup, list_of_pairs)
+        # pylint: enable=no-member
+        return GeneralizationAwareQF_stats.ga_tuple(stats_subgroup, agg_stats)
 
     def evaluate(self, subgroup, target, data, statistics=None):
         raise NotImplementedError
 
-    def get_max(self, *args):
-        raise NotImplementedError
+
+#    def aggregate_statistics(self, *args):
+#        raise NotImplementedError

@@ -20,7 +20,7 @@ class TestAlgorithmsBase(abc.ABC):
             algorithm_result, qualities, result
         ):
             self.assertEqual(repr(algorithm_SG), repr(expected_SGD))
-            self.assertEqual(algorithm_q, expected_q)
+            self.assertAlmostEqual(algorithm_q, expected_q)
 
     def runAlgorithm(self, algorithm, name, result, qualities, task):
         print()

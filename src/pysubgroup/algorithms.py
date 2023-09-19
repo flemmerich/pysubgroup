@@ -55,6 +55,27 @@ def constraints_satisfied(constraints, subgroup, statistics=None, data=None):
     )
 
 
+try:  # pragma: no cover
+    from numba import (  # pylint: disable=import-error, import-outside-toplevel
+        int32,
+        int64,
+        njit,
+    )
+
+    @njit([(int32[:, :], int64[:])], cache=True)
+    def getNewCandidates(candidates, hashes):  # pragma: no cover
+        result = []
+        for i in range(len(candidates) - 1):
+            for j in range(i + 1, len(candidates)):
+                if hashes[i] == hashes[j]:
+                    if np.all(candidates[i, :-1] == candidates[j, :-1]):
+                        result.append((i, j))
+        return result
+
+except ImportError:  # pragma: no cover
+    pass
+
+
 class Apriori:
     def __init__(
         self, representation_type=None, combination_name="Conjunction", use_numba=True
@@ -133,20 +154,7 @@ class Apriori:
         return promising_candidates
 
     def get_next_level_numba(self, promising_candidates):
-        from numba import njit  # pylint: disable=import-error, import-outside-toplevel
-
         if not hasattr(self, "compiled_func") or self.compiled_func is None:
-
-            @njit
-            def getNewCandidates(candidates, hashes):  # pragma: no cover
-                result = []
-                for i in range(len(candidates) - 1):
-                    for j in range(i + 1, len(candidates)):
-                        if hashes[i] == hashes[j]:
-                            if np.all(candidates[i, :-1] == candidates[j, :-1]):
-                                result.append((i, j))
-                return result
-
             self.compiled_func = getNewCandidates
 
         all_selectors = Counter(chain.from_iterable(promising_candidates))
@@ -182,7 +190,9 @@ class Apriori:
         if not isinstance(
             task.qf, ps.BoundedInterestingnessMeasure
         ):  # pragma: no cover
-            raise RuntimeWarning("Quality function is unbounded, long runtime expected")
+            warnings.warn(
+                "Quality function is unbounded, long runtime expected", RuntimeWarning
+            )
 
         task.qf.calculate_constant_statistics(task.data, task.target)
 
@@ -302,7 +312,7 @@ class GeneralisingBFS:  # pragma: no cover
 
             sg = candidate_description
             statistics = task.qf.calculate_statistics(sg, task.target, task.data)
-            quality = task.qf.evaluate(sg, statistics)
+            quality = task.qf.evaluate(sg, task.target, task.data, statistics)
             ps.add_if_required(result, sg, quality, task, statistics=statistics)
 
             qual = ps.minimum_required_quality(result, task)
@@ -336,8 +346,6 @@ class GeneralisingBFS:  # pragma: no cover
                 self.discarded[len(candidate_description)] += 1
 
         result.sort(key=lambda x: x[0], reverse=True)
-        for qual, sg in result:
-            print(f"{qual} {sg}")
         print("discarded " + str(self.discarded))
         return ps.SubgroupDiscoveryResult(result, task)
 

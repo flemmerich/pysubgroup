@@ -42,7 +42,7 @@ class SelectorBase(ABC):
             if ref == tmp:
                 return ref
         # if not return
-        return tmp
+        return tmp  # pragma: no cover
 
     def __getnewargs_ex__(self):  # pylint: disable=invalid-getnewargs-ex-returned
         tmp_args = self.__new_args__
@@ -548,7 +548,7 @@ class Conjunction(BooleanExpressionBase):
         if not self._selectors:
             return "True"
         reprs = sorted(repr(sel) for sel in self._selectors)
-        return "".join(("(", " and ".join(reprs), ")"))
+        return "(" + " and ".join(reprs) + ")"
 
     def _compute_hash(self):
         return hash(repr(self))
