@@ -72,6 +72,7 @@ extensions = [
     "sphinx.ext.ifconfig",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
+    "myst_nb"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -106,7 +107,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "pysubgroup"
-copyright = "2023, mgbckr"
+copyright = "2023, Florian Lemmerich, Martin Becker"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
