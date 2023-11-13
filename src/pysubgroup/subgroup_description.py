@@ -10,6 +10,7 @@ from functools import total_ordering
 from itertools import chain
 
 import numpy as np
+import pandas as pd
 
 import pysubgroup as ps
 
@@ -324,13 +325,13 @@ class IntervalSelector(SelectorBase):
             lb = formatter.format(lb)
 
         if lower_bound == float("-inf") and upper_bound == float("inf"):
-            repre = attribute_name + " = anything"
+            repre = str(attribute_name) + " = anything"
         elif lower_bound == float("-inf"):
-            repre = attribute_name + "<" + str(ub)
+            repre = str(attribute_name) + "<" + str(ub)
         elif upper_bound == float("inf"):
-            repre = attribute_name + ">=" + str(lb)
+            repre = str(attribute_name) + ">=" + str(lb)
         else:
-            repre = attribute_name + ": [" + str(lb) + ":" + str(ub) + "["
+            repre = str(attribute_name) + ": [" + str(lb) + ":" + str(ub) + "["
         return repre
 
     @staticmethod
@@ -435,11 +436,19 @@ def create_numeric_selectors_for_attribute(
     data, attr_name, nbins=5, intervals_only=True, weighting_attribute=None
 ):
     numeric_selectors = []
-    data_not_null = data[data[attr_name].notnull()]
+    if isinstance(data[attr_name].dtype, pd.SparseDtype):
+        numeric_selectors.append(EqualitySelector(attr_name, data[attr_name].sparse.fill_value))
+        dense_data = data[attr_name].sparse.sp_values
+        data_not_null = dense_data[pd.notnull(dense_data)]
+        uniqueValues = np.unique(data_not_null)
+        if len(data_not_null) < len(dense_data):
+            numeric_selectors.append(EqualitySelector(attr_name, np.nan))
+    else:
+        data_not_null = data[data[attr_name].notnull()]
 
-    uniqueValues = np.unique(data_not_null[attr_name])
-    if len(data_not_null.index) < len(data.index):
-        numeric_selectors.append(EqualitySelector(attr_name, np.nan))
+        uniqueValues = np.unique(data_not_null[attr_name])
+        if len(data_not_null) < len(data):
+            numeric_selectors.append(EqualitySelector(attr_name, np.nan))
 
     if len(uniqueValues) <= nbins:
         for val in uniqueValues:

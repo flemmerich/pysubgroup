@@ -9,6 +9,7 @@ from functools import partial
 from heapq import heappop, heappush
 
 import numpy as np
+import pandas as pd
 
 import pysubgroup as ps
 
@@ -36,6 +37,9 @@ def equal_frequency_discretization(
     cutpoints = []
     if weighting_attribute is None:
         cleaned_data = data[attribute_name]
+        if isinstance(data[attribute_name].dtype, pd.SparseDtype):
+            cleaned_data = data[attribute_name].sparse.sp_values
+
         cleaned_data = cleaned_data[~np.isnan(cleaned_data)]
         sorted_data = sorted(cleaned_data)
         number_instances = len(sorted_data)
