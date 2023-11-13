@@ -188,8 +188,10 @@ class EqualitySelector(SelectorBase):
 
     def covers(self, data):
         import pandas as pd  # pylint: disable=import-outside-toplevel
-
-        row = data[self.attribute_name].to_numpy()
+        if isinstance(data[self.attribute_name].dtype, pd.SparseDtype):
+            row = data[self.attribute_name]
+        else:
+            row = data[self.attribute_name].to_numpy()
         if pd.isnull(self.attribute_value):
             return pd.isnull(row)
         return row == self.attribute_value
