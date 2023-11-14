@@ -89,14 +89,13 @@ class Apriori:
         self.optimistic_estimate_name = "optimistic_estimate"
         self.next_level = self.get_next_level
         self.compiled_func = None
-        if use_numba:
+        if use_numba:  # pragma: no cover
             try:
-                # TODO: used?
                 import numba  # pylint: disable=unused-import, import-outside-toplevel # noqa: F401, E501
 
                 self.next_level = self.get_next_level_numba
                 print("Apriori: Using numba for speedup")
-            except ImportError:  # pragma: no cover
+            except ImportError:
                 pass
 
     def get_next_level_candidates(self, task, result, next_level_candidates):
@@ -153,7 +152,7 @@ class Apriori:
                 promising_candidates.append(sg.selectors)
         return promising_candidates
 
-    def get_next_level_numba(self, promising_candidates):
+    def get_next_level_numba(self, promising_candidates): # pragma: no cover
         if not hasattr(self, "compiled_func") or self.compiled_func is None:
             self.compiled_func = getNewCandidates
 
@@ -230,14 +229,14 @@ class Apriori:
                 #   for which all subsets of length depth (=candidate length -1)
                 #   are in the set of promising candidates
                 set_promising_candidates = set(tuple(p) for p in promising_candidates)
-                next_level_candidates = [
+                next_level_candidates = (
                     combine_selectors(selectors)
                     for selectors in next_level_candidates_no_pruning
                     if all(
                         (subset in set_promising_candidates)
                         for subset in combinations(selectors, depth)
                     )
-                ]
+                )
                 depth = depth + 1
 
         result = ps.prepare_subgroup_discovery_result(result, task)
