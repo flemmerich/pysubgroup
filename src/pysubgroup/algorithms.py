@@ -132,6 +132,9 @@ class Apriori:
         promising_candidates = []
         statistics = []
         optimistic_estimate_function = getattr(task.qf, self.optimistic_estimate_name)
+        next_level_candidates = list(next_level_candidates)
+        if len(next_level_candidates) == 0:
+            return []
         for sg in next_level_candidates:
             statistics.append(task.qf.calculate_statistics(sg, task.target, task.data))
         tpl_class = statistics[0].__class__
@@ -152,7 +155,7 @@ class Apriori:
                 promising_candidates.append(sg.selectors)
         return promising_candidates
 
-    def get_next_level_numba(self, promising_candidates): # pragma: no cover
+    def get_next_level_numba(self, promising_candidates):  # pragma: no cover
         if not hasattr(self, "compiled_func") or self.compiled_func is None:
             self.compiled_func = getNewCandidates
 
@@ -162,18 +165,25 @@ class Apriori:
             tuple(all_selectors_ids[sel] for sel in selectors)
             for selectors in promising_candidates
         ]
-        arr = np.array(promising_candidates_selector_ids, dtype=int)
+        shape1 = len(promising_candidates_selector_ids)
+        if shape1 == 0:
+            return []
+        shape2 = len(promising_candidates_selector_ids[0])
+        arr = np.array(promising_candidates_selector_ids, dtype=np.int32).reshape(
+            shape1, shape2
+        )
 
         print(len(arr))
         hashes = np.array(
             [hash(tuple(x[:-1])) for x in promising_candidates_selector_ids],
             dtype=np.int64,
         )
+        print(len(arr), arr.dtype, hashes.dtype)
         candidates_int = self.compiled_func(arr, hashes)
-        return list(
+        return [
             (*promising_candidates[i], promising_candidates[j][-1])
             for i, j in candidates_int
-        )
+        ]
 
     def get_next_level(self, promising_candidates):
         by_prefix_dict = defaultdict(list)
@@ -219,6 +229,8 @@ class Apriori:
                     promising_candidates = self.get_next_level_candidates(
                         task, result, next_level_candidates
                     )
+                if len(promising_candidates) == 0:
+                    break
 
                 if depth == task.depth:
                     break
@@ -228,15 +240,17 @@ class Apriori:
                 # select those selectors and build a subgroup from them
                 #   for which all subsets of length depth (=candidate length -1)
                 #   are in the set of promising candidates
+                curr_depth = depth  # WARNING: need copy of depth for lazy eval
                 set_promising_candidates = set(tuple(p) for p in promising_candidates)
                 next_level_candidates = (
                     combine_selectors(selectors)
                     for selectors in next_level_candidates_no_pruning
                     if all(
                         (subset in set_promising_candidates)
-                        for subset in combinations(selectors, depth)
+                        for subset in combinations(selectors, curr_depth)
                     )
                 )
+
                 depth = depth + 1
 
         result = ps.prepare_subgroup_discovery_result(result, task)

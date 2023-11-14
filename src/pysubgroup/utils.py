@@ -9,7 +9,6 @@ from functools import partial
 from heapq import heappop, heappush
 
 import numpy as np
-import pandas as pd
 
 import pysubgroup as ps
 
@@ -34,6 +33,8 @@ def prepare_subgroup_discovery_result(result, task):
 def equal_frequency_discretization(
     data, attribute_name, nbins=5, weighting_attribute=None
 ):
+    import pandas as pd  # pylint: disable=import-outside-toplevel
+
     cutpoints = []
     if weighting_attribute is None:
         cleaned_data = data[attribute_name]
