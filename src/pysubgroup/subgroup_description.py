@@ -133,6 +133,24 @@ def get_size(subgroup, data_len=None, data=None):
     return size
 
 
+def pandas_sparse_eq(col, value):
+    import pandas as pd  # pylint: disable=import-outside-toplevel
+    from pandas._libs.sparse import (
+        IntIndex,  # pylint: disable=import-outside-toplevel, no-name-in-module
+    )
+
+    col_arr = col.array
+    is_same_value = col_arr.sp_values == value
+    new_index_arr = col_arr.sp_index.indices[is_same_value]
+    index = IntIndex(len(col), new_index_arr)
+    return pd.arrays.SparseArray(
+        np.ones(len(new_index_arr), dtype=bool),
+        index,
+        col_arr.fill_value == value,
+        dtype=bool,
+    )
+
+
 class EqualitySelector(SelectorBase):
     def __init__(self, attribute_name, attribute_value, selector_name=None):
         if attribute_name is None:
@@ -188,7 +206,13 @@ class EqualitySelector(SelectorBase):
     def covers(self, data):
         import pandas as pd  # pylint: disable=import-outside-toplevel
 
-        row = data[self.attribute_name].to_numpy()
+        column = data[self.attribute_name]
+        if isinstance(column.dtype, pd.SparseDtype):
+            row = column
+            if not pd.isnull(self.attribute_value):
+                return pandas_sparse_eq(column, self.attribute_value)
+        else:
+            row = column.to_numpy()
         if pd.isnull(self.attribute_value):
             return pd.isnull(row)
         return row == self.attribute_value
@@ -324,13 +348,13 @@ class IntervalSelector(SelectorBase):
             lb = formatter.format(lb)
 
         if lower_bound == float("-inf") and upper_bound == float("inf"):
-            repre = attribute_name + " = anything"
+            repre = str(attribute_name) + " = anything"
         elif lower_bound == float("-inf"):
-            repre = attribute_name + "<" + str(ub)
+            repre = str(attribute_name) + "<" + str(ub)
         elif upper_bound == float("inf"):
-            repre = attribute_name + ">=" + str(lb)
+            repre = str(attribute_name) + ">=" + str(lb)
         else:
-            repre = attribute_name + ": [" + str(lb) + ":" + str(ub) + "["
+            repre = str(attribute_name) + ": [" + str(lb) + ":" + str(ub) + "["
         return repre
 
     @staticmethod
@@ -434,12 +458,24 @@ def create_numeric_selectors(
 def create_numeric_selectors_for_attribute(
     data, attr_name, nbins=5, intervals_only=True, weighting_attribute=None
 ):
-    numeric_selectors = []
-    data_not_null = data[data[attr_name].notnull()]
+    import pandas as pd  # pylint: disable=import-outside-toplevel
 
-    uniqueValues = np.unique(data_not_null[attr_name])
-    if len(data_not_null.index) < len(data.index):
-        numeric_selectors.append(EqualitySelector(attr_name, np.nan))
+    numeric_selectors = []
+    if isinstance(data[attr_name].dtype, pd.SparseDtype):
+        numeric_selectors.append(
+            EqualitySelector(attr_name, data[attr_name].sparse.fill_value)
+        )
+        dense_data = data[attr_name].sparse.sp_values
+        data_not_null = dense_data[pd.notnull(dense_data)]
+        uniqueValues = np.unique(data_not_null)
+        if len(data_not_null) < len(dense_data):
+            numeric_selectors.append(EqualitySelector(attr_name, np.nan))
+    else:
+        data_not_null = data[data[attr_name].notnull()]
+
+        uniqueValues = np.unique(data_not_null[attr_name])
+        if len(data_not_null) < len(data):
+            numeric_selectors.append(EqualitySelector(attr_name, np.nan))
 
     if len(uniqueValues) <= nbins:
         for val in uniqueValues:
