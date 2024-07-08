@@ -33,9 +33,14 @@ def prepare_subgroup_discovery_result(result, task):
 def equal_frequency_discretization(
     data, attribute_name, nbins=5, weighting_attribute=None
 ):
+    import pandas as pd  # pylint: disable=import-outside-toplevel
+
     cutpoints = []
     if weighting_attribute is None:
         cleaned_data = data[attribute_name]
+        if isinstance(data[attribute_name].dtype, pd.SparseDtype):
+            cleaned_data = data[attribute_name].sparse.sp_values
+
         cleaned_data = cleaned_data[~np.isnan(cleaned_data)]
         sorted_data = sorted(cleaned_data)
         number_instances = len(sorted_data)
