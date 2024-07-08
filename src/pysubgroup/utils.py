@@ -261,7 +261,7 @@ class SubgroupDiscoveryResult:
             df = results_df_autoround(df)
         return df
 
-    def to_latex(self, statistics_to_show=None):
+    def to_latex(self, statistics_to_show=None, escape_underscore=True):
         if statistics_to_show is None:
             statistics_to_show = type(self.task.target).statistic_types
         df = self.to_dataframe(statistics_to_show)
@@ -285,6 +285,9 @@ class SubgroupDiscoveryResult:
                 "lift": partial(float_formatter, digits=1),
             },
         )
+        latex = latex.replace(" AND ", r" $\wedge$ ")
+        if escape_underscore:
+            latex = latex.replace("_", r"\_")
         latex = latex.replace(" AND ", r" $\wedge$ ")
         return latex
 
