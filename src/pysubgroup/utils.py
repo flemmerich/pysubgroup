@@ -15,6 +15,16 @@ import pysubgroup as ps
 from .algorithms import SubgroupDiscoveryTask
 
 
+def str_to_bool(s):
+    s = s.lower()
+    if s in ["y", "yes", "t", "true", "on", "1"]:
+        return True
+    elif s in ["n", "no", "f", "false", "off", "0"]:
+        return False
+
+    raise ValueError(f"'{s}' is not a valid string representation of a boolean value")
+
+
 def minimum_required_quality(result, task):
     if len(result) < task.result_set_size:
         return task.min_quality
