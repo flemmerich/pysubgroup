@@ -239,7 +239,10 @@ class EqualitySelector(SelectorBase):
             try:
                 attribute_value = float(attribute_value)
             except ValueError:
-                pass
+                try:
+                    attribute_value = ps.str_to_bool(attribute_value)
+                except ValueError:
+                    pass
         return ps.EqualitySelector(attribute_name, attribute_value)
 
 
