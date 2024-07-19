@@ -134,10 +134,15 @@ class TestBasics(unittest.TestCase):
         self.assertEqual(selectors[1:], bin_sel)
 
     def test_EqualitySelector_from_str(self):
-        selector1 = ps.EqualitySelector.from_str("A=='hello'")
-        selector2 = ps.EqualitySelector("A", "hello")
-        self.assertEqual(selector1, selector2)
-        self.assertIs(selector1, selector2)
+        def test_str(s, attribute_name, attribute_value):
+            selector = ps.EqualitySelector.from_str(s)
+            _selector = ps.EqualitySelector(attribute_name, attribute_value)
+            self.assertEqual(selector, _selector)
+            self.assertIs(selector, _selector)
+
+        test_str("A=='hello'", "A", "hello")
+        test_str("A==True", "A", True)
+        test_str("A==False", "A", False)
 
     def test_IntervalSelector_from_str(self):
         def test_str(s, attribute_name, lb, ub):

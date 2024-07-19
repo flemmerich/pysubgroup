@@ -32,9 +32,9 @@ jobs:
     outputs:
       wheel-distribution: ${{ steps.wheel-distribution.outputs.path }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with: {fetch-depth: 0}  # deep clone for setuptools-scm
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         id: setup-python
         with: {python-version: "3.11"}
       - name: Run static analysis and format checkers
@@ -49,7 +49,7 @@ jobs:
       - name: Store the distribution files for use in other stages
         # `tests` and `publish` will use the same pre-built distributions,
         # so we make sure to release the exact same package that was tested
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-distribution-files
           path: dist/
@@ -60,7 +60,7 @@ jobs:
     strategy:
       matrix:
         python:
-        - "3.7"  # oldest Python supported by PSF
+        - "3.8"  # oldest Python supported by PSF
         - "3.11"  # newest Python that is stable
         platform:
         - ubuntu-latest
@@ -68,13 +68,13 @@ jobs:
         - windows-latest
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         id: setup-python
         with:
           python-version: ${{ matrix.python }}
       - name: Retrieve pre-built distribution files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with: {name: python-distribution-files, path: dist/}
       - name: Run tests
         run: >-
@@ -108,11 +108,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with: {python-version: "3.11"}
       - name: Retrieve pre-built distribution files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with: {name: python-distribution-files, path: dist/}
       # - name: Publish Package (TEST)
       #   env:
