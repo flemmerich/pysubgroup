@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.8.1] - 2024-xx-xx
+## [0.9.0] - 2024-xx-xx
 
 - dropped support for Python 3.6 and 3.7
 - Support boolean attribute values in EqualitySelector.from_str()
