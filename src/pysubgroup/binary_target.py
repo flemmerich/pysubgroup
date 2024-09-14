@@ -482,9 +482,10 @@ class GeneralizationAware_StandardQF(
     def evaluate(self, subgroup, target, data, statistics=None):
         statistics = self.ensure_statistics(subgroup, target, data, statistics)
         sg_stats = statistics.subgroup_stats
-        general_stats = statistics.generalisation_stats
         if sg_stats.size_sg == 0:
             return np.nan
+
+        general_stats = statistics.generalisation_stats
         sg_ratio = sg_stats.positives_count / sg_stats.size_sg
         return (sg_stats.size_sg / self.stats0.size_sg) ** self.a * (
             sg_ratio - self.read_p(general_stats)

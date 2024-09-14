@@ -278,7 +278,7 @@ class GeneralizationAwareQF_stats(AbstractInterestingnessMeasure):
     def get_stats_and_previous_stats(self, subgroup, target, data):
         stats_subgroup = self.qf.calculate_statistics(subgroup, target, data)
         # pylint: disable=no-member
-        if len(subgroup.selectors) == 0:
+        if subgroup == slice(None) or len(subgroup.selectors) == 0:
             return GeneralizationAwareQF_stats.ga_tuple(
                 stats_subgroup, self.aggregate_statistics(stats_subgroup, [])
             )
