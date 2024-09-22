@@ -16,12 +16,16 @@ import pysubgroup as ps
 
 @total_ordering
 class SelectorBase(ABC):
+    """Base class for selectors, ensuring each selector instance is unique."""
+
     # selector cache
     __refs__ = weakref.WeakSet()
 
     def __new__(cls, *args, **kwargs):
-        """Ensures that each selector only exists once."""
+        """Create a new SelectorBase instance, ensuring uniqueness.
 
+        Ensures that each selector only exists once by caching instances.
+        """
         # create temporary selector
         tmp = super().__new__(cls)
         tmp.set_descriptions(*args, **kwargs)
@@ -45,33 +49,49 @@ class SelectorBase(ABC):
         return tmp  # pragma: no cover
 
     def __getnewargs_ex__(self):  # pylint: disable=invalid-getnewargs-ex-returned
+        """Return arguments necessary to recreate the object during unpickling."""
         tmp_args = self.__new_args__
         del self.__new_args__
         return tmp_args
 
     def __init__(self):
+        """Initialize the SelectorBase and add it to the cache."""
         # add selector to cache
         # TODO: why not do this in `__new__`,
         # then it would be all together in one function?
         SelectorBase.__refs__.add(self)
 
     def __eq__(self, other):
+        """Check equality based on the string representation."""
         if other is None:  # pragma: no cover
             return False
         return repr(self) == repr(other)
 
     def __lt__(self, other):
+        """Define less-than comparison based on the string representation."""
         return repr(self) < repr(other)
 
     def __hash__(self):
+        """Return the hash value."""
         return self._hash  # pylint: disable=no-member
 
     @abstractmethod
     def set_descriptions(self, *args, **kwargs):
+        """Set the descriptions for the selector."""
         pass  # pragma: no cover
 
 
 def get_cover_array_and_size(subgroup, data_len=None, data=None):
+    """Compute the cover array and its size for a given subgroup.
+
+    Parameters:
+        subgroup: The subgroup for which to compute the cover array and size.
+        data_len: Optional length of the data.
+        data: Optional data.
+
+    Returns:
+        Tuple of (cover array, size).
+    """
     if hasattr(subgroup, "representation"):
         cover_arr = subgroup
         size = subgroup.size_sg
@@ -105,6 +125,16 @@ def get_cover_array_and_size(subgroup, data_len=None, data=None):
 
 
 def get_size(subgroup, data_len=None, data=None):
+    """Compute the size of the cover array for a given subgroup.
+
+    Parameters:
+        subgroup: The subgroup for which to compute the size.
+        data_len: Optional length of the data.
+        data: Optional data.
+
+    Returns:
+        Size of the cover array.
+    """
     if hasattr(subgroup, "representation"):
         size = subgroup.size_sg
     elif isinstance(subgroup, slice):
@@ -134,6 +164,15 @@ def get_size(subgroup, data_len=None, data=None):
 
 
 def pandas_sparse_eq(col, value):
+    """Compare a pandas sparse column to a value.
+
+    Parameters:
+        col: pandas Series with SparseArray data.
+        value: The value to compare with.
+
+    Returns:
+        A pandas SparseArray of booleans indicating where col equals value.
+    """
     import pandas as pd  # pylint: disable=import-outside-toplevel
     from pandas._libs.sparse import (
         IntIndex,  # pylint: disable=import-outside-toplevel, no-name-in-module
@@ -152,6 +191,8 @@ def pandas_sparse_eq(col, value):
 
 
 class EqualitySelector(SelectorBase):
+    """Selector that checks for equality with a specific value."""
+
     def __init__(self, attribute_name, attribute_value, selector_name=None):
         if attribute_name is None:
             raise TypeError()
@@ -170,21 +211,25 @@ class EqualitySelector(SelectorBase):
 
     @property
     def attribute_name(self):
+        """Name of the attribute."""
         return self._attribute_name
 
     @property
     def attribute_value(self):
+        """Value of the attribute to compare for equality."""
         return self._attribute_value
 
     def set_descriptions(
         self, attribute_name, attribute_value, selector_name=None
     ):  # pylint: disable=arguments-differ
+        """Set the descriptions (query, string, hash) for the selector."""
         self._hash, self._query, self._string = EqualitySelector.compute_descriptions(
             attribute_name, attribute_value, selector_name=selector_name
         )
 
     @classmethod
     def compute_descriptions(cls, attribute_name, attribute_value, selector_name):
+        """Compute the descriptions (hash, query, string) for the selector."""
         if isinstance(attribute_value, (str, bytes)):
             query = str(attribute_name) + "==" + "'" + str(attribute_value) + "'"
         elif attribute_value is None:
@@ -201,9 +246,18 @@ class EqualitySelector(SelectorBase):
         return (hash_value, query, string_)
 
     def __repr__(self):
+        """Representation of the selector as a query string."""
         return self._query
 
     def covers(self, data):
+        """Determine which instances in data are covered by this selector.
+
+        Parameters:
+            data: pandas DataFrame containing the data.
+
+        Returns:
+            A boolean array indicating which instances are covered.
+        """
         import pandas as pd  # pylint: disable=import-outside-toplevel
 
         column = data[self.attribute_name]
@@ -218,14 +272,24 @@ class EqualitySelector(SelectorBase):
         return row == self.attribute_value
 
     def __str__(self, open_brackets="", closing_brackets=""):
+        """String representation of the selector, optionally with brackets."""
         return open_brackets + self._string + closing_brackets
 
     @property
     def selectors(self):
+        """Return the selector itself as a tuple (for compatibility)."""
         return (self,)
 
     @staticmethod
     def from_str(s):
+        """Create an EqualitySelector from a string representation.
+
+        Parameters:
+            s: String representation of the selector.
+
+        Returns:
+            An EqualitySelector instance.
+        """
         s = s.strip()
         attribute_name, attribute_value = s.split("==")
         if attribute_value[0] == "'" and attribute_value[-1] == "'":
@@ -247,6 +311,8 @@ class EqualitySelector(SelectorBase):
 
 
 class NegatedSelector(SelectorBase):
+    """Selector that negates another selector."""
+
     def __init__(self, selector):
         # TODO: this is redundant due to `__new__` and `set_descriptions`
         self._selector = selector
@@ -255,29 +321,44 @@ class NegatedSelector(SelectorBase):
         super().__init__()
 
     def covers(self, data_instance):
+        """Determine which instances are not covered by the underlying selector.
+
+        Parameters:
+            data_instance: pandas DataFrame containing the data.
+
+        Returns:
+            A boolean array indicating which instances are not covered.
+        """
         return np.logical_not(self._selector.covers(data_instance))
 
     def __repr__(self):
+        """Representation of the negated selector as a query string."""
         return self._query
 
     def __str__(self, open_brackets="", closing_brackets=""):
+        """String representation of the negated selector."""
         return "NOT " + self._selector.__str__(open_brackets, closing_brackets)
 
     def set_descriptions(self, selector):  # pylint: disable=arguments-differ
+        """Set the descriptions (query, hash) for the negated selector."""
         self._query = "(not " + repr(selector) + ")"
         self._hash = hash(repr(self))
 
     @property
     def attribute_name(self):
+        """Name of the attribute."""
         return self._selector.attribute_name
 
     @property
     def selectors(self):
+        """Return the selector itself as a tuple (for compatibility)."""
         return (self,)
 
 
 # Including the lower bound, excluding the upper_bound
 class IntervalSelector(SelectorBase):
+    """Selector that checks if a value is within an interval."""
+
     def __init__(self, attribute_name, lower_bound, upper_bound, selector_name=None):
         assert lower_bound < upper_bound
         # TODO: this is redundant due to `__new__` and `set_descriptions`
@@ -291,33 +372,47 @@ class IntervalSelector(SelectorBase):
 
     @property
     def attribute_name(self):
+        """Name of the attribute."""
         return self._attribute_name
 
     @property
     def lower_bound(self):
+        """Lower bound of the interval (inclusive)."""
         return self._lower_bound
 
     @property
     def upper_bound(self):
+        """Upper bound of the interval (exclusive)."""
         return self._upper_bound
 
     def covers(self, data_instance):
+        """Determine which instances are covered by this interval selector.
+
+        Parameters:
+            data_instance: pandas DataFrame containing the data.
+
+        Returns:
+            A boolean array indicating which instances are within the interval.
+        """
         val = data_instance[self.attribute_name].to_numpy()
         return np.logical_and((val >= self.lower_bound), (val < self.upper_bound))
 
     def __repr__(self):
+        """Representation of the interval selector as a query string."""
         return self._query
 
     def __hash__(self):
         return self._hash
 
     def __str__(self):
+        """String representation of the interval selector."""
         return self._string
 
     @classmethod
     def compute_descriptions(
         cls, attribute_name, lower_bound, upper_bound, selector_name=None
     ):
+        """Compute the descriptions (hash, query, string) for the interval selector."""
         if selector_name is None:
             _string = cls.compute_string(
                 attribute_name, lower_bound, upper_bound, rounding_digits=2
@@ -333,12 +428,14 @@ class IntervalSelector(SelectorBase):
     def set_descriptions(
         self, attribute_name, lower_bound, upper_bound, selector_name=None
     ):  # pylint: disable=arguments-differ
+        """Set the descriptions (hash, query, string) for the interval selector."""
         self._hash, self._query, self._string = IntervalSelector.compute_descriptions(
             attribute_name, lower_bound, upper_bound, selector_name=selector_name
         )
 
     @classmethod
     def compute_string(cls, attribute_name, lower_bound, upper_bound, rounding_digits):
+        """Compute the string representation of the interval selector."""
         if rounding_digits is None:
             formatter = "{}"
         else:
@@ -362,6 +459,14 @@ class IntervalSelector(SelectorBase):
 
     @staticmethod
     def from_str(s):
+        """Create an IntervalSelector from a string representation.
+
+        Parameters:
+            s: String representation of the interval selector.
+
+        Returns:
+            An IntervalSelector instance.
+        """
         s = s.strip()
         if s.endswith(" = anything"):
             return IntervalSelector(
@@ -394,10 +499,22 @@ class IntervalSelector(SelectorBase):
 
     @property
     def selectors(self):
+        """Return the selector itself as a tuple (for compatibility)."""
         return (self,)
 
 
 def create_selectors(data, nbins=5, intervals_only=True, ignore=None):
+    """Create a list of selectors for all attributes in the data.
+
+    Parameters:
+        data: pandas DataFrame containing the data.
+        nbins: Number of bins to use for numeric attributes.
+        intervals_only: If True, only create interval selectors for numeric attributes.
+        ignore: List of attribute names to ignore.
+
+    Returns:
+        List of selectors.
+    """
     if ignore is None:
         ignore = []
     sels = create_nominal_selectors(data, ignore)
@@ -406,6 +523,15 @@ def create_selectors(data, nbins=5, intervals_only=True, ignore=None):
 
 
 def create_nominal_selectors(data, ignore=None):
+    """Create equality selectors for nominal attributes.
+
+    Parameters:
+        data: pandas DataFrame containing the data.
+        ignore: List of attribute names to ignore.
+
+    Returns:
+        List of EqualitySelector instances.
+    """
     if ignore is None:
         ignore = []
     nominal_selectors = []
@@ -425,6 +551,16 @@ def create_nominal_selectors(data, ignore=None):
 
 
 def create_nominal_selectors_for_attribute(data, attribute_name, dtypes=None):
+    """Create equality selectors for a nominal attribute.
+
+    Parameters:
+        data: pandas DataFrame containing the data.
+        attribute_name: Name of the attribute.
+        dtypes: Data types of the data columns.
+
+    Returns:
+        List of EqualitySelector instances for the attribute.
+    """
     import pandas as pd  # pylint: disable=import-outside-toplevel
 
     nominal_selectors = []
@@ -442,6 +578,18 @@ def create_nominal_selectors_for_attribute(data, attribute_name, dtypes=None):
 def create_numeric_selectors(
     data, nbins=5, intervals_only=True, weighting_attribute=None, ignore=None
 ):
+    """Create selectors for numeric attributes.
+
+    Parameters:
+        data: pandas DataFrame containing the data.
+        nbins: Number of bins to use for discretization.
+        intervals_only: If True, only create interval selectors.
+        weighting_attribute: Optional attribute for weighting.
+        ignore: List of attribute names to ignore.
+
+    Returns:
+        List of numeric selectors.
+    """
     if ignore is None:
         ignore = []  # pragma: no cover
     numeric_selectors = []
@@ -461,6 +609,18 @@ def create_numeric_selectors(
 def create_numeric_selectors_for_attribute(
     data, attr_name, nbins=5, intervals_only=True, weighting_attribute=None
 ):
+    """Create selectors for a numeric attribute.
+
+    Parameters:
+        data: pandas DataFrame containing the data.
+        attr_name: Name of the attribute.
+        nbins: Number of bins to use for discretization.
+        intervals_only: If True, only create interval selectors.
+        weighting_attribute: Optional attribute for weighting.
+
+    Returns:
+        List of numeric selectors for the attribute.
+    """
     import pandas as pd  # pylint: disable=import-outside-toplevel
 
     numeric_selectors = []
@@ -504,6 +664,15 @@ def create_numeric_selectors_for_attribute(
 
 
 def remove_target_attributes(selectors, target):
+    """Remove selectors that are based on target attributes.
+
+    Parameters:
+        selectors: List of selectors.
+        target: The target object with get_attributes method.
+
+    Returns:
+        List of selectors not based on target attributes.
+    """
     return [
         sel for sel in selectors if sel.attribute_name not in target.get_attributes()
     ]
@@ -513,31 +682,40 @@ def remove_target_attributes(selectors, target):
 # Boolean expressions
 ##############
 class BooleanExpressionBase(ABC):
+    """Base class for boolean expressions (conjunctions and disjunctions)."""
+
     def __or__(self, other):
+        """Override the '|' operator to create a new expression with logical OR."""
         tmp = copy.copy(self)
         tmp.append_or(other)
         return tmp
 
     def __and__(self, other):
+        """Override the '&' operator to create a new expression with logical AND."""
         tmp = copy.copy(self)
         tmp.append_and(other)
         return tmp
 
     @abstractmethod
     def append_and(self, to_append):
+        """Append a selector or expression using logical AND."""
         pass
 
     @abstractmethod
     def append_or(self, to_append):
+        """Append a selector or expression using logical OR."""
         pass
 
     @abstractmethod
     def __copy__(self):
+        """Create a copy of the boolean expression."""
         pass
 
 
 @total_ordering
 class Conjunction(BooleanExpressionBase):
+    """Conjunction of selectors (logical AND)."""
+
     def __init__(self, selectors):
         self._repr = None
         self._hash = None
@@ -548,6 +726,14 @@ class Conjunction(BooleanExpressionBase):
             self._selectors = [selectors]
 
     def covers(self, instance):
+        """Determine which instances are covered by the conjunction.
+
+        Parameters:
+            instance: pandas DataFrame containing the data.
+
+        Returns:
+            A boolean array indicating which instances are covered.
+        """
         # empty description ==> return a list of all '1's
         if not self._selectors:
             return np.full(len(instance), True, dtype=bool)
@@ -555,15 +741,18 @@ class Conjunction(BooleanExpressionBase):
         return np.all([sel.covers(instance) for sel in self._selectors], axis=0)
 
     def __len__(self):
+        """Return the number of selectors in the conjunction."""
         return len(self._selectors)
 
     def __str__(self, open_brackets="", closing_brackets="", and_term=" AND "):
+        """String representation of the conjunction."""
         if not self._selectors:
             return "Dataset"
         attrs = sorted(str(sel) for sel in self._selectors)
         return "".join((open_brackets, and_term.join(attrs), closing_brackets))
 
     def __repr__(self):
+        """Representation of the conjunction."""
         if self._repr is not None:
             return self._repr
         else:
@@ -571,12 +760,15 @@ class Conjunction(BooleanExpressionBase):
             return self._repr
 
     def __eq__(self, other):
+        """Check equality based on the string representation."""
         return repr(self) == repr(other)
 
     def __lt__(self, other):
+        """Define less-than comparison based on the string representation."""
         return repr(self) < repr(other)
 
     def __hash__(self):
+        """Return the hash value."""
         if self._hash is not None:
             return self._hash
         else:
@@ -584,19 +776,23 @@ class Conjunction(BooleanExpressionBase):
             return self._hash
 
     def _compute_repr(self):
+        """Compute the representation of the conjunction."""
         if not self._selectors:
             return "True"
         reprs = sorted(repr(sel) for sel in self._selectors)
         return "(" + " and ".join(reprs) + ")"
 
     def _compute_hash(self):
+        """Compute the hash of the conjunction."""
         return hash(repr(self))
 
     def _invalidate_representations(self):
+        """Invalidate cached representations."""
         self._repr = None
         self._hash = None
 
     def append_and(self, to_append):
+        """Append a selector or conjunction using logical AND."""
         if isinstance(to_append, SelectorBase):
             self._selectors.append(to_append)
         elif isinstance(to_append, Conjunction):
@@ -606,19 +802,23 @@ class Conjunction(BooleanExpressionBase):
         self._invalidate_representations()
 
     def append_or(self, to_append):
+        """Append a selector or expression using logical OR (not supported)."""
         raise RuntimeError(
             "Or operations are not supported by a pure Conjunction. Consider using DNF."
         )
 
     def pop_and(self):
+        """Remove and return the last selector added using AND."""
         return self._selectors.pop()
 
     def pop_or(self):
+        """Pop operation for OR is not supported in Conjunction."""
         raise RuntimeError(
             "Or operations are not supported by a pure Conjunction. Consider using DNF."
         )
 
     def __copy__(self):
+        """Create a copy of the conjunction."""
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
@@ -627,14 +827,24 @@ class Conjunction(BooleanExpressionBase):
 
     @property
     def depth(self):
+        """Return the number of selectors in the conjunction."""
         return len(self._selectors)
 
     @property
     def selectors(self):
+        """Return the selectors in the conjunction as a tuple."""
         return tuple(chain.from_iterable(sel.selectors for sel in self._selectors))
 
     @staticmethod
     def from_str(s):
+        """Create a Conjunction from a string representation.
+
+        Parameters:
+            s: String representation of the conjunction.
+
+        Returns:
+            A Conjunction instance.
+        """
         if s.strip() == "Dataset":
             return Conjunction([])
         selector_strings = s.split(" AND ")
@@ -650,6 +860,8 @@ class Conjunction(BooleanExpressionBase):
 
 @total_ordering
 class Disjunction(BooleanExpressionBase):
+    """Disjunction of selectors (logical OR)."""
+
     def __init__(self, selectors=None):
         if isinstance(selectors, (list, tuple)):
             self._selectors = selectors
@@ -659,43 +871,59 @@ class Disjunction(BooleanExpressionBase):
             self._selectors = [selectors]
 
     def covers(self, instance):
-        # empty description ==> return a list of all '1's
+        """Determine which instances are covered by the disjunction.
+
+        Parameters:
+            instance: pandas DataFrame containing the data.
+
+        Returns:
+            A boolean array indicating which instances are covered.
+        """
+        # empty description ==> return a list of all '0's
         if not self._selectors:
             return np.full(len(instance), False, dtype=bool)
         # non-empty description
         return np.any([sel.covers(instance) for sel in self._selectors], axis=0)
 
     def __len__(self):
+        """Return the number of selectors in the disjunction."""
         return len(self._selectors)
 
     def __str__(self, open_brackets="", closing_brackets="", or_term=" OR "):
+        """String representation of the disjunction."""
         if not self._selectors:
             return "Empty"  # pragma: no cover
         attrs = sorted(str(sel) for sel in self._selectors)
         return "".join((open_brackets, or_term.join(attrs), closing_brackets))
 
     def __repr__(self):
+        """Representation of the disjunction."""
         if not self._selectors:
             return "True"
         reprs = sorted(repr(sel) for sel in self._selectors)
         return "".join(("(", " or ".join(reprs), ")"))
 
     def __eq__(self, other):
+        """Check equality based on the string representation."""
         return repr(self) == repr(other)
 
     def __lt__(self, other):
+        """Define less-than comparison based on the string representation."""
         return repr(self) < repr(other)
 
     def __hash__(self):
+        """Return the hash value."""
         return hash(repr(self))
 
     def append_and(self, to_append):
+        """Append a selector or expression using logical AND (not supported)."""
         raise RuntimeError(
             "And operations are not supported by a pure Conjunction. "
             "Consider using DNF."
         )
 
     def append_or(self, to_append):
+        """Append a selector or disjunction using logical OR."""
         if isinstance(to_append, Disjunction):
             self._selectors.extend(to_append.selectors)
             return
@@ -705,6 +933,7 @@ class Disjunction(BooleanExpressionBase):
             self._selectors.append(to_append)
 
     def __copy__(self):
+        """Create a copy of the disjunction."""
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
@@ -713,10 +942,13 @@ class Disjunction(BooleanExpressionBase):
 
     @property
     def selectors(self):
+        """Return the selectors in the disjunction as a tuple."""
         return tuple(chain.from_iterable(sel.selectors for sel in self._selectors))
 
 
 class DNF(Disjunction):
+    """Disjunctive Normal Form expression."""
+
     def __init__(self, selectors=None):
         if selectors is None:
             selectors = []
@@ -725,6 +957,7 @@ class DNF(Disjunction):
 
     @staticmethod
     def _ensure_pure_conjunction(to_append):
+        """Ensure that the appended expression is a pure conjunction."""
         if isinstance(to_append, Conjunction):
             return to_append
         elif isinstance(to_append, SelectorBase):
@@ -739,6 +972,7 @@ class DNF(Disjunction):
                 )  # pragma: no cover
 
     def append_or(self, to_append):
+        """Append a selector or conjunction using logical OR."""
         if isinstance(to_append, ps.Disjunction):
             to_append = to_append.selectors
         try:
@@ -749,6 +983,7 @@ class DNF(Disjunction):
         super().append_or(conjunctions)
 
     def append_and(self, to_append):
+        """Append a selector using logical AND to all conjunctions."""
         if isinstance(to_append, Disjunction):
             raise NotImplementedError(
                 "Appeding a disjunction to DNF is not implemented"
@@ -761,6 +996,7 @@ class DNF(Disjunction):
             self._selectors.append(conj)
 
     def pop_and(self):
+        """Remove and return the last selector added using AND from all conjunctions."""
         out_list = [s.pop_and() for s in self._selectors]
         return_val = out_list[0]
         if all(x == return_val for x in out_list):

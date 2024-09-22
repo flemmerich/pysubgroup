@@ -170,6 +170,7 @@ def overlaps_list(sg, list_of_sgs, data, similarity_level=0.9):
     return False
 
 
+# Wrapper for other measures
 class CountCallsInterestingMeasure(BoundedInterestingnessMeasure):
     def __init__(self, qf):
         self.qf = qf

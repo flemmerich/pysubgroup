@@ -3,6 +3,7 @@ Created on 29.04.2016
 
 @author: lemmerfn
 """
+
 import copy
 import warnings
 from collections import Counter, defaultdict, namedtuple
@@ -17,7 +18,7 @@ import pysubgroup as ps
 
 class SubgroupDiscoveryTask:
     """
-    Capsulates all parameters required to perform standard subgroup discovery
+    Encapsulates all parameters required to perform standard subgroup discovery.
     """
 
     def __init__(
@@ -31,6 +32,19 @@ class SubgroupDiscoveryTask:
         min_quality=float("-inf"),
         constraints=None,
     ):
+        """
+        Initializes a new SubgroupDiscoveryTask.
+
+        Parameters:
+            data: The dataset to be analyzed.
+            target: The target concept for subgroup discovery.
+            search_space: The search space of possible selectors.
+            qf: The quality function to evaluate subgroups.
+            result_set_size: The maximum number of subgroups to return.
+            depth: The maximum depth (length) of the subgroups.
+            min_quality: The minimal quality threshold for subgroups.
+            constraints: A list of constraints to be satisfied by subgroups.
+        """
         self.data = data
         self.target = target
         self.search_space = search_space
@@ -50,6 +64,18 @@ class SubgroupDiscoveryTask:
 
 
 def constraints_satisfied(constraints, subgroup, statistics=None, data=None):
+    """
+    Checks if all constraints are satisfied for a given subgroup.
+
+    Parameters:
+        constraints: A list of constraints to check.
+        subgroup: The subgroup to be evaluated.
+        statistics: Precomputed statistics for the subgroup (optional).
+        data: The dataset to be analyzed (optional).
+
+    Returns:
+        True if all constraints are satisfied, False otherwise.
+    """
     return all(
         constr.is_satisfied(subgroup, statistics, data) for constr in constraints
     )
@@ -64,6 +90,16 @@ try:  # pragma: no cover
 
     @njit([(int32[:, :], int64[:])], cache=True)
     def getNewCandidates(candidates, hashes):  # pragma: no cover
+        """
+        Generates new candidate pairs for the next level using Numba for acceleration.
+
+        Parameters:
+            candidates: A 2D numpy array of candidate selector IDs.
+            hashes: A 1D numpy array of hash values for the candidates.
+
+        Returns:
+            A list of tuples, each containing indices of candidate pairs to be combined.
+        """
         result = []
         for i in range(len(candidates) - 1):
             for j in range(i + 1, len(candidates)):
@@ -77,9 +113,23 @@ except ImportError:  # pragma: no cover
 
 
 class Apriori:
+    """
+    Implementation of the Apriori algorithm for subgroup discovery.
+
+    This class provides methods to perform level-wise search for subgroups using the Apriori algorithm.
+    """
+
     def __init__(
         self, representation_type=None, combination_name="Conjunction", use_numba=True
     ):
+        """
+        Initializes the Apriori algorithm.
+
+        Parameters:
+            representation_type: The representation type to use for subgroups (default is BitSetRepresentation).
+            combination_name: The name of the combination method (e.g., "Conjunction" or "Disjunction").
+            use_numba: Whether to use Numba for performance optimization.
+        """
         self.combination_name = combination_name
 
         if representation_type is None:
@@ -99,6 +149,17 @@ class Apriori:
                 pass
 
     def get_next_level_candidates(self, task, result, next_level_candidates):
+        """
+        Evaluates candidates at the current level and filters promising ones for the next level.
+
+        Parameters:
+            task: The subgroup discovery task.
+            result: The current list of discovered subgroups.
+            next_level_candidates: List of subgroups to be evaluated at the current level.
+
+        Returns:
+            A list of promising candidates (selectors) for the next level.
+        """
         promising_candidates = []
         optimistic_estimate_function = getattr(task.qf, self.optimistic_estimate_name)
         for sg in next_level_candidates:
@@ -129,6 +190,17 @@ class Apriori:
         return promising_candidates
 
     def get_next_level_candidates_vectorized(self, task, result, next_level_candidates):
+        """
+        Vectorized evaluation of candidates at the current level to filter promising ones for the next level.
+
+        Parameters:
+            task: The subgroup discovery task.
+            result: The current list of discovered subgroups.
+            next_level_candidates: List of subgroups to be evaluated at the current level.
+
+        Returns:
+            A list of promising candidates (selectors) for the next level.
+        """
         promising_candidates = []
         statistics = []
         optimistic_estimate_function = getattr(task.qf, self.optimistic_estimate_name)
@@ -156,9 +228,19 @@ class Apriori:
         return promising_candidates
 
     def get_next_level_numba(self, promising_candidates):  # pragma: no cover
+        """
+        Generates the next level of candidates using Numba for acceleration.
+
+        Parameters:
+            promising_candidates: A list of promising candidate selectors.
+
+        Returns:
+            A list of new candidate selectors for the next level.
+        """
         if not hasattr(self, "compiled_func") or self.compiled_func is None:
             self.compiled_func = getNewCandidates
 
+        # Map selectors to unique IDs
         all_selectors = Counter(chain.from_iterable(promising_candidates))
         all_selectors_ids = {selector: i for i, selector in enumerate(all_selectors)}
         promising_candidates_selector_ids = [
@@ -186,6 +268,15 @@ class Apriori:
         ]
 
     def get_next_level(self, promising_candidates):
+        """
+        Generates the next level of candidates based on the current promising candidates.
+
+        Parameters:
+            promising_candidates: A list of promising candidate selectors.
+
+        Returns:
+            A list of new candidate selectors for the next level.
+        """
         by_prefix_dict = defaultdict(list)
         for sg in promising_candidates:
             by_prefix_dict[tuple(sg[:-1])].append(sg[-1])
@@ -196,6 +287,15 @@ class Apriori:
         ]
 
     def execute(self, task):
+        """
+        Executes the Apriori algorithm on the given task.
+
+        Parameters:
+            task: The subgroup discovery task to be executed.
+
+        Returns:
+            A SubgroupDiscoveryResult containing the discovered subgroups.
+        """
         if not isinstance(
             task.qf, ps.BoundedInterestingnessMeasure
         ):  # pragma: no cover
@@ -208,7 +308,7 @@ class Apriori:
         with self.representation_type(task.data, task.search_space) as representation:
             combine_selectors = getattr(representation.__class__, self.combination_name)
             result = []
-            # init the first level
+            # Initialize the first level candidates
             next_level_candidates = []
             for sel in task.search_space:
                 sg = combine_selectors([sel])
@@ -217,10 +317,10 @@ class Apriori:
                 ):
                     next_level_candidates.append(sg)
 
-            # level-wise search
+            # Level-wise search
             depth = 1
             while next_level_candidates:
-                # check sgs from the last level
+                # Evaluate subgroups from the last level
                 if self.use_vectorization:
                     promising_candidates = self.get_next_level_candidates_vectorized(
                         task, result, next_level_candidates
@@ -237,10 +337,8 @@ class Apriori:
 
                 next_level_candidates_no_pruning = self.next_level(promising_candidates)
 
-                # select those selectors and build a subgroup from them
-                #   for which all subsets of length depth (=candidate length -1)
-                #   are in the set of promising candidates
-                curr_depth = depth  # WARNING: need copy of depth for lazy eval
+                # Select selectors and build subgroups for which all subsets are in the set of promising candidates
+                curr_depth = depth  # Need copy of depth for lazy evaluation
                 set_promising_candidates = set(tuple(p) for p in promising_candidates)
                 next_level_candidates = (
                     combine_selectors(selectors)
@@ -258,7 +356,20 @@ class Apriori:
 
 
 class BestFirstSearch:
+    """
+    Implements the Best-First Search algorithm for subgroup discovery.
+    """
+
     def execute(self, task):
+        """
+        Executes the Best-First Search algorithm on the given task.
+
+        Parameters:
+            task: The subgroup discovery task to be executed.
+
+        Returns:
+            A SubgroupDiscoveryResult containing the discovered subgroups.
+        """
         result = []
         queue = [(float("-inf"), ps.Conjunction([]))]
         operator = ps.StaticSpecializationOperator(task.search_space)
@@ -286,7 +397,7 @@ class BestFirstSearch:
                     else:
                         optimistic_estimate = np.inf
 
-                    # compute refinements and fill the queue
+                    # Compute refinements and fill the queue
                     if optimistic_estimate >= ps.minimum_required_quality(result, task):
                         if ps.constraints_satisfied(
                             task.constraints_monotone,
@@ -303,16 +414,29 @@ class BestFirstSearch:
 
 
 class GeneralisingBFS:  # pragma: no cover
+    """
+    Implements a Generalizing Best-First Search algorithm for subgroup discovery.
+    """
+
     def __init__(self):
         self.alpha = 1.10
         self.discarded = [0, 0, 0, 0, 0, 0, 0]
         self.refined = [0, 0, 0, 0, 0, 0, 0]
 
     def execute(self, task):
+        """
+        Executes the Generalizing Best-First Search algorithm on the given task.
+
+        Parameters:
+            task: The subgroup discovery task to be executed.
+
+        Returns:
+            A SubgroupDiscoveryResult containing the discovered subgroups.
+        """
         result = []
         queue = []
         operator = ps.StaticGeneralizationOperator(task.search_space)
-        # init the first level
+        # Initialize the first level
         for sel in task.search_space:
             queue.append((float("-inf"), ps.Disjunction([sel])))
         task.qf.calculate_constant_statistics(task.data, task.target)
@@ -339,20 +463,11 @@ class GeneralisingBFS:  # pragma: no cover
             optimistic_estimate = task.qf.optimistic_estimate(
                 sg, task.target, task.data, statistics
             )
-            # else:
-            #    ps.add_if_required(
-            #       result, sg, task.qf.evaluate_from_dataset(task.data, sg), task)
-            #    optimistic_estimate = task.qf.optimistic_generalisation_from_dataset(
-            #       task.data, sg) if qf_is_bounded else float("inf")
-
-            # compute refinements and fill the queue
+            # Compute refinements and fill the queue
             if len(candidate_description) < task.depth and (
                 optimistic_estimate / self.alpha ** (len(candidate_description) + 1)
             ) >= ps.minimum_required_quality(result, task):
-                # print(qual)
-                # print(optimistic_estimate)
                 self.refined[len(candidate_description)] += 1
-                # print(str(candidate_description))
                 for new_description in operator.refinements(candidate_description):
                     heappush(queue, (-optimistic_estimate, new_description))
             else:
@@ -365,20 +480,36 @@ class GeneralisingBFS:  # pragma: no cover
 
 class BeamSearch:
     """
-    Implements the BeamSearch algorithm. Its a basic implementation
+    Implements the Beam Search algorithm for subgroup discovery.
     """
 
     def __init__(self, beam_width=20, beam_width_adaptive=False):
+        """
+        Initializes the Beam Search algorithm.
+
+        Parameters:
+            beam_width: The width of the beam (number of candidates to keep at each level).
+            beam_width_adaptive: Whether to adapt the beam width to the result set size.
+        """
         self.beam_width = beam_width
         self.beam_width_adaptive = beam_width_adaptive
 
     def execute(self, task):
-        # adapt beam width to the result set size if desired
+        """
+        Executes the Beam Search algorithm on the given task.
+
+        Parameters:
+            task: The subgroup discovery task to be executed.
+
+        Returns:
+            A SubgroupDiscoveryResult containing the discovered subgroups.
+        """
+        # Adapt beam width to the result set size if desired
         beam_width = self.beam_width
         if self.beam_width_adaptive:
             beam_width = task.result_set_size
 
-        # check if beam size is to small for result set
+        # Check if beam size is too small for result set
         if beam_width < task.result_set_size:
             raise RuntimeError(
                 "Beam width in the beam search algorithm "
@@ -387,7 +518,7 @@ class BeamSearch:
 
         task.qf.calculate_constant_statistics(task.data, task.target)
 
-        # init
+        # Initialize
         beam = [
             (
                 0,
@@ -405,7 +536,7 @@ class BeamSearch:
                     continue
                 setattr(last_sg, "visited", True)
                 for sel in task.search_space:
-                    # create a clone
+                    # Create a clone
                     if sel in last_sg.selectors:
                         continue
                     sg = ps.Conjunction(last_sg.selectors + (sel,))
@@ -424,7 +555,7 @@ class BeamSearch:
                     )
             depth += 1
 
-        # result = beam[-task.result_set_size:]
+        # Trim the beam to the result set size
         while len(beam) > task.result_set_size:
             heappop(beam)
 
@@ -434,10 +565,29 @@ class BeamSearch:
 
 
 class SimpleSearch:
+    """
+    Implements a simple exhaustive search algorithm for subgroup discovery.
+    """
+
     def __init__(self, show_progress=True):
+        """
+        Initializes the Simple Search algorithm.
+
+        Parameters:
+            show_progress: Whether to display a progress bar during the search.
+        """
         self.show_progress = show_progress
 
     def execute(self, task):
+        """
+        Executes the Simple Search algorithm on the given task.
+
+        Parameters:
+            task: The subgroup discovery task to be executed.
+
+        Returns:
+            A SubgroupDiscoveryResult containing the discovered subgroups.
+        """
         task.qf.calculate_constant_statistics(task.data, task.target)
         result = []
         all_selectors = chain.from_iterable(
@@ -473,7 +623,22 @@ class SimpleSearch:
 
 
 class SimpleDFS:
+    """
+    Implements a simple Depth-First Search algorithm for subgroup discovery.
+    It is the most elementary (and thus probably slow) algorithm implementation.
+    """
+
     def execute(self, task, use_optimistic_estimates=True):
+        """
+        Executes the Simple DFS algorithm on the given task.
+
+        Parameters:
+            task: The subgroup discovery task to be executed.
+            use_optimistic_estimates: Whether to use optimistic estimates for pruning.
+
+        Returns:
+            A SubgroupDiscoveryResult containing the discovered subgroups.
+        """
         task.qf.calculate_constant_statistics(task.data, task.target)
         result = self.search_internal(
             task, [], task.search_space, [], use_optimistic_estimates
@@ -484,6 +649,19 @@ class SimpleDFS:
     def search_internal(
         self, task, prefix, modification_set, result, use_optimistic_estimates
     ):
+        """
+        Recursively searches for subgroups in a depth-first manner.
+
+        Parameters:
+            task: The subgroup discovery task.
+            prefix: The current list of selectors in the subgroup description.
+            modification_set: The remaining selectors to consider.
+            result: The current list of discovered subgroups.
+            use_optimistic_estimates: Whether to use optimistic estimates for pruning.
+
+        Returns:
+            The updated list of discovered subgroups.
+        """
         sg = ps.Conjunction(copy.copy(prefix))
 
         statistics = task.qf.calculate_statistics(sg, task.target, task.data)
@@ -512,18 +690,23 @@ class SimpleDFS:
                 self.search_internal(
                     task, prefix, new_modification_set, result, use_optimistic_estimates
                 )
-                # remove the sel again
+                # Remove the selector again
                 prefix.pop(-1)
         return result
 
 
 class DFS:
     """
-    Implementation of a depth-first-search
-    with look-ahead using a provided datastructure.
+    Implementation of a depth-first search with look-ahead using a provided data structure.
     """
 
     def __init__(self, apply_representation=None):
+        """
+        Initializes the DFS algorithm.
+
+        Parameters:
+            apply_representation: The representation type to use for subgroups.
+        """
         self.target_bitset = None
         if apply_representation is None:
             apply_representation = ps.BitSetRepresentation
@@ -534,6 +717,15 @@ class DFS:
         )
 
     def execute(self, task):
+        """
+        Executes the DFS algorithm on the given task.
+
+        Parameters:
+            task: The subgroup discovery task to be executed.
+
+        Returns:
+            A SubgroupDiscoveryResult containing the discovered subgroups.
+        """
         self.operator = ps.StaticSpecializationOperator(task.search_space)
         task.qf.calculate_constant_statistics(task.data, task.target)
         result = []
@@ -543,6 +735,14 @@ class DFS:
         return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, result, sg):
+        """
+        Recursively searches for subgroups in a depth-first manner.
+
+        Parameters:
+            task: The subgroup discovery task.
+            result: The current list of discovered subgroups.
+            sg: The current subgroup being evaluated.
+        """
         statistics = task.qf.calculate_statistics(sg, task.target, task.data)
         if not constraints_satisfied(
             task.constraints_monotone, sg, statistics, task.data
@@ -562,6 +762,10 @@ class DFS:
 
 
 class DFSNumeric:
+    """
+    Implements a specialized DFS algorithm for numeric quality functions.
+    """
+
     tpl = namedtuple("size_mean_parameters", ("size_sg", "mean"))
 
     def __init__(self):
@@ -573,6 +777,15 @@ class DFSNumeric:
         self.evaluate = None
 
     def execute(self, task):
+        """
+        Executes the DFSNumeric algorithm on the given task.
+
+        Parameters:
+            task: The subgroup discovery task to be executed.
+
+        Returns:
+            A SubgroupDiscoveryResult containing the discovered subgroups.
+        """
         if not isinstance(task.qf, ps.StandardQFNumeric):
             raise RuntimeError(
                 "BSD_numeric so far is only implemented for StandardQFNumeric"
@@ -582,15 +795,15 @@ class DFSNumeric:
             task.target.get_attributes()[0], ascending=False
         )
 
-        # generate target bitset
+        # Generate target values
         self.target_values = sorted_data[task.target.get_attributes()[0]].to_numpy()
 
         task.qf.calculate_constant_statistics(task.data, task.target)
 
-        # generate selector bitsets
+        # Generate selector bitsets
         self.bitsets = {}
         for sel in task.search_space:
-            # generate bitset
+            # Generate bitset
             self.bitsets[sel] = sel.covers(sorted_data)
         result = self.search_internal(
             task, [], task.search_space, [], np.ones(len(sorted_data), dtype=bool)
@@ -599,6 +812,19 @@ class DFSNumeric:
         return ps.SubgroupDiscoveryResult(result, task)
 
     def search_internal(self, task, prefix, modification_set, result, bitset):
+        """
+        Recursively searches for subgroups in a depth-first manner using numeric quality functions.
+
+        Parameters:
+            task: The subgroup discovery task.
+            prefix: The current list of selectors in the subgroup description.
+            modification_set: The remaining selectors to consider.
+            result: The current list of discovered subgroups.
+            bitset: The current bitset representing the subgroup.
+
+        Returns:
+            The updated list of discovered subgroups.
+        """
         self.num_calls += 1
         sg_size = bitset.sum()
         if sg_size == 0:
@@ -630,6 +856,6 @@ class DFSNumeric:
                 self.search_internal(
                     task, prefix, new_modification_set, result, new_bitset
                 )
-                # remove the sel again
+                # Remove the selector again
                 prefix.pop(-1)
         return result
