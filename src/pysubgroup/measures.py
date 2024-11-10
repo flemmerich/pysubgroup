@@ -52,6 +52,10 @@ class CombinedInterestingnessMeasure(BoundedInterestingnessMeasure):
         assert len(weights) == len(measures)
         self.weights = weights
 
+        raise NotImplementedError(
+            "CombinedInterestingnessMeasure is currently not supported."
+        )
+
     def calculate_constant_statistics(self, data, target):
         pass
 
