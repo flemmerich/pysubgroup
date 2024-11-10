@@ -3,8 +3,8 @@ Created on 29.09.2017
 
 @author: lemmerfn
 
-This module defines the FITarget and related quality functions for frequent itemset mining
-using the pysubgroup package.
+This module defines the FITarget and related quality functions for frequent itemset
+mining using the pysubgroup package.
 """
 from collections import namedtuple
 from functools import total_ordering
@@ -217,7 +217,8 @@ class CountQF(SimpleCountQF, ps.BoundedInterestingnessMeasure):
 class AreaQF(SimpleCountQF):
     """Quality function that evaluates subgroups based on their area.
 
-    The area is computed as the size of the subgroup multiplied by the number of contained items
+    The area is computed as the size of the subgroup multiplied by the number of
+    contained items
     """
 
     def evaluate(self, subgroup, target, data, statistics=None):

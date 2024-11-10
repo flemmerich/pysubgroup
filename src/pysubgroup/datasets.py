@@ -1,6 +1,6 @@
 """
-This module provides functions to load example datasets for testing and demonstration purposes.
-The datasets included are the German Credit Data and the Titanic dataset.
+This module provides functions to load example datasets for testing and demonstration
+purposes. The datasets included are the German Credit Data and the Titanic dataset.
 """
 
 from io import StringIO
@@ -13,7 +13,8 @@ from scipy.io import arff
 def get_credit_data():
     """Load the German Credit Data dataset.
 
-    The dataset is provided in ARFF format and includes various attributes related to creditworthiness.
+    The dataset is provided in ARFF format and includes various attributes related to
+    creditworthiness.
 
     Returns:
         pandas.DataFrame: A DataFrame containing the credit data.
@@ -30,7 +31,8 @@ def get_credit_data():
 def get_titanic_data():
     """Load the Titanic dataset.
 
-    The dataset includes information about the passengers on the Titanic, such as age, sex, class, and survival status.
+    The dataset includes information about the passengers on the Titanic,
+    such as age, sex, class, and survival status.
 
     Returns:
         pandas.DataFrame: A DataFrame containing the Titanic data.

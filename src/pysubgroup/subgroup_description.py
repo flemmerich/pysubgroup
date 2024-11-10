@@ -307,7 +307,7 @@ class EqualitySelector(SelectorBase):
                     attribute_value = ps.str_to_bool(attribute_value)
                 except ValueError:
                     pass
-        return ps.EqualitySelector(attribute_name, attribute_value)
+        return EqualitySelector(attribute_name, attribute_value)
 
 
 class NegatedSelector(SelectorBase):
@@ -973,7 +973,7 @@ class DNF(Disjunction):
 
     def append_or(self, to_append):
         """Append a selector or conjunction using logical OR."""
-        if isinstance(to_append, ps.Disjunction):
+        if isinstance(to_append, Disjunction):
             to_append = to_append.selectors
         try:
             it = iter(to_append)

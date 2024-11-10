@@ -26,7 +26,8 @@ class EMM_Likelihood(ps.AbstractInterestingnessMeasure):
         """Initialize the EMM_Likelihood measure with a given model.
 
         Parameters:
-            model: An instance of a model class that provides fit and likelihood methods.
+            model: An instance of a model class that provides fit and likelihood
+                   methods.
         """
         self.model = model
         self.has_constant_statistics = False
@@ -157,8 +158,8 @@ class PolyRegression_ModelClass:
         Parameters:
             x_name (str): Name of the independent variable in the data.
             y_name (str): Name of the dependent variable in the data.
-            degree (int): Degree of the polynomial (currently only degree=1 is supported).
-
+            degree (int): Degree of the polynomial (currently only degree=1 is
+                          supported).
         Raises:
             ValueError: If degree is not equal to 1.
         """

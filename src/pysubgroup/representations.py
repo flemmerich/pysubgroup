@@ -1,6 +1,6 @@
 import numpy as np
 
-from pysubgroup.subgroup_description import Conjunction, Disjunction
+from .subgroup_description import Conjunction, Disjunction
 
 
 class RepresentationBase:
@@ -269,7 +269,8 @@ class NumpySet_Conjunction(Conjunction):
         """Compute the numpy array representation of the conjunction.
 
         Returns:
-            Numpy array of indices representing the instances covered by the conjunction.
+            Numpy array of indices representing the instances covered by the
+            conjunction.
         """
         # empty description ==> return an array of all indices
         if not self._selectors:

@@ -56,8 +56,8 @@ class BinaryTarget(BaseTarget):
             target_selector (Selector, optional): A predefined target selector.
 
         Raises:
-            ValueError: If both target_selector and target_attribute/target_value are provided,
-                        or if none are provided.
+            ValueError: If both target_selector and target_attribute/target_value
+                        are provided, or if none are provided.
         """
         if target_attribute is not None and target_value is not None:
             if target_selector is not None:
@@ -332,13 +332,16 @@ class ChiSquaredQF(SimplePositivesQF):  # pragma: no cover
             positives_dataset (int): Total number of positive instances in the dataset.
             instances_subgroup (int): Number of instances in the subgroup.
             positives_subgroup (int): Number of positive instances in the subgroup.
-            min_instances (int, optional): Minimum required instances; return -inf if less.
-            bidirect (bool, optional): If True, both directions are considered interesting.
-            direction_positive (bool, optional): If bidirect is False, specifies the direction.
-            index (int, optional): Index to decide whether to return statistic (0) or p-value (1).
+            min_instances (int, optional): Minimum required instances;
+                                           return -inf if less.
+            bidirect (bool, optional): If True, both directions are considered
+                                       interesting.
+            direction_positive (bool, optional): If bidirect is False, specifies the
+                                                 direction.
+            index (int, optional): Whether to return statistic (0) or p-value (1).
 
         Returns:
-            float: The chi-squared statistic or p-value, depending on the index parameter.
+            float: Chi-squared statistic or p-value, depending on the index parameter.
         """
         import scipy.stats  # pylint:disable=import-outside-toplevel
 
@@ -424,9 +427,11 @@ class ChiSquaredQF(SimplePositivesQF):  # pragma: no cover
         Initialize the ChiSquaredQF.
 
         Parameters:
-            direction (str, optional): Direction of deviation of interest ('both', 'positive', 'negative').
-            min_instances (int, optional): Minimum required instances; return -inf if less.
-            stat (str, optional): Whether to report the test statistic ('chi2') or the p-value ('p').
+            direction (str, optional): Direction of deviation of interest
+                                       ('both', 'positive', 'negative').
+            min_instances (int, optional): Minimum required instances;
+                                           return -inf if less.
+            stat (str, optional): Use test statistic ('chi2') or the p-value ('p')?
         """
         if direction == "both":
             self.bidirect = True
@@ -487,7 +492,7 @@ class StandardQF(SimplePositivesQF, BoundedInterestingnessMeasure):
         """Compute the standard quality function.
 
         Parameters:
-            a (float): Exponent to trade-off the relative size with the difference in means.
+            a (float): Exponent to trade-off the relative size with difference in means.
             instances_dataset (int): Total number of instances in the dataset.
             positives_dataset (int): Total number of positive instances in the dataset.
             instances_subgroup (int): Number of instances in the subgroup.
@@ -509,7 +514,8 @@ class StandardQF(SimplePositivesQF, BoundedInterestingnessMeasure):
         Initialize the StandardQF.
 
         Parameters:
-            a (float): Exponent to trade-off the relative size with the difference in means.
+            a (float): Exponent to trade-off the relative size with the difference in
+                       means.
         """
         self.a = a
         super().__init__()
@@ -647,8 +653,10 @@ class GeneralizationAware_StandardQF(
         Initialize the GeneralizationAware_StandardQF.
 
         Parameters:
-            a (float): Exponent to trade-off the relative size with the difference in means.
-            optimistic_estimate_strategy (str, optional): Strategy for optimistic estimates.
+            a (float): Exponent to trade-off the relative size
+                       with the difference in means.
+            optimistic_estimate_strategy (str, optional): Strategy for optimistic
+                                                          estimates.
         """
         super().__init__(StandardQF(a))
         if optimistic_estimate_strategy in ("default", "difference"):
@@ -831,7 +839,8 @@ class GeneralizationAware_StandardQF(
         )
 
     def difference_based_read_p(self, agg_tuple):
-        """Read the p-value from the aggregate tuple using the difference-based strategy.
+        """
+        Read the p-value from the aggregate tuple using the difference-based strategy.
 
         Parameters:
             agg_tuple: The aggregate statistics tuple.

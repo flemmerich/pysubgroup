@@ -1,6 +1,6 @@
 """
-This module defines the NumericTarget and associated quality functions for subgroup discovery
-when the target variable is numeric.
+This module defines the NumericTarget and associated quality functions for
+subgroup discovery when the target variable is numeric.
 """
 
 import numbers
@@ -208,7 +208,8 @@ class StandardQFNumeric(ps.BoundedInterestingnessMeasure):
             a (float): Exponent for weighting the subgroup size.
             invert (bool): Whether to invert the quality function (not used currently).
             estimator (str): Strategy for optimistic estimation ('sum', 'max', 'order').
-            centroid (str): Central tendency measure to use ('mean', 'median', 'sorted_median').
+            centroid (str): Central tendency measure to use. Can be one of
+                            ('mean', 'median', 'sorted_median').
 
         Raises:
             ValueError: If 'a' is not a number.
@@ -624,7 +625,8 @@ class StandardQFNumericMedian(ps.BoundedInterestingnessMeasure):
     """Quality function for numeric targets using median (deprecated).
 
     Note:
-        This class is no longer supported. Use StandardQFNumeric with centroid='median' instead.
+        This class is no longer supported. Use StandardQFNumeric with centroid='median'
+        instead.
     """
 
     tpl = namedtuple(
@@ -779,7 +781,8 @@ class GeneralizationAware_StandardQFNumeric(ps.GeneralizationAwareQF_stats):
             a (float): Exponent for weighting the subgroup size.
             invert (bool): Whether to invert the quality function (not used currently).
             estimator (str): Strategy for optimistic estimation.
-            centroid (str): Central tendency measure ('mean', 'median', 'sorted_median').
+            centroid (str): Central tendency measure. Can be one of
+                            ('mean', 'median', 'sorted_median').
         """
         super().__init__(
             StandardQFNumeric(a, invert=invert, estimator=estimator, centroid=centroid)

@@ -27,11 +27,12 @@ class GpGrowth:
     """
     Implementation of the GP-Growth algorithm.
 
-    GP-Growth is a generalization of FP-Growth and SD-Map capable of working with different
-    Exceptional Model Mining targets on top of Frequent Itemset Mining and Subgroup Discovery.
+    GP-Growth is a generalization of FP-Growth and SD-Map capable of working with
+    different Exceptional Model Mining targets on top of Frequent Itemset Mining
+    and Subgroup Discovery.
 
-    This class provides methods to perform pattern mining using GP-Growth, supporting both
-    bottom-up ('b_u') and top-down ('t_d') modes.
+    This class provides methods to perform pattern mining using GP-Growth, supporting
+    both bottom-up ('b_u') and top-down ('t_d') modes.
 
     Attributes:
         GP_node (namedtuple): Structure representing a node in the GP-tree.
@@ -49,7 +50,8 @@ class GpGrowth:
         Initializes the GpGrowth algorithm with the specified mode.
 
         Parameters:
-            mode (str): The mode of the algorithm ('b_u' for bottom-up, 't_d' for top-down).
+            mode (str): The mode of the algorithm
+                        ('b_u' for bottom-up, 't_d' for top-down).
         """
         self.GP_node = namedtuple(
             "GP_node", ["cls", "id", "parent", "children", "stats"]
@@ -66,7 +68,8 @@ class GpGrowth:
 
     def prepare_selectors(self, search_space, data):
         """
-        Prepares the selectors by computing their coverage arrays and filtering based on constraints.
+        Prepares the selectors by computing their coverage arrays and filtering based
+        on constraints.
 
         Parameters:
             search_space (list): The list of selectors to consider.
@@ -75,7 +78,8 @@ class GpGrowth:
         Returns:
             tuple: A tuple containing:
                 - selectors_sorted (list): The sorted list of selectors after filtering.
-                - arrs (ndarray): A 2D NumPy array where each column corresponds to the coverage array of a selector.
+                - arrs (ndarray): A 2D NumPy array where each column corresponds to the
+                                  coverage array of a selector.
         """
         selectors = []
         assert len(search_space) > 0, "Provided search space was empty"
@@ -110,7 +114,8 @@ class GpGrowth:
 
     def remove_selectors_with_low_optimistic_estimate(self, s, search_space_size):
         """
-        Removes selectors from the list that have an optimistic estimate below the minimum required quality.
+        Removes selectors from the list that have an optimistic estimate below the
+        minimum required quality.
 
         Parameters:
             s (list): List of selectors with their size and coverage arrays.
@@ -223,7 +228,8 @@ class GpGrowth:
 
     def setup(self, task):
         """
-        Prepares the algorithm by setting up the task, depth, constraints, and quality function.
+        Prepares the algorithm by setting up the task, depth, constraints, and quality
+        function.
 
         Parameters:
             task (SubgroupDiscoveryTask): The task to execute.
@@ -239,7 +245,8 @@ class GpGrowth:
         Creates the initial FP-tree from the coverage arrays.
 
         Parameters:
-            arrs (ndarray): A 2D NumPy array where each column corresponds to the coverage array of a selector.
+            arrs (ndarray): A 2D NumPy array where each column corresponds to the
+                            coverage array of a selector.
 
         Returns:
             tuple: A tuple containing:
@@ -297,7 +304,8 @@ class GpGrowth:
         Converts patterns (indices) to actual subgroups.
 
         Parameters:
-            results (list): List of results containing qualities, indices, and statistics.
+            results (list): List of results containing qualities, indices, and
+                            statistics.
             selectors_sorted (list): The list of sorted selectors.
 
         Returns:
@@ -351,7 +359,8 @@ class GpGrowth:
             root (GP_node): The root node of the tree.
             nodes (list): List of all nodes in the tree.
             new_stats: The statistics associated with the transaction.
-            classes (array-like): The class labels (selectors) present in the transaction.
+            classes (array-like): The class labels (selectors) present in the
+                                  transaction.
 
         Returns:
             GP_node: The leaf node where the transaction ends.

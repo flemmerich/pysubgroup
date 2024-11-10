@@ -38,7 +38,8 @@ class MinSupportConstraint:
             data: The dataset being analyzed (optional).
 
         Returns:
-            bool: True if the subgroup's size is at least the minimum support, False otherwise.
+            bool: True if the subgroup's size is at least the minimum support,
+                  False otherwise.
         """
         if hasattr(statistics, "size_sg"):
             return statistics.size_sg >= self.min_support
@@ -51,7 +52,8 @@ class MinSupportConstraint:
 
     def gp_prepare(self, qf):
         """
-        Prepares the constraint for the GP-Growth algorithm by accessing the size function.
+        Prepares the constraint for the GP-Growth algorithm by accessing the size
+        function.
 
         Parameters:
             qf: The quality function used in the GP-Growth algorithm.
@@ -68,6 +70,7 @@ class MinSupportConstraint:
             node: The node to be evaluated.
 
         Returns:
-            bool: True if the node's size is at least the minimum support, False otherwise.
+            bool: True if the node's size is at least the minimum support,
+                  False otherwise.
         """
         return self.get_size_sg(node) >= self.min_support

@@ -39,14 +39,17 @@ def str_to_bool(s):
 
 def minimum_required_quality(result, task):
     """
-    Determines the minimum quality required for a subgroup to be considered for inclusion in the result set.
+    Determines the minimum quality required for a subgroup to be considered for
+    inclusion in the result set.
 
     Parameters:
         result (list): The current list of subgroups (heap).
-        task (SubgroupDiscoveryTask): The task containing parameters like result_set_size and min_quality.
+        task (SubgroupDiscoveryTask): The task containing parameters like
+        result_set_size and min_quality.
 
     Returns:
-        float: The minimum required quality for a subgroup to be added to the result set.
+        float: The minimum required quality for a subgroup to be added to the result
+        set.
     """
     if len(result) < task.result_set_size:
         return task.min_quality
@@ -60,7 +63,8 @@ def prepare_subgroup_discovery_result(result, task):
 
     Parameters:
         result (list): The list of subgroups (heap).
-        task (SubgroupDiscoveryTask): The task containing parameters like result_set_size and min_quality.
+        task (SubgroupDiscoveryTask): The task containing parameters like
+                                      result_set_size and min_quality.
 
     Returns:
         list: The filtered and sorted list of subgroups.
@@ -81,7 +85,8 @@ def equal_frequency_discretization(
         data (DataFrame): The dataset containing the attribute to discretize.
         attribute_name (str): The name of the attribute to discretize.
         nbins (int): The number of bins to create.
-        weighting_attribute (str, optional): An optional attribute to weight the instances.
+        weighting_attribute (str, optional): An optional attribute to weight the
+                                             instances.
 
     Returns:
         list: A list of cutpoints defining the bins.
@@ -270,7 +275,8 @@ def derive_effective_sample_size(weights):
 
 def powerset(iterable, max_length=None):
     """
-    Generates the power set (all possible combinations) of an iterable up to a maximum length.
+    Generates the power set (all possible combinations) of an iterable up to a maximum
+    length.
 
     Parameters:
         iterable (iterable): The iterable to generate combinations from.
@@ -493,7 +499,8 @@ class SubgroupDiscoveryResult:
         Converts the results to a pandas DataFrame.
 
         Parameters:
-            statistics_to_show (list, optional): The statistics to include in the DataFrame.
+            statistics_to_show (list, optional): The statistics to include in the
+                                                 DataFrame.
             autoround (bool): If True, automatically rounds numerical columns.
             include_target (bool): If True, includes the target in the DataFrame.
 
@@ -516,7 +523,8 @@ class SubgroupDiscoveryResult:
         Converts the results to a LaTeX-formatted table.
 
         Parameters:
-            statistics_to_show (list, optional): The statistics to include in the LaTeX table.
+            statistics_to_show (list, optional): The statistics to include in the LaTeX
+                                                 table.
             escape_underscore (bool): If True, escapes underscores in strings.
 
         Returns:

@@ -116,7 +116,8 @@ class Apriori:
     """
     Implementation of the Apriori algorithm for subgroup discovery.
 
-    This class provides methods to perform level-wise search for subgroups using the Apriori algorithm.
+    This class provides methods to perform level-wise search for subgroups
+    using the Apriori algorithm.
     """
 
     def __init__(
@@ -126,8 +127,10 @@ class Apriori:
         Initializes the Apriori algorithm.
 
         Parameters:
-            representation_type: The representation type to use for subgroups (default is BitSetRepresentation).
-            combination_name: The name of the combination method (e.g., "Conjunction" or "Disjunction").
+            representation_type: The representation type to use for subgroups
+                (default is BitSetRepresentation).
+            combination_name: The name of the combination method
+                (e.g., "Conjunction" or "Disjunction").
             use_numba: Whether to use Numba for performance optimization.
         """
         self.combination_name = combination_name
@@ -150,12 +153,14 @@ class Apriori:
 
     def get_next_level_candidates(self, task, result, next_level_candidates):
         """
-        Evaluates candidates at the current level and filters promising ones for the next level.
+        Evaluates candidates at the current level and filters promising ones for
+        the next level.
 
         Parameters:
             task: The subgroup discovery task.
             result: The current list of discovered subgroups.
-            next_level_candidates: List of subgroups to be evaluated at the current level.
+            next_level_candidates: List of subgroups to be evaluated at the current
+            level.
 
         Returns:
             A list of promising candidates (selectors) for the next level.
@@ -191,12 +196,14 @@ class Apriori:
 
     def get_next_level_candidates_vectorized(self, task, result, next_level_candidates):
         """
-        Vectorized evaluation of candidates at the current level to filter promising ones for the next level.
+        Vectorized evaluation of candidates at the current level to filter promising
+        ones for the next level.
 
         Parameters:
             task: The subgroup discovery task.
             result: The current list of discovered subgroups.
-            next_level_candidates: List of subgroups to be evaluated at the current level.
+            next_level_candidates: List of subgroups to be evaluated at the current
+            level.
 
         Returns:
             A list of promising candidates (selectors) for the next level.
@@ -269,7 +276,8 @@ class Apriori:
 
     def get_next_level(self, promising_candidates):
         """
-        Generates the next level of candidates based on the current promising candidates.
+        Generates the next level of candidates based on the current promising
+        candidates.
 
         Parameters:
             promising_candidates: A list of promising candidate selectors.
@@ -337,7 +345,8 @@ class Apriori:
 
                 next_level_candidates_no_pruning = self.next_level(promising_candidates)
 
-                # Select selectors and build subgroups for which all subsets are in the set of promising candidates
+                # Select selectors and build subgroups for which all subsets are in the
+                # set of promising candidates
                 curr_depth = depth  # Need copy of depth for lazy evaluation
                 set_promising_candidates = set(tuple(p) for p in promising_candidates)
                 next_level_candidates = (
@@ -488,7 +497,7 @@ class BeamSearch:
         Initializes the Beam Search algorithm.
 
         Parameters:
-            beam_width: The width of the beam (number of candidates to keep at each level).
+            beam_width: Width of the beam (number of candidates to keep at each level).
             beam_width_adaptive: Whether to adapt the beam width to the result set size.
         """
         self.beam_width = beam_width
@@ -697,7 +706,7 @@ class SimpleDFS:
 
 class DFS:
     """
-    Implementation of a depth-first search with look-ahead using a provided data structure.
+    Depth-first search with look-ahead for a provided data structure.
     """
 
     def __init__(self, apply_representation=None):
@@ -813,7 +822,7 @@ class DFSNumeric:
 
     def search_internal(self, task, prefix, modification_set, result, bitset):
         """
-        Recursively searches for subgroups in a depth-first manner using numeric quality functions.
+        Recursively searches in a dfs-manner for numeric quality functions.
 
         Parameters:
             task: The subgroup discovery task.
