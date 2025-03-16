@@ -199,3 +199,29 @@ def supportSetVisualization(result, in_order=True, drop_empty=True):
         )
         img_arr = img_arr[keep_entities, :]
     return img_arr.T
+
+def plot_null_distribution(result, quality, bw_adjust=1.3, ax=None):
+    """Plot null distribution with subgroup quality"""
+    from matplotlib import pyplot as plt
+    import seaborn as sns
+    
+    if ax is None:
+        fig, ax = plt.subplots()
+    else:
+        fig = ax.figure
+    
+    sns.histplot(
+        result,
+        kde=True,
+        stat="density",
+        label='Null Distribution',
+        kde_kws={'bw_adjust': bw_adjust, 'cut': 3},  # Increased smoothness
+        ax=ax 
+    )
+    ax.axvline(quality, color='red', linestyle='--', label='Subgroup Quality')
+    ax.set_title("Null Distribution vs. Subgroup Quality")
+    ax.set_xlabel("Quality Score")
+    ax.set_ylabel("Density")
+    ax.legend()
+
+    return fig
