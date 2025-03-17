@@ -9,7 +9,7 @@ from pysubgroup.model_target import EMM_Likelihood, PolyRegression_ModelClass
 from pysubgroup.numeric_target import *
 from pysubgroup.refinement_operator import *
 from pysubgroup.representations import *
-from pysubgroup.statistics import Significance
+from pysubgroup.significance import Significance, StatsWrapper
 from pysubgroup.subgroup_description import *
 from pysubgroup.utils import *
 from pysubgroup.visualization import *

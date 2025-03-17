@@ -200,7 +200,7 @@ def supportSetVisualization(result, in_order=True, drop_empty=True):
         img_arr = img_arr[keep_entities, :]
     return img_arr.T
 
-def plot_null_distribution(result, quality, bw_adjust=1.3, ax=None):
+def plot_null_distribution(result, quality, bw_adjust=1.5, ax=None):
     """Plot null distribution with subgroup quality"""
     from matplotlib import pyplot as plt
     import seaborn as sns
