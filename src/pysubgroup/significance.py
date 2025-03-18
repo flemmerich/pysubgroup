@@ -1,7 +1,7 @@
 import pysubgroup as ps
 import numpy as np
 from scipy.stats import norm
-from .utils import permute
+from joblib import Parallel, delayed
 
 class Significance:
     def __init__(self, task, search_strategy=ps.BeamSearch()):
@@ -10,44 +10,107 @@ class Significance:
         self.null_distribution = None
 
 
-    def generate_null_distribution(self, num_permutations=1000, num_qualities=1):
-        """Generate null distribution.
+    @staticmethod
+    def permute(data, target_attribute):
+        """Permute the target column to break associations.
 
         Parameters:
-            num_permutations (int, optional): Number of subgroup discoveries on permuted dataset. Defaults to 1000.
-            num_qualities (int, optional): Number of permutations for null distribution. Defaults to 1 (only the best).
+            data (pd.DataFrame): The dataset to be analyzed.
+            target_attribute (pd.Series): The target attribute to permute.
 
         Returns:
-            np.array: Array of quality scores for null distribution.
+            pd.DataFrame: The dataset with permuted target attribute.
         """
-        baseline = []
-
-        for _ in range(num_permutations):
-            null_data = permute(self.task.data, self.task.target.target_selector.attribute_name)
+        null_data = data.copy()
+        null_data[target_attribute] = np.random.permutation(null_data[target_attribute].values)
+        return null_data
     
-            null_task = ps.SubgroupDiscoveryTask(
-                null_data,
-                self.task.target,
-                self.task.search_space,
-                qf=self.task.qf,
-                result_set_size=num_qualities,
-                depth=self.task.depth
-            )
-            result = self.search_strategy.execute(null_task)
 
-            df = result.to_dataframe()
-            # List (qualities) to be filled with qualities or -inf (or 0's?) until full (num_qualities)
-            if df.empty:
-                qualities = [float('-inf')] * num_qualities
-            else:
-                qualities = df['quality'].values[:num_qualities].tolist()
-                qualities += [float('-inf')] * (num_qualities - len(qualities)) 
-                
-            baseline.extend(qualities)
+    def generate_null_distribution(self, num_permutations=1000, num_qualities=1, n_jobs=-1):
+        """Generates null distribution. 
 
-        self.null_distribution = np.array(baseline)
+        Parallel execution of jobs by passing simple paramters (class references, types, DataFrame)
+        to worker. It is necessary to extract all components rather than passing the whole objects
+        to avoid problems with pickle.
+        
+        Parameters:
+            num_permutations (int, optional): Number of null hypothesis iterations
+            num_qualities (int, optional): Max number of qualities to collect per permutation
+            n_jobs (int, optional): Parallel jobs. Defaults to -1 (all cores)
+            
+        Returns:
+            np.ndarray: Flattened array of null distribution qualities
+        
+        IMPORTANT Pickle Note: Must explicitly pass all parameters needed for task recreation
+        to create new instances to ensure thread safety due to pickle limitations.
+        """
+       
+        results = Parallel(n_jobs=n_jobs)(
+            delayed(self._worker)(
+                # Pass only essential primitives/classes
+                self.task.data,
+                self.task.target.target_selector.attribute_name,
+                self.task.target.target_selector.attribute_value,
+                self.task.target.__class__,         # e.g. <class 'pysubgroup.binary_target.BinaryTarget'>
+                self.task.qf.__class__,             # e.g. <class 'pysubgroup.binary_target.WRAccQF'>
+                self.search_strategy.__class__,     # e.g. <class 'pysubgroup.algorithms.BeamSearch'>
+                self.task.depth,
+                num_qualities,
+                getattr(self.task, 'constraints', None)
+                # ignore                            # TODO: how to get the ignore value?
+            ) for _ in range(num_permutations)
+        )
+        self.null_distribution = np.concatenate(results) # results are multiple list -> flatten into single list of qualities
         return self.null_distribution
-    
+
+
+    @staticmethod
+    def _worker(data, target_attr, target_value, target_cls, qf_cls, 
+                strategy_cls, depth, num_qualities, constraints=None):
+        """Worker function that recreates independent instances in isolation.
+        
+        Constructs new SubgroupDiscoveryTask objects using only class references and simple
+        parameters to ensure pickle safety. Performs permutation and quality calculation.
+        
+        Parameters:
+            data: Dataset
+            target_attr: Name of target column
+            target_value: Name of target value
+            target_cls: Target class reference (not instance)
+            qf_cls: Quality function class reference
+            strategy_cls: Search strategy class reference
+            depth: Search depth parameter
+            num_qualities: Number of top qualities to return
+            
+        Returns:
+            list: Quality score (or -inf if no subgroups found)
+        """
+        null_data = Significance.permute(data, target_attr)
+        
+        # Recreate objects from class references
+        target = target_cls(target_attr, target_value)
+        strategy = strategy_cls()
+        qf = qf_cls()
+        
+        task = ps.SubgroupDiscoveryTask(
+            null_data,
+            target,
+            ps.create_selectors(null_data, ignore=[target_attr]),
+            qf=qf,
+            result_set_size=num_qualities,
+            depth=depth,
+            constraints=constraints
+        )
+        
+        result = strategy.execute(task)
+        df = result.to_dataframe()
+
+        if df.empty:
+            return [float('-inf')] * num_qualities
+        qualities = df['quality'].values[:num_qualities].tolist()
+        return qualities + [float('-inf')] * (num_qualities - len(qualities))
+
+
     @staticmethod
     def calculate_z_scores(observed_qualities, null_distribution):
         """Calculate Z-scores for observed subgroup qualities"""

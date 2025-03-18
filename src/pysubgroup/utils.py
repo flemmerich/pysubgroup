@@ -397,20 +397,6 @@ def intersect_of_ordered_list(list_1, list_2):
     return result
 
 
-def permute(data, target_attribute):
-    """Permute the target column to break associations.
-
-    Parameters:
-        data (pd.DataFrame): The dataset to be analyzed.
-        target_attribute (pd.Series): The target attribute to permute.
-
-    Returns:
-        pd.DataFrame: The dataset with permuted target attribute.
-    """
-    null_data = data.copy()
-    null_data[target_attribute] = np.random.permutation(null_data[target_attribute].values)
-    return null_data
-
 class BaseTarget:
     """
     Base class for defining targets in subgroup discovery.
