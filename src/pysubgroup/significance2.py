@@ -1,6 +1,5 @@
 import pysubgroup as ps
-from pysubgroup.utils import SubgroupDiscoveryResult     # import separately to prevent loop
-from pysubgroup.subgroup_description import SelectorBase # import separately to prevent loop
+from pysubgroup.utils import SubgroupDiscoveryResult # import separately to prevent loop
 import numpy as np
 from scipy.stats import shapiro, norm, anderson
 from joblib import Parallel, delayed
@@ -8,47 +7,14 @@ from statsmodels.stats.multitest import multipletests
 
 # TODO: adaptive permutation strategies (e.g. stop early if p-value is clearly not significant).
 
-# -------------------------------------------------------------------------------------------
-# Monkey-patch for __new__ and __getnewargs_ex__ of SelectorBase - needed for parallelization
-# -------------------------------------------------------------------------------------------
-
-# Store original implementations
-_original_new = SelectorBase.__new__
-_original_getnewargs_ex = SelectorBase.__getnewargs_ex__
-
-def _patched_new(cls, *args, **kwargs):
-    tmp = _original_new(cls, *args, **kwargs)
-    tmp.set_descriptions(*args, **kwargs)
-    tmp.__new_args__ = args, kwargs
-    
-    if tmp not in SelectorBase.__refs__:
-        return tmp
-        
-    for ref in SelectorBase.__refs__:
-        if ref == tmp:
-            if not hasattr(ref, '__new_args__'):
-                ref.__new_args__ = tmp.__new_args__
-            return ref
-    return tmp
-
-def _patched_getnewargs_ex(self):
-    return self.__new_args__
-    #return getattr(self, '__new_args__', ((), {}))
-
-# Apply the patches
-SelectorBase.__new__ = _patched_new
-SelectorBase.__getnewargs_ex__ = _patched_getnewargs_ex
-
-# -------------------------------------------------------------------------------------------
-# End of patch. Changed only changed few loc. Wouldn't presume to change module code directly.
-# -------------------------------------------------------------------------------------------
-
-
 class StatisticalSignificance:
-    def __init__(self, task, search_strategy=ps.BeamSearch()):
+    def __init__(self, task, search_strategy=ps.BeamSearch()): # , ignore_attrs=None, constraints=None
         self.task = task
         self.search_strategy = search_strategy
+        #self.ignore_attrs = ignore_attrs or []
+        #self.constraints = constraints
         self.null_distribution = None
+
 
     @staticmethod
     def permute(data, target_attribute):
@@ -64,45 +30,90 @@ class StatisticalSignificance:
         null_data = data.copy()
         null_data[target_attribute] = np.random.permutation(null_data[target_attribute].values)
         return null_data
-
+    
 
     def generate_null_distribution(self, num_permutations=1000, num_qualities=1, n_jobs=-1, store=True):
         """Generates null distribution. 
 
+        Parallel execution of jobs by passing simple parameters (class references, types, DataFrame)
+        to worker. It is necessary to extract all components rather than passing the whole objects
+        to avoid problems with pickle.
+        
         Parameters:
             num_permutations (int, optional): Number of null hypothesis iterations
-            num_qualities (int, optional): Max number of qualities to collect per permutation
+            num_qualities (int, optional): Number of qualities per permutation. Defaults to 1 (only best subgroup)
             n_jobs (int, optional): Parallel jobs. Defaults to -1 (all cores)
             store (boolean, optional): Parameter to assure null distribution is saved but extended one is not.
             
         Returns:
             np.ndarray: Flattened array of null distribution qualities
+        
+        IMPORTANT Pickle Note: Must explicitly pass all parameters needed for task recreation
+        to create new instances to ensure thread safety due to pickle limitations.
         """
         results = Parallel(n_jobs=n_jobs)(
-            delayed(self._worker)(num_qualities) for _ in range(num_permutations)
+            delayed(self._worker)(
+                self.task.data,
+                self.task.target.target_selector.attribute_name,
+                self.task.target.target_selector.attribute_value,
+                self.task.target.__class__,
+                self.task.qf.__class__,
+                self.search_strategy.__class__,
+                self.task.depth,
+                num_qualities,
+                # getattr(self.task, 'constraints', None) 
+                # ignore_attr,
+                # TODO: 'ignore' and other parameter are still missing. Don't know how to access them...
+            ) for _ in range(num_permutations)
         ) 
-        null_dist = np.concatenate(results)
+        null_dist = np.concatenate(results) # Flattens lists
         if store: 
-            self.null_distribution = null_dist
+            self.null_distribution = null_dist 
         return null_dist
 
-    def _worker(self, num_qualities):
-        # Create permuted data
-        target_attr = self.task.target.target_selector.attribute_name
-        permuted_data = self.permute(self.task.data, target_attr)
-
-        new_task = ps.SubgroupDiscoveryTask(
-            data=permuted_data,
-            target=self.task.target,
-            search_space=self.task.search_space,
-            qf=self.task.qf,
+    @staticmethod
+    def _worker(data, target_attr, target_value, target_cls, qf_cls, 
+                strategy_cls, depth, num_qualities, constraints=None): # ignore_attr,
+        """Worker function that recreates independent instances in isolation.
+        
+        Constructs new SubgroupDiscoveryTask objects using only class references and simple
+        parameters to ensure pickle safety. Performs permutation and quality calculation.
+        
+        Parameters:
+            data: Dataset
+            target_attr: Name of target column
+            target_value: Name of target value
+            target_cls: Target class reference (not instance)
+            qf_cls: Quality function class reference
+            strategy_cls: Search strategy class reference
+            depth: Search depth parameter
+            num_qualities: Number of top qualities to return
+            
+        Returns:
+            list: Quality score
+        """
+        null_data = StatisticalSignificance.permute(data, target_attr)
+        
+        # Recreate objects from class references
+        target = target_cls(target_attr, target_value)
+        strategy = strategy_cls()
+        qf = qf_cls()
+        
+        task = ps.SubgroupDiscoveryTask(
+            null_data,
+            target,
+            ps.create_selectors(null_data, ignore=[target_attr]), # ignore_attr
+            qf=qf,
             result_set_size=num_qualities,
-            constraints=self.task.constraints
+            depth=depth,
+            constraints=constraints
         )
         
-        result = self.search_strategy.execute(new_task)
-        return [q for q, _, _ in result.results]
-        #return [q for q, _, _ in result.results if np.isfinite(q)] # Filter non-finite. Required for normality test and p-value
+        result = strategy.execute(task)
+        df = result.to_dataframe()
+        qualities = df['quality'].values.tolist() if not df.empty else []
+        return [q for q in qualities if np.isfinite(q)] # Filter non-finite. Required for normality test and p-value
+
     
     # shapiro, anderson, and multipletests require finite inputs.
     def add_metrics_to_result(self, result, alpha=0.05, adjust_method=None):
