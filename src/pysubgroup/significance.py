@@ -32,8 +32,7 @@ def _patched_new(cls, *args, **kwargs):
     return tmp
 
 def _patched_getnewargs_ex(self):
-    return self.__new_args__
-    #return getattr(self, '__new_args__', ((), {}))
+    return getattr(self, '__new_args__', ((), {}))
 
 # Apply the patches
 SelectorBase.__new__ = _patched_new
@@ -86,10 +85,21 @@ class StatisticalSignificance:
             self.null_distribution = null_dist
         return null_dist
 
+
     def _worker(self, num_qualities):
-        # Create permuted data
-        target_attr = self.task.target.target_selector.attribute_name
-        permuted_data = self.permute(self.task.data, target_attr)
+        """Create permuted data based on target type and perform subgroup discovery."""
+        target = self.task.target
+        if isinstance(target, ps.BinaryTarget):
+            target_attr = target.target_selector.attribute_name
+            permuted_data = self.permute(self.task.data, target_attr)
+        elif isinstance(target, ps.NumericTarget):
+            target_attr = target.target_variable
+            permuted_data = self.permute(self.task.data, target_attr)
+        elif isinstance(target, ps.FITarget):
+            # For frequent itemsets, shuffle entire dataset rows
+            permuted_data = self.task.data.sample(frac=1).reset_index(drop=True)
+        else:
+            raise ValueError(f"Unsupported target type: {type(target)}")
 
         new_task = ps.SubgroupDiscoveryTask(
             data=permuted_data,
@@ -131,7 +141,7 @@ class StatisticalSignificance:
             p_values = self.calculate_p_values(z_scores)
         else:
             extended_null = self.generate_null_distribution(
-                num_permutations=5*len(self.null_distribution), # take 5 times as much for empirical calculation
+                num_permutations=3*len(self.null_distribution), # take 3 times as much for empirical calculation
                 num_qualities=1,
                 n_jobs=-1,
                 store=False # prevents self.null_distribution from overwriting
