@@ -2,6 +2,7 @@ import pysubgroup as ps
 from pysubgroup.utils import SubgroupDiscoveryResult     # import separately to prevent loop
 from pysubgroup.subgroup_description import SelectorBase # import separately to prevent loop
 import numpy as np
+import random
 from scipy.stats import shapiro, norm, anderson
 from joblib import Parallel, delayed
 from statsmodels.stats.multitest import multipletests
@@ -9,7 +10,7 @@ from statsmodels.stats.multitest import multipletests
 # TODO: adaptive permutation strategies (e.g. stop early if p-value is clearly not significant).
 
 # -------------------------------------------------------------------------------------------
-# Monkey-patch for __new__ and __getnewargs_ex__ of SelectorBase - needed for parallelization
+# Monkey-patch for __new__ and __getnewargs_ex__ of SelectorBase for serialization
 # -------------------------------------------------------------------------------------------
 
 # Store original implementations
@@ -39,7 +40,7 @@ SelectorBase.__new__ = _patched_new
 SelectorBase.__getnewargs_ex__ = _patched_getnewargs_ex
 
 # -------------------------------------------------------------------------------------------
-# End of patch. Changed only changed few loc. Wouldn't presume to change module code directly.
+# End of patch. Changed only few loc. 
 # -------------------------------------------------------------------------------------------
 
 
@@ -48,6 +49,7 @@ class StatisticalSignificance:
         self.task = task
         self.search_strategy = search_strategy
         self.null_distribution = None
+
 
     @staticmethod
     def permute(data, target_attribute):
@@ -63,6 +65,12 @@ class StatisticalSignificance:
         null_data = data.copy()
         null_data[target_attribute] = np.random.permutation(null_data[target_attribute].values)
         return null_data
+
+
+    @staticmethod
+    def column_permutation(data):
+        """Permute each column independently. Used for frequent itemsets to test item independence."""
+        return data.apply(np.random.permutation, axis=0) # apply already returns a copy 
 
 
     def generate_null_distribution(self, num_permutations=1000, num_qualities=1, n_jobs=-1, store=True):
@@ -89,15 +97,16 @@ class StatisticalSignificance:
     def _worker(self, num_qualities):
         """Create permuted data based on target type and perform subgroup discovery."""
         target = self.task.target
+        original_data = self.task.data
+
         if isinstance(target, ps.BinaryTarget):
             target_attr = target.target_selector.attribute_name
-            permuted_data = self.permute(self.task.data, target_attr)
+            permuted_data = self.permute(original_data, target_attr)
         elif isinstance(target, ps.NumericTarget):
             target_attr = target.target_variable
-            permuted_data = self.permute(self.task.data, target_attr)
+            permuted_data = self.permute(original_data, target_attr)
         elif isinstance(target, ps.FITarget):
-            # For frequent itemsets, shuffle entire dataset rows
-            permuted_data = self.task.data.sample(frac=1).reset_index(drop=True)
+            permuted_data = self.column_permutation(original_data) 
         else:
             raise ValueError(f"Unsupported target type: {type(target)}")
 
@@ -111,9 +120,9 @@ class StatisticalSignificance:
         )
         
         result = self.search_strategy.execute(new_task)
-        return [q for q, _, _ in result.results]
-        #return [q for q, _, _ in result.results if np.isfinite(q)] # Filter non-finite. Required for normality test and p-value
+        return [q for q, _, _ in result.results if np.isfinite(q)] # Filter non-finite. Required for normality test and p-value
     
+
     # shapiro, anderson, and multipletests require finite inputs.
     def add_metrics_to_result(self, result, alpha=0.05, adjust_method=None):
         """Add metrics to result object
@@ -254,6 +263,57 @@ class SignificantSubgroupResult(SubgroupDiscoveryResult):
             df['p_value_adj'] = self.adj_p_values
         return df
         
+
+class PermutationMethods:
+    @staticmethod
+    def column_permutation(data):
+        """Permute each column independently"""
+        return data.apply(np.random.permutation, axis=0)
+
+    @staticmethod
+    def edge_swap(data, num_swaps_factor=5):
+        """Your edge-swapping implementation (for bipartite adjacency matrices)"""
+        adj_matrix = data.copy()
+        total_ones = adj_matrix.to_numpy().sum()
+        num_swaps = num_swaps_factor * total_ones
+        
+        for _ in range(num_swaps):
+            ones_positions = [(r, c) for r, c in zip(*np.where(adj_matrix == 1))]
+            if len(ones_positions) < 2:
+                break
+                
+            (r1, c1), (r2, c2) = random.sample(ones_positions, 2)
+            if (r1 != r2 and c1 != c2 and 
+                adj_matrix.iloc[r1, c2] == 0 and 
+                adj_matrix.iloc[r2, c1] == 0):
+                
+                adj_matrix.iloc[r1, c1] = 0
+                adj_matrix.iloc[r2, c2] = 0
+                adj_matrix.iloc[r1, c2] = 1
+                adj_matrix.iloc[r2, c1] = 1
+                
+        return adj_matrix
+
+    @staticmethod
+    def shuffle_rows(data):
+        """Original row-wise shuffling"""
+        return data.sample(frac=1).reset_index(drop=True)
+
+    @staticmethod
+    def permute(data, target_attribute):
+        """Permute the target column to break associations.
+
+        Parameters:
+            data (pd.DataFrame): The dataset to be analyzed.
+            target_attribute (pd.Series): The target attribute to permute.
+
+        Returns:
+            pd.DataFrame: The dataset with permuted target attribute.
+        """
+        null_data = data.copy()
+        null_data[target_attribute] = np.random.permutation(null_data[target_attribute].values)
+        return null_data
+
 
 class SignificanceDecorator:
     def __init__(self, search_method, num_permutations=1000, adjust_method='holm', alpha=0.05, n_jobs=-1):
