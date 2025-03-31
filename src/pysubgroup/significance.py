@@ -70,14 +70,14 @@ class StatisticalSignificance:
     @staticmethod
     def column_permutation(data):
         """Permute each column independently. Used for frequent itemsets to test item independence."""
-        return data.apply(np.random.permutation, axis=0) # apply already returns a copy 
+        return data.apply(np.random.permutation, axis=0)
 
 
     def generate_null_distribution(self, num_permutations=1000, num_qualities=1, n_jobs=-1, store=True):
         """Generates null distribution. 
 
         Parameters:
-            num_permutations (int, optional): Number of null hypothesis iterations
+            num_permutations (int, optional): Number of permutations / null hypothesis iterations
             num_qualities (int, optional): Max number of qualities to collect per permutation
             n_jobs (int, optional): Parallel jobs. Defaults to -1 (all cores)
             store (boolean, optional): Parameter to assure null distribution is saved but extended one is not.
@@ -88,11 +88,15 @@ class StatisticalSignificance:
         results = Parallel(n_jobs=n_jobs)(
             delayed(self._worker)(num_qualities) for _ in range(num_permutations)
         ) 
-        null_dist = np.concatenate(results)
+
+        if any(results):
+            null_dist = np.concatenate(results)
+        else:
+            null_dist = np.array([])
+        
         if store: 
             self.null_distribution = null_dist
         return null_dist
-
 
     def _worker(self, num_qualities):
         """Create permuted data based on target type and perform subgroup discovery."""
@@ -116,6 +120,8 @@ class StatisticalSignificance:
             search_space=self.task.search_space,
             qf=self.task.qf,
             result_set_size=num_qualities,
+            depth=self.task.depth,
+            min_quality=self.task.min_quality,
             constraints=self.task.constraints
         )
         
@@ -130,7 +136,7 @@ class StatisticalSignificance:
         Args:
             result (SubgroupDiscoveryResult): The SubgroupDiscoveryResult object
             alpha (float, optional): Significance level for normality test and p-value threshold. Defaults to 0.05.
-            adjust_method (optional): If provided, performs multiple testing correction at this alpha level.
+            adjust_method (str, optional): If provided, performs multiple testing correction at this alpha level.
 
         Raises:
             ValueError: If self.null_distribution not exists.
@@ -141,9 +147,7 @@ class StatisticalSignificance:
         if self.null_distribution is None:
             raise ValueError("Generate null distribution first")
 
-        #observed = [q for q, _, _ in result.results]
-        observed = [q if np.isfinite(q) else np.nan for q, _, _ in result.results]
-        valid_observed = [q for q in observed if not np.isnan(q)]
+        valid_observed = [q for q, _, _ in result.results if np.isfinite(q)]
         
         if self._check_normality(alpha):
             z_scores = self.calculate_z_scores(valid_observed, self.null_distribution)
@@ -153,7 +157,7 @@ class StatisticalSignificance:
                 num_permutations=3*len(self.null_distribution), # take 3 times as much for empirical calculation
                 num_qualities=1,
                 n_jobs=-1,
-                store=False # prevents self.null_distribution from overwriting
+                store=False # prevents overwriting self.null_distribution
             )
             p_values = self.empirical_p_values(valid_observed, extended_null)
             z_scores = None
@@ -186,6 +190,7 @@ class StatisticalSignificance:
 
         return (observed_qualities - mean_null) / std_null
 
+
     @staticmethod
     def calculate_p_values(z_scores):
         """Calculate one-tailed (as extreme or more extreme) p-values."""
@@ -215,16 +220,17 @@ class StatisticalSignificance:
         Returns:
             list: Adjusted p-values
         """
-        # Type cast for efficiency and operations
         pvals = np.array(p_values)
-        
+        if pvals.size == 0:
+            return []
+            
         valid_mask = np.isfinite(pvals)
         if not np.all(valid_mask):
             pvals[~valid_mask] = 1.0 # set non-finite values to 1.0 (non-significant)
 
         _, pvals_adj, _, _ = multipletests(pvals, alpha=alpha, method=method)
         
-        return pvals_adj.tolist()
+        return pvals_adj
 
 
     def _check_normality(self, alpha=0.05):
@@ -262,75 +268,27 @@ class SignificantSubgroupResult(SubgroupDiscoveryResult):
         if self.adj_p_values is not None:
             df['p_value_adj'] = self.adj_p_values
         return df
-        
-
-class PermutationMethods:
-    @staticmethod
-    def column_permutation(data):
-        """Permute each column independently"""
-        return data.apply(np.random.permutation, axis=0)
-
-    @staticmethod
-    def edge_swap(data, num_swaps_factor=5):
-        """Your edge-swapping implementation (for bipartite adjacency matrices)"""
-        adj_matrix = data.copy()
-        total_ones = adj_matrix.to_numpy().sum()
-        num_swaps = num_swaps_factor * total_ones
-        
-        for _ in range(num_swaps):
-            ones_positions = [(r, c) for r, c in zip(*np.where(adj_matrix == 1))]
-            if len(ones_positions) < 2:
-                break
-                
-            (r1, c1), (r2, c2) = random.sample(ones_positions, 2)
-            if (r1 != r2 and c1 != c2 and 
-                adj_matrix.iloc[r1, c2] == 0 and 
-                adj_matrix.iloc[r2, c1] == 0):
-                
-                adj_matrix.iloc[r1, c1] = 0
-                adj_matrix.iloc[r2, c2] = 0
-                adj_matrix.iloc[r1, c2] = 1
-                adj_matrix.iloc[r2, c1] = 1
-                
-        return adj_matrix
-
-    @staticmethod
-    def shuffle_rows(data):
-        """Original row-wise shuffling"""
-        return data.sample(frac=1).reset_index(drop=True)
-
-    @staticmethod
-    def permute(data, target_attribute):
-        """Permute the target column to break associations.
-
-        Parameters:
-            data (pd.DataFrame): The dataset to be analyzed.
-            target_attribute (pd.Series): The target attribute to permute.
-
-        Returns:
-            pd.DataFrame: The dataset with permuted target attribute.
-        """
-        null_data = data.copy()
-        null_data[target_attribute] = np.random.permutation(null_data[target_attribute].values)
-        return null_data
 
 
 class SignificanceDecorator:
-    def __init__(self, search_method, num_permutations=1000, adjust_method='holm', alpha=0.05, n_jobs=-1):
+    def __init__(self, search_method, num_permutations=1000, num_qualities=1, adjust_method='holm', alpha=0.05, n_jobs=-1):
         """Wrapper that adds statistical significance metrics (z-score, p-value) to subgroup discovery results
 
         Parameters:
             search_method: Subgroup search strategy (e.g. BeamSearch)
             num_permutations (int, optional): Number of permutations for null distribution. Defaults to 1000.
+            num_qualities (int, optional): Max number of qualities to collect per permutation
             adjust_method (str, optional): Normality test performed. Default to 'holm'.
             alpha (float, optional): Significance level for normality test and p-value threshold.
             n_jobs (int, optional): Parallel(-1, all cores) or Serial(1). Defaults to -1.
         """
         self.search_method = search_method
         self.num_permutations = num_permutations
+        self.num_qualities = num_qualities
         self.adjust_method = adjust_method
         self.alpha = alpha
         self.n_jobs = n_jobs
+        self.null_distribution = None
 
     def execute(self, task):
         # Run original search
@@ -338,10 +296,10 @@ class SignificanceDecorator:
         
         # Calculate significance metrics
         significance = StatisticalSignificance(task, self.search_method)
-        significance.generate_null_distribution(
+        self.null_distribution = significance.generate_null_distribution(
             num_permutations=self.num_permutations,
-            num_qualities=1,
-            n_jobs=self.n_jobs
+            num_qualities=self.num_qualities,
+            n_jobs=self.n_jobs,
         )
         
         # Return enhanced result
