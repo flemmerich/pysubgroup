@@ -226,22 +226,34 @@ class StatisticalSignificance:
 
 
     def _check_normality(self, alpha=0.05):
-        """Checks for normality using Shapiro or Anderson."""
-        # Filter non-finite. Required for normality test and p-value.
-        finite_null = self.null_distribution[np.isfinite(self.null_distribution)]
-        if len(finite_null) < 3:  # Shapiro-Wilk requires min 3 samples
+        """Checks normality using Shapiro-Wilk (n <= 5000) or Anderson-Darling (n > 5000).
+
+        Parameters:
+            alpha (float, optional): Significance level. For Anderson-Darling, must be in [0.15, 0.10, 0.05, 0.025, 0.01]. Defaults to 0.05.
+
+        Returns:
+            bool: True if data appears normal at given significance level
+        """
+        if len(self.null_distribution) < 3:  # Shapiro-Wilk requires min 3 samples
             return False
 
-        # Shapiro-Wilk for small samples (inaccurate p-value for N > 5000) 
+        # Shapiro-Wilk for smaller samples (inaccurate p-value for N > 5000) 
         # (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.shapiro.html)
-        if len(finite_null) <= 5000:
-            _, p = shapiro(finite_null)
+        if len(self.null_distribution) <= 5000:
+            _, p = shapiro(self.null_distribution)
             return p >= alpha
-        else:
-            # (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson.html#scipy.stats.anderson)
-            # Anderson only supports fixed alphas: [0]:15%, [1]:10%, [2]:5%, [3]:2.5%, [4]:1%
-            result = anderson(finite_null)
-            return result.statistic < result.critical_values[2] # [2]:5%
+        
+        # Anderson-Darling for larger datasets (n > 5000)
+        # (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson.html#scipy.stats.anderson)
+        supported_alphas = [0.15, 0.10, 0.05, 0.025, 0.01]
+        if alpha not in supported_alphas:
+            raise ValueError(
+                f"Alpha must be one of {supported_alphas} for Anderson-Darling test. Got {alpha}."
+            )
+        
+        result = anderson(self.null_distribution)
+        idx = supported_alphas.index(alpha)
+        return result.statistic < result.critical_values[idx]
 
 
 class SignificantSubgroupResult(SubgroupDiscoveryResult):
