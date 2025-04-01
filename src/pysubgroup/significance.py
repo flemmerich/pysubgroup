@@ -2,7 +2,6 @@ import pysubgroup as ps
 from pysubgroup.utils import SubgroupDiscoveryResult     # import separately to prevent loop
 from pysubgroup.subgroup_description import SelectorBase # import separately to prevent loop
 import numpy as np
-import random
 from scipy.stats import shapiro, norm, anderson
 from joblib import Parallel, delayed
 from statsmodels.stats.multitest import multipletests
@@ -73,14 +72,13 @@ class StatisticalSignificance:
         return data.apply(np.random.permutation, axis=0)
 
 
-    def generate_null_distribution(self, num_permutations=1000, num_qualities=1, n_jobs=-1, store=True):
+    def generate_null_distribution(self, num_permutations=1000, num_qualities=1, n_jobs=-1):
         """Generates null distribution. 
 
         Parameters:
             num_permutations (int, optional): Number of permutations / null hypothesis iterations
             num_qualities (int, optional): Max number of qualities to collect per permutation
             n_jobs (int, optional): Parallel jobs. Defaults to -1 (all cores)
-            store (boolean, optional): Parameter to assure null distribution is saved but extended one is not.
             
         Returns:
             np.ndarray: Flattened array of null distribution qualities
@@ -93,9 +91,8 @@ class StatisticalSignificance:
             null_dist = np.concatenate(results)
         else:
             null_dist = np.array([])
-        
-        if store: 
-            self.null_distribution = null_dist
+
+        self.null_distribution = null_dist
         return null_dist
 
     def _worker(self, num_qualities):
@@ -129,7 +126,6 @@ class StatisticalSignificance:
         return [q for q, _, _ in result.results if np.isfinite(q)] # Filter non-finite. Required for normality test and p-value
     
 
-    # shapiro, anderson, and multipletests require finite inputs.
     def add_metrics_to_result(self, result, alpha=0.05, adjust_method=None):
         """Add metrics to result object
 
@@ -142,27 +138,26 @@ class StatisticalSignificance:
             ValueError: If self.null_distribution not exists.
 
         Returns:
-            SignificantSubgroupResult: 
+            SignificantSubgroupResult: A SubgroupDiscoveryResult object with added metrics.
         """
-        if self.null_distribution is None:
-            raise ValueError("Generate null distribution first")
-
-        valid_observed = [q for q, _, _ in result.results if np.isfinite(q)]
+        # Early return if there are no subgroups to analyze (base_result is empty)
+        if not result.results:
+            return SignificantSubgroupResult([], result.task, None, [], None)
         
+        if self.null_distribution is None or len(self.null_distribution) == 0:
+            raise ValueError("Null distribution is empty or not generated")
+
+        # Extract observed qualities
+        observed_qualities = np.asarray([q for q, _, _ in result.results])
+
         if self._check_normality(alpha):
-            z_scores = self.calculate_z_scores(valid_observed, self.null_distribution)
+            z_scores = self.calculate_z_scores(observed_qualities, self.null_distribution)
             p_values = self.calculate_p_values(z_scores)
         else:
-            extended_null = self.generate_null_distribution(
-                num_permutations=3*len(self.null_distribution), # take 3 times as much for empirical calculation
-                num_qualities=1,
-                n_jobs=-1,
-                store=False # prevents overwriting self.null_distribution
-            )
-            p_values = self.empirical_p_values(valid_observed, extended_null)
+            p_values = self.empirical_p_values(observed_qualities, self.null_distribution)
             z_scores = None
 
-        # Apply multiple testing correction if specified
+        # Apply multiple testing correction
         adjusted_p_values = None
         if adjust_method is not None:
             adjusted_p_values = self.adjust_p_values(
@@ -182,12 +177,8 @@ class StatisticalSignificance:
     @staticmethod
     def calculate_z_scores(observed_qualities, null_distribution):
         """Calculate Z-scores for observed subgroup qualities"""
-        if len(null_distribution) == 0:
-            return np.full_like(observed_qualities, np.nan)
-        
         mean_null = np.mean(null_distribution)
         std_null = np.std(null_distribution, ddof=1) # ddof=1 for samples
-
         return (observed_qualities - mean_null) / std_null
 
 
@@ -199,9 +190,10 @@ class StatisticalSignificance:
 
     @staticmethod
     def empirical_p_values(observed_qualities, null_distribution):
-        """Calculate empirical p-values using larger null distribution and Laplace smoothing to avoid p=0."""
+        """Calculate empirical p-values using Laplace smoothing to avoid p=0."""
         return [
             (np.sum(null_distribution >= q) + 1) / (len(null_distribution) + 1)
+            if np.isfinite(q) else np.nan
             for q in observed_qualities
         ]
   
