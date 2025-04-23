@@ -5,6 +5,8 @@ import numpy as np
 from scipy.stats import shapiro, norm, anderson
 from joblib import Parallel, delayed
 from statsmodels.stats.multitest import multipletests
+from tqdm.auto import tqdm
+from tqdm_joblib import tqdm_joblib
 
 # TODO: adaptive permutation strategies (e.g. stop early if p-value is clearly not significant).
 
@@ -83,9 +85,10 @@ class StatisticalSignificance:
         Returns:
             np.ndarray: Flattened array of null distribution qualities
         """
-        results = Parallel(n_jobs=n_jobs)(
-            delayed(self._worker)(num_qualities) for _ in range(num_permutations)
-        ) 
+        with tqdm_joblib(desc="Generating null distribution", total=num_permutations):
+            results = Parallel(n_jobs=n_jobs)(
+                delayed(self._worker)(num_qualities) for _ in range(num_permutations)
+            )
 
         if any(results):
             null_dist = np.concatenate(results)

@@ -200,28 +200,68 @@ def supportSetVisualization(result, in_order=True, drop_empty=True):
         img_arr = img_arr[keep_entities, :]
     return img_arr.T
 
-def plot_null_distribution(result, quality, bw_adjust=1, ax=None):
-    """Plot null distribution with subgroup quality"""
+
+def plot_null_distribution(null_distribution, quality, 
+                           bw_adjust=1, 
+                           compare_gumbel=False, 
+                           compare_normal=False,
+                           ax=None
+                          ):
+    """Plot null distribution with subgroup quality.
+    
+    Args:
+        null_distribution (array-like): Permutation test results for the subgroup
+        observed_quality (float): Actual quality score of the subgroup
+        bw_adjust (float): Bandwidth adjustment for KDE smoothing
+        ax (matplotlib.axes.Axes): Existing axes to plot on (optional)
+        compare_gumbel (bool): Whether to fit and plot Gumbel distribution (default: False)
+        compare_normal (bool): Whether to fit and plot Normal distribution (CLT) (default: False)
+        
+    Returns:
+        matplotlib.figure.Figure: The created figure if ax=None, else None
+    """
     from matplotlib import pyplot as plt
     import seaborn as sns
-    
+    from scipy.stats import norm, gumbel_r
+
+    fig = None
     if ax is None:
         fig, ax = plt.subplots()
+        created_figure = True
     else:
-        fig = ax.figure
-    
+        created_figure = False
+
+    # Plotting
     sns.histplot(
-        result,
+        null_distribution,
         kde=True,
         stat="density",
         label='Null Distribution',
-        kde_kws={'bw_adjust': bw_adjust, 'cut': 3},  # Increase smoothness
-        ax=ax 
+        kde_kws={'bw_adjust': bw_adjust, 'cut': 3},
+        ax=ax
     )
     ax.axvline(quality, color='red', linestyle='--', label='Subgroup Quality')
+
+    if compare_gumbel or compare_normal:
+        x = np.linspace(np.min(null_distribution), np.max(null_distribution), 100)
+
+    # Fit and plot Gumbel distribution if requested
+    if compare_gumbel:
+        mu, beta = gumbel_r.fit(null_distribution)
+        ax.plot(x, gumbel_r.pdf(x, mu, beta), color='green', linestyle='--', label='Gumbel Fit')
+
+    # Fit and plot Normal distribution (CLT) if requested
+    if compare_normal:
+        mean, std = np.mean(null_distribution), np.std(null_distribution)
+        ax.plot(x, norm.pdf(x, mean, std), color='orange', linestyle='--', label='Normal Fit')
+
     ax.set_title("Null Distribution vs. Subgroup Quality")
     ax.set_xlabel("Quality Score")
     ax.set_ylabel("Density")
     ax.legend()
-
-    return fig
+    
+    if fig:
+        fig.tight_layout()  # Only apply tight layout if we created the figure
+    plt.close()
+    
+    return fig if created_figure else None
