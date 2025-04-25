@@ -79,7 +79,7 @@ class TestStatisticalSignificance(unittest.TestCase):
             min_quality=1.0  # No subgroup can achieve this
         )
         
-        decorator = ps.SignificanceDecorator(ps.BeamSearch(), num_permutations=10)
+        decorator = ps.SignificanceDecorator(ps.BeamSearch(), num_permutations=50)
         result = decorator.execute(task)       
         self.assertEqual(len(result.results), 0, "Result list should be empty")
         self.assertEqual(len(result.to_dataframe()), 0, "No rows in dataframe")
@@ -125,7 +125,6 @@ class TestStatisticalSignificance(unittest.TestCase):
         self.assertIsInstance(fig, plt.Figure)
         
         plt.close(fig)
-        # plt.show()     # just deactivate non-interactive backend and look at the plot...
 
 if __name__ == '__main__':
     unittest.main()

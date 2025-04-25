@@ -58,7 +58,7 @@ class StatisticalSignificance:
 
         Parameters:
             data (pd.DataFrame): The dataset to be analyzed.
-            target_attribute (pd.Series): The target attribute to permute.
+            target_attribute (str): The name of the target column to permute.
 
         Returns:
             pd.DataFrame: The dataset with permuted target attribute.
@@ -78,8 +78,8 @@ class StatisticalSignificance:
         """Generates null distribution. 
 
         Parameters:
-            num_permutations (int, optional): Number of permutations / null hypothesis iterations
-            num_qualities (int, optional): Max number of qualities to collect per permutation
+            num_permutations (int, optional): Number of permutations. Defaults to 1000.
+            num_qualities (int, optional): Max number of top qualities to collect per permutation. Defaults to 1.
             n_jobs (int, optional): Parallel jobs. Defaults to -1 (all cores)
             
         Returns:
@@ -205,11 +205,11 @@ class StatisticalSignificance:
     def adjust_p_values(p_values, method='holm', alpha=0.05):
         """
         Apply multiple testing correction to p-values.
-        Possible methods: bonferroni, holm, fdr_bh
+        Possible methods: 'bonferroni', 'holm', 'fdr_bh' (see https://www.statsmodels.org/dev/generated/statsmodels.stats.multitest.multipletests.html)
         
         Parameters:
             p_values (list): List of p-values to adjust
-            method (str): Correction method (see https://www.statsmodels.org/dev/generated/statsmodels.stats.multitest.multipletests.html)
+            method (str): Correction method
             alpha (float): Significance level for normality test and p-value threshold. Defaults to 0.05.
             
         Returns:
@@ -284,10 +284,10 @@ class SignificanceDecorator:
         Parameters:
             search_method: Subgroup search strategy (e.g. BeamSearch)
             num_permutations (int, optional): Number of permutations for null distribution. Defaults to 1000.
-            num_qualities (int, optional): Max number of qualities to collect per permutation
-            adjust_method (str, optional): Normality test performed. Default to 'holm'.
-            alpha (float, optional): Significance level for normality test and p-value threshold.
-            n_jobs (int, optional): Parallel(-1, all cores) or Serial(1). Defaults to -1.
+            num_qualities (int, optional): Max number of top qualities to collect per permutation. Defaults to 1.
+            adjust_method (str, optional): Method for multiple testing correction (e.g., 'holm', 'bonferroni', 'fdr_bh'). Defaults to 'holm'.
+            alpha (float, optional): Significance level for normality test and p-value threshold. Defaults to 0.05.
+            n_jobs (int, optional): Parallel(-1, all cores) or Serial(1, num of cores). Defaults to -1.
         """
         self.search_method = search_method
         self.num_permutations = num_permutations

@@ -225,11 +225,10 @@ def plot_null_distribution(null_distribution, quality,
     from scipy.stats import norm, gumbel_r
 
     fig = None
+    created_figure = False
     if ax is None:
         fig, ax = plt.subplots()
         created_figure = True
-    else:
-        created_figure = False
 
     # Plotting
     sns.histplot(
@@ -237,7 +236,7 @@ def plot_null_distribution(null_distribution, quality,
         kde=True,
         stat="density",
         label='Null Distribution',
-        kde_kws={'bw_adjust': bw_adjust, 'cut': 3},
+        kde_kws={'bw_adjust': bw_adjust, 'cut': 1},
         ax=ax
     )
     ax.axvline(quality, color='red', linestyle='--', label='Subgroup Quality')
@@ -248,9 +247,9 @@ def plot_null_distribution(null_distribution, quality,
     # Fit and plot Gumbel distribution if requested
     if compare_gumbel:
         mu, beta = gumbel_r.fit(null_distribution)
-        ax.plot(x, gumbel_r.pdf(x, mu, beta), color='green', linestyle='--', label='Gumbel Fit')
+        ax.plot(x, gumbel_r.pdf(x, mu, beta), color='mediumspringgreen', linestyle='--', label='Gumbel Fit')
 
-    # Fit and plot Normal distribution (CLT) if requested
+    # Fit and plot Normal distribution if requested
     if compare_normal:
         mean, std = np.mean(null_distribution), np.std(null_distribution)
         ax.plot(x, norm.pdf(x, mean, std), color='orange', linestyle='--', label='Normal Fit')
