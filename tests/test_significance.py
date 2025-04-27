@@ -43,7 +43,7 @@ class TestStatisticalSignificance(unittest.TestCase):
     def test_result_metrics_inclusion(self):
         """Test p-value calculation when normality is passed and test multiple testing correction."""
         with patch.object(ps.StatisticalSignificance, '_check_normality', return_value=True):
-            decorator = ps.SignificanceDecorator(ps.BeamSearch(), num_permutations=50, adjust_method='holm')
+            decorator = ps.Stats(ps.BeamSearch(), num_permutations=50, adjust_method='holm')
             result = decorator.execute(self.task)
             df = result.to_dataframe()
             
@@ -58,7 +58,7 @@ class TestStatisticalSignificance(unittest.TestCase):
     def test_empirical_p_values_non_normal(self):
         """Test empirical p-value calculation when normality failed."""
         with patch.object(ps.StatisticalSignificance, '_check_normality', return_value=False):
-            decorator = ps.SignificanceDecorator(ps.BeamSearch(), num_permutations=100)
+            decorator = ps.Stats(ps.BeamSearch(), num_permutations=100)
             result = decorator.execute(self.task)
             df = result.to_dataframe()
             
@@ -79,7 +79,7 @@ class TestStatisticalSignificance(unittest.TestCase):
             min_quality=1.0  # No subgroup can achieve this
         )
         
-        decorator = ps.SignificanceDecorator(ps.BeamSearch(), num_permutations=50)
+        decorator = ps.Stats(ps.BeamSearch(), num_permutations=50)
         result = decorator.execute(task)       
         self.assertEqual(len(result.results), 0, "Result list should be empty")
         self.assertEqual(len(result.to_dataframe()), 0, "No rows in dataframe")
@@ -107,7 +107,7 @@ class TestStatisticalSignificance(unittest.TestCase):
         matplotlib.use('Agg')
         
         # Generate results and null distribution
-        decorator = ps.SignificanceDecorator(ps.BeamSearch(), num_permutations=50)
+        decorator = ps.Stats(ps.BeamSearch(), num_permutations=50)
         result = decorator.execute(self.task)
 
         # Get test data

@@ -277,7 +277,7 @@ class SignificantSubgroupResult(SubgroupDiscoveryResult):
         return df
 
 
-class SignificanceDecorator:
+class Stats:
     def __init__(self, search_method, num_permutations=1000, num_qualities=1, adjust_method='holm', alpha=0.05, n_jobs=-1):
         """Wrapper that adds statistical significance metrics (z-score, p-value) to subgroup discovery results
 
