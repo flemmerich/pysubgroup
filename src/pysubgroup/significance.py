@@ -196,7 +196,7 @@ class StatisticalSignificance:
         """Calculate empirical p-values using Laplace smoothing to avoid p=0."""
         return [
             (np.sum(null_distribution >= q) + 1) / (len(null_distribution) + 1)
-            if np.isfinite(q) else np.nan
+            if np.isfinite(q) else 1.0 # set non-finite values to 1.0 (non-significant)
             for q in observed_qualities
         ]
   
@@ -240,13 +240,13 @@ class StatisticalSignificance:
         if len(self.null_distribution) < 3:  # Shapiro-Wilk requires min 3 samples
             return False
 
-        # Shapiro-Wilk for smaller samples (inaccurate p-value for N > 5000) 
+        # Shapiro-Wilk for smaller samples (accurate p-value for N <= 5000) 
         # (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.shapiro.html)
         if len(self.null_distribution) <= 5000:
             _, p = shapiro(self.null_distribution)
             return p >= alpha
         
-        # Anderson-Darling for larger datasets (n > 5000)
+        # Anderson-Darling for larger datasets (N > 5000)
         # (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson.html#scipy.stats.anderson)
         supported_alphas = [0.15, 0.10, 0.05, 0.025, 0.01]
         if alpha not in supported_alphas:
@@ -315,3 +315,4 @@ class Stats:
             alpha=self.alpha,
             adjust_method=self.adjust_method
         )
+    
