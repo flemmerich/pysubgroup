@@ -2,7 +2,7 @@ import pysubgroup as ps
 from pysubgroup.utils import SubgroupDiscoveryResult     # import separately to prevent loop
 from pysubgroup.subgroup_description import SelectorBase # import separately to prevent loop
 import numpy as np
-from scipy.stats import shapiro, norm, anderson
+from scipy.stats import shapiro, norm, gumbel_r, anderson
 from joblib import Parallel, delayed
 from statsmodels.stats.multitest import multipletests
 from tqdm.auto import tqdm
@@ -130,18 +130,21 @@ class StatisticalSignificance:
     
 
     def add_metrics_to_result(self, result, alpha=0.05, adjust_method=None):
-        """Add metrics to result object
+        """Adds statistical significance metrics to subgroup discovery results.
 
         Args:
-            result (SubgroupDiscoveryResult): The SubgroupDiscoveryResult object
-            alpha (float, optional): Significance level for normality test and p-value threshold. Defaults to 0.05.
-            adjust_method (str, optional): If provided, performs multiple testing correction at this alpha level.
-
-        Raises:
-            ValueError: If self.null_distribution not exists.
+            result (SubgroupDiscoveryResult): Result object from subgroup discovery.
+            alpha (float): Significance level for distribution tests. Defaults to 0.05.
+            adjust_method (str, optional): Multiple testing correction method (e.g., 'holm', 'fdr_bh').
 
         Returns:
-            SignificantSubgroupResult: A SubgroupDiscoveryResult object with added metrics.
+            SignificantSubgroupResult: Enhanced result with:
+                - `standardized_values`: Z-scores (normal) or (x-μ)/β (Gumbel R)
+                - `p_values`: One-tailed p-values based on detected distribution
+                - `adj_p_values`: Adjusted p-values (if `adjust_method` specified)
+
+        Raises:
+            ValueError: If `alpha` is invalid for Anderson-Darling tests.
         """
         # Early return if there are no subgroups to analyze (base_result is empty)
         if not result.results:
@@ -153,12 +156,21 @@ class StatisticalSignificance:
         # Extract observed qualities
         observed_qualities = np.asarray([q for q, _, _ in result.results])
 
-        if self._check_normality(alpha):
+        is_normal = self._check_normality(alpha)
+        is_gumbel_r = self._check_gumbel_r(alpha)
+
+        if is_normal:
             z_scores = self.calculate_z_scores(observed_qualities, self.null_distribution)
             p_values = self.calculate_p_values(z_scores)
+            standardized_values = z_scores
+        elif is_gumbel_r:
+            mu, beta = gumbel_r.fit(self.null_distribution)
+            standardized_values = (observed_qualities - mu) / beta
+            p_values = gumbel_r.sf(standardized_values)
+            z_scores = None  # Avoid confusion with normal z-scores
         else:
             p_values = self.empirical_p_values(observed_qualities, self.null_distribution)
-            z_scores = None
+            standardized_values = None
 
         # Apply multiple testing correction
         adjusted_p_values = None
@@ -171,7 +183,7 @@ class StatisticalSignificance:
         return SignificantSubgroupResult(
                 result.results.copy(), 
                 result.task,
-                z_scores,
+                standardized_values,
                 p_values,
                 adjusted_p_values
             )
@@ -229,13 +241,17 @@ class StatisticalSignificance:
 
 
     def _check_normality(self, alpha=0.05):
-        """Checks normality using Shapiro-Wilk (n <= 5000) or Anderson-Darling (n > 5000).
+        """Checks if the null distribution follows a normal distribution using Shapiro-Wilk (n ≤ 5000) 
+        or Anderson-Darling (n > 5000).
 
         Parameters:
-            alpha (float, optional): Significance level. For Anderson-Darling, must be in [0.15, 0.10, 0.05, 0.025, 0.01]. Defaults to 0.05.
+            alpha (float): Significance level. For Anderson-Darling, must be one of [0.15, 0.10, 0.05, 0.025, 0.01].
 
         Returns:
-            bool: True if data appears normal at given significance level
+            bool: True if the null distribution appears normal at the given significance level.
+
+        Raises:
+            ValueError: If `alpha` is not supported for the Anderson-Darling test.
         """
         if len(self.null_distribution) < 3:  # Shapiro-Wilk requires min 3 samples
             return False
@@ -259,18 +275,72 @@ class StatisticalSignificance:
         return result.statistic < result.critical_values[idx]
 
 
+    def _check_gumbel_r(self, alpha=0.05):
+        """Checks if the null distribution follows a Gumbel R distribution using the Anderson-Darling test.
+
+        Parameters:
+            alpha (float): Significance level. Must be one of [0.15, 0.10, 0.05, 0.025, 0.01].
+
+        Returns:
+            bool: True if the standardized null distribution passes the Anderson-Darling test for Gumbel R.
+
+        Raises:
+            ValueError: If `alpha` is not in the list of supported significance levels.
+        """
+        data = self.null_distribution
+        if len(data) < 2:
+            return False
+
+        # Fit parameters and standardize
+        try:
+            mu, beta = gumbel_r.fit(data)
+            standardized_data = (data - mu) / beta
+        except:
+            return False
+
+        # Validate alpha
+        supported_alphas = [0.15, 0.10, 0.05, 0.025, 0.01]
+        if alpha not in supported_alphas:
+            raise ValueError(
+                f"Alpha must be one of {supported_alphas} for Gumbel R test. Got {alpha}."
+            )
+
+        # Anderson-Darling test for Gumbel R
+        try:
+            result = anderson(standardized_data, dist='gumbel_r')
+        except ValueError:
+            return False
+
+        idx = supported_alphas.index(alpha)
+        return result.statistic < result.critical_values[idx]
+
+
 class SignificantSubgroupResult(SubgroupDiscoveryResult):
-    """Enhanced result class with statistical metrics"""
-    def __init__(self, results, task, z_scores, p_values, adj_p_values=None):
+    """Subgroup discovery result enhanced with statistical significance metrics.
+
+    Attributes:
+        standardized_values (list[float]): 
+            - For normal distribution: Z-scores relative to null distribution.
+            - For Gumbel R: Standardized values (x-μ)/β using fitted parameters.
+            - None if empirical p-values are used.
+        p_values (list[float]): One-tailed p-values (normal/Gumbel survival function or empirical).
+        adj_p_values (list[float]): Adjusted p-values after multiple testing correction.
+    """
+    def __init__(self, results, task, standardized_values, p_values, adj_p_values=None):
         super().__init__(results, task)
-        self.z_scores = z_scores
+        self.standardized_values = standardized_values 
         self.p_values = p_values
         self.adj_p_values = adj_p_values
 
     def to_dataframe(self):
+        """Converts results to a DataFrame with added statistical columns:
+            - `standardized_value`: See class attribute documentation.
+            - `p_value`: Raw significance level.
+            - `p_value_adj`: Adjusted p-value (if applicable).
+        """
         df = super().to_dataframe()
-        if self.z_scores is not None:
-            df['z_score'] = self.z_scores
+        if self.standardized_values is not None:
+            df['standardized_value'] = self.standardized_values
         df['p_value'] = self.p_values
         if self.adj_p_values is not None:
             df['p_value_adj'] = self.adj_p_values
