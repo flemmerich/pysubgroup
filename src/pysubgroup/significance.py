@@ -164,9 +164,7 @@ class StatisticalSignificance:
             p_values = self.calculate_p_values(z_scores)
             standardized_values = z_scores
         elif is_gumbel_r:
-            mu, beta = gumbel_r.fit(self.null_distribution)
-            standardized_values = (observed_qualities - mu) / beta
-            p_values = gumbel_r.sf(standardized_values)
+            standardized_values, p_values = self.calculate_gumbel_metrics(observed_qualities, self.null_distribution)
             z_scores = None  # Avoid confusion with normal z-scores
         else:
             p_values = self.empirical_p_values(observed_qualities, self.null_distribution)
@@ -202,6 +200,15 @@ class StatisticalSignificance:
         """Calculate one-tailed (as extreme or more extreme) p-values."""
         return norm.sf(z_scores)
 
+
+    @staticmethod
+    def calculate_gumbel_metrics(observed_qualities, null_distribution):
+        """Calculate standardized values and one-tailed p-values using the Gumbel R distribution."""
+        mu, beta = gumbel_r.fit(null_distribution)
+        standardized_values = (observed_qualities - mu) / beta
+        p_values = gumbel_r.sf(standardized_values)
+        return standardized_values, p_values
+    
 
     @staticmethod
     def empirical_p_values(observed_qualities, null_distribution):
