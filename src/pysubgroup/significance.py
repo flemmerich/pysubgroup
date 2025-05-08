@@ -139,8 +139,8 @@ class StatisticalSignificance:
 
         Returns:
             SignificantSubgroupResult: Enhanced result with:
-                - `standardized_values`: Z-scores (normal) or (x-μ)/β (Gumbel R)
                 - `p_values`: One-tailed p-values based on detected distribution
+                - `p_value_method`: Normal, Gumbel, or Empirical
                 - `adj_p_values`: Adjusted p-values (if `adjust_method` specified)
 
         Raises:
@@ -162,28 +162,24 @@ class StatisticalSignificance:
         if is_normal:
             z_scores = self.calculate_z_scores(observed_qualities, self.null_distribution)
             p_values = self.calculate_p_values(z_scores)
-            standardized_values = z_scores
+            p_value_method = 'normal'
         elif is_gumbel_r:
-            standardized_values, p_values = self.calculate_gumbel_metrics(observed_qualities, self.null_distribution)
-            z_scores = None  # Avoid confusion with normal z-scores
+            p_values = self.calculate_gumbel_metrics(observed_qualities, self.null_distribution)
+            p_value_method = 'gumbel'
         else:
             p_values = self.empirical_p_values(observed_qualities, self.null_distribution)
-            standardized_values = None
+            p_value_method = 'empirical'
 
         # Apply multiple testing correction
-        adjusted_p_values = None
+        adj_p_values = None
         if adjust_method is not None:
-            adjusted_p_values = self.adjust_p_values(
-                p_values, 
-                method=adjust_method,
-                alpha=alpha
-            )
+            adj_p_values = self.adjust_p_values(p_values, method=adjust_method, alpha=alpha)
         return SignificantSubgroupResult(
                 result.results.copy(), 
                 result.task,
-                standardized_values,
                 p_values,
-                adjusted_p_values
+                p_value_method,
+                adj_p_values
             )
     
 
@@ -205,9 +201,7 @@ class StatisticalSignificance:
     def calculate_gumbel_metrics(observed_qualities, null_distribution):
         """Calculate standardized values and one-tailed p-values using the Gumbel R distribution."""
         mu, beta = gumbel_r.fit(null_distribution)
-        standardized_values = (observed_qualities - mu) / beta
-        p_values = gumbel_r.sf(standardized_values)
-        return standardized_values, p_values
+        return gumbel_r.sf(observed_qualities, loc=mu, scale=beta)
     
 
     @staticmethod
@@ -325,30 +319,28 @@ class StatisticalSignificance:
 class SignificantSubgroupResult(SubgroupDiscoveryResult):
     """Subgroup discovery result enhanced with statistical significance metrics.
 
-    Attributes:
-        standardized_values (list[float]): 
-            - For normal distribution: Z-scores relative to null distribution.
-            - For Gumbel R: Standardized values (x-μ)/β using fitted parameters.
-            - None if empirical p-values are used.
+    Parameters:
         p_values (list[float]): One-tailed p-values (normal/Gumbel survival function or empirical).
         adj_p_values (list[float]): Adjusted p-values after multiple testing correction.
+        p_value_method (str): Method used for p-value calculation ('normal', 'gumbel', 'empirical').
     """
-    def __init__(self, results, task, standardized_values, p_values, adj_p_values=None):
+    def __init__(self, results, task, p_values, p_value_method, adj_p_values=None):
         super().__init__(results, task)
-        self.standardized_values = standardized_values 
         self.p_values = p_values
         self.adj_p_values = adj_p_values
+        self.p_value_method = p_value_method
 
     def to_dataframe(self):
-        """Converts results to a DataFrame with added statistical columns:
-            - `standardized_value`: See class attribute documentation.
-            - `p_value`: Raw significance level.
-            - `p_value_adj`: Adjusted p-value (if applicable).
-        """
+        """Converts results to a DataFrame with added statistical columns"""
+        if self.p_value_method == 'normal':
+            col = 'p_value_normal'
+        elif self.p_value_method == 'gumbel':
+            col = 'p_value_gumbel'
+        else:
+            col = 'p_value_empirical'
+
         df = super().to_dataframe()
-        if self.standardized_values is not None:
-            df['standardized_value'] = self.standardized_values
-        df['p_value'] = self.p_values
+        df[col] = self.p_values
         if self.adj_p_values is not None:
             df['p_value_adj'] = self.adj_p_values
         return df
