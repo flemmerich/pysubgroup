@@ -50,15 +50,17 @@ class TestStatisticalSignificance(unittest.TestCase):
             if not df.empty:
                 self.assertTrue((df['p_value_adj'] >= df['p_value_normal']).all())
 
-    def test_empirical_p_values_non_normal(self):
-        with patch.object(ps.StatisticalSignificance, '_check_normality', return_value=False):
+    def test_empirical_p_values_fallback(self):
+        with patch.object(ps.StatisticalSignificance, '_check_normality', return_value=False), \
+            patch.object(ps.StatisticalSignificance, '_check_gumbel_r', return_value=False):
             decorator = ps.Stats(ps.BeamSearch(), num_permutations=100)
             result = decorator.execute(self.task)
             df = result.to_dataframe()
             
-            # Expect p_value_gumbel column instead of normal p-values when non-normal
-            self.assertIn('p_value_gumbel', df.columns)
+            # Verify empirical p-values are used when both normal and Gumbel checks fail
+            self.assertIn('p_value_empirical', df.columns)
             self.assertNotIn('p_value_normal', df.columns)
+            self.assertNotIn('p_value_gumbel', df.columns)
 
     def test_non_finite_quality_handling(self):
         task = ps.SubgroupDiscoveryTask(
