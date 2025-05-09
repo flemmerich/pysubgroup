@@ -242,33 +242,24 @@ class StatisticalSignificance:
 
 
     def _check_normality(self, alpha=0.05):
-        """Checks if the null distribution follows a normal distribution using Shapiro-Wilk (n ≤ 5000) 
-        or Anderson-Darling (n > 5000).
+        """Checks if the null distribution follows a normal distribution using Anderson-Darling.
 
         Parameters:
             alpha (float): Significance level. For Anderson-Darling, must be one of [0.15, 0.10, 0.05, 0.025, 0.01].
 
         Returns:
-            bool: True if the null distribution appears normal at the given significance level.
+            bool: True if the null distribution passes the Anderson-Darling test for Normality at the given significance level.
 
         Raises:
             ValueError: If `alpha` is not supported for the Anderson-Darling test.
         """
-        if len(self.null_distribution) < 3:  # Shapiro-Wilk requires min 3 samples
+        if len(self.null_distribution) < 8:
             return False
 
-        # Shapiro-Wilk for smaller samples (accurate p-value for N <= 5000) 
-        # (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.shapiro.html)
-        if len(self.null_distribution) <= 5000:
-            _, p = shapiro(self.null_distribution)
-            return p >= alpha
-        
-        # Anderson-Darling for larger datasets (N > 5000)
-        # (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson.html#scipy.stats.anderson)
         supported_alphas = [0.15, 0.10, 0.05, 0.025, 0.01]
         if alpha not in supported_alphas:
             raise ValueError(
-                f"Alpha must be one of {supported_alphas} for Anderson-Darling test. Got {alpha}."
+                f"Alpha must be one of {supported_alphas} for Normality test (Anderson-Darling). Got {alpha}."
             )
         
         try:
@@ -284,21 +275,22 @@ class StatisticalSignificance:
         """Checks if the null distribution follows a Gumbel R distribution using the Anderson-Darling test.
         
         Parameters:
-            alpha (float): Significance level. Must be one of [0.15, 0.10, 0.05, 0.025, 0.01].
+            alpha (float): Significance level. Must be one of [0.25, 0.10, 0.05, 0.025, 0.01].
         
         Returns:
-            bool: True if the null distribution passes the Anderson-Darling test for Gumbel R.
+            bool: True if the null distribution passes the Anderson-Darling test for Gumbel R at the given significance level.
         
         Raises:
-            ValueError: If `alpha` is not in the list of supported significance levels.
+            ValueError: If `alpha` is not supported for the Anderson-Darling test.
         """
         if len(self.null_distribution) < 2:
             return False
 
-        supported_alphas = [0.15, 0.10, 0.05, 0.025, 0.01]
+        supported_alphas = [0.25, 0.10, 0.05, 0.025, 0.01]
+
         if alpha not in supported_alphas:
             raise ValueError(
-                f"Alpha must be one of {supported_alphas} for Gumbel R test. Got {alpha}."
+                f"Alpha must be one of {supported_alphas} for Gumbel R test (Anderson-Darling). Got {alpha}."
             )
 
         try:
