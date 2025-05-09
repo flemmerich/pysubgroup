@@ -306,8 +306,8 @@ class SignificantSubgroupResult(SubgroupDiscoveryResult):
     """Subgroup discovery result enhanced with statistical significance metrics.
 
     Parameters:
-        p_values (list[float]): One-tailed p-values (normal/Gumbel survival function or empirical).
-        adj_p_values (list[float]): Adjusted p-values after multiple testing correction.
+        p_values (list): One-tailed p-values.
+        adj_p_values (list): Adjusted p-values after multiple testing correction.
         p_value_method (str): Method used for p-value calculation ('normal', 'gumbel', 'empirical').
     """
     def __init__(self, results, task, p_values, p_value_method, adj_p_values=None):

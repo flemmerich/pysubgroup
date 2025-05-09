@@ -247,7 +247,7 @@ def plot_null_distribution(null_distribution, quality,
     # Fit and plot Gumbel distribution if requested
     if compare_gumbel:
         mu, beta = gumbel_r.fit(null_distribution)
-        ax.plot(x, gumbel_r.pdf(x, mu, beta), color='mediumspringgreen', linestyle='--', label='Gumbel Fit')
+        ax.plot(x, gumbel_r.pdf(x, mu, beta), color='forestgreen', linestyle='--', label='Gumbel Fit')
 
     # Fit and plot Normal distribution if requested
     if compare_normal:
