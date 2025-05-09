@@ -271,44 +271,38 @@ class StatisticalSignificance:
                 f"Alpha must be one of {supported_alphas} for Anderson-Darling test. Got {alpha}."
             )
         
-        result = anderson(self.null_distribution)
+        try:
+            result = anderson(self.null_distribution)
+        except ValueError:
+            return False
+        
         idx = supported_alphas.index(alpha)
         return result.statistic < result.critical_values[idx]
 
 
     def _check_gumbel_r(self, alpha=0.05):
         """Checks if the null distribution follows a Gumbel R distribution using the Anderson-Darling test.
-
+        
         Parameters:
             alpha (float): Significance level. Must be one of [0.15, 0.10, 0.05, 0.025, 0.01].
-
+        
         Returns:
-            bool: True if the standardized null distribution passes the Anderson-Darling test for Gumbel R.
-
+            bool: True if the null distribution passes the Anderson-Darling test for Gumbel R.
+        
         Raises:
             ValueError: If `alpha` is not in the list of supported significance levels.
         """
-        data = self.null_distribution
-        if len(data) < 2:
+        if len(self.null_distribution) < 2:
             return False
 
-        # Fit parameters and standardize
-        try:
-            mu, beta = gumbel_r.fit(data)
-            standardized_data = (data - mu) / beta
-        except:
-            return False
-
-        # Validate alpha
         supported_alphas = [0.15, 0.10, 0.05, 0.025, 0.01]
         if alpha not in supported_alphas:
             raise ValueError(
                 f"Alpha must be one of {supported_alphas} for Gumbel R test. Got {alpha}."
             )
 
-        # Anderson-Darling test for Gumbel R
         try:
-            result = anderson(standardized_data, dist='gumbel_r')
+            result = anderson(self.null_distribution, dist='gumbel_r')
         except ValueError:
             return False
 

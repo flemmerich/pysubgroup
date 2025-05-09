@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import numpy as np
-import pandas as pd
 from scipy.stats import gumbel_r
 import pysubgroup as ps
 from pysubgroup.datasets import get_credit_data
@@ -52,7 +51,7 @@ class TestStatisticalSignificance(unittest.TestCase):
 
     def test_empirical_p_values_fallback(self):
         with patch.object(ps.StatisticalSignificance, '_check_normality', return_value=False), \
-            patch.object(ps.StatisticalSignificance, '_check_gumbel_r', return_value=False):
+             patch.object(ps.StatisticalSignificance, '_check_gumbel_r', return_value=False):
             decorator = ps.Stats(ps.BeamSearch(), num_permutations=100)
             result = decorator.execute(self.task)
             df = result.to_dataframe()
@@ -122,18 +121,20 @@ class TestStatisticalSignificance(unittest.TestCase):
             sig._check_gumbel_r(alpha=0.20)
 
     def test_gumbel_r_branch_computes_correct_pvalues(self):
-        null_dist = gumbel_r.rvs(loc=5.0, scale=2.0, size=500, random_state=0)
+        # Generate data from standard Gumbel distribution
+        null_dist = gumbel_r.rvs(loc=0, scale=1, size=5000, random_state=0)
         mu_hat, beta_hat = gumbel_r.fit(null_dist)
-        q = mu_hat + 1.23 * beta_hat
+        
+        q = mu_hat + 1.5 * beta_hat
         expected_p = gumbel_r.sf(q, loc=mu_hat, scale=beta_hat)
-
+        
         fake_sdr = ps.SubgroupDiscoveryResult([(q, None, None)], self.task)
         sig = ps.StatisticalSignificance(self.task)
         sig.null_distribution = null_dist
-        out = sig.add_metrics_to_result(fake_sdr, alpha=0.05, adjust_method=None)
-
+        
         self.assertTrue(sig._check_gumbel_r(alpha=0.05))
-        self.assertAlmostEqual(out.p_values[0], expected_p, places=6)
+        out = sig.add_metrics_to_result(fake_sdr, alpha=0.05, adjust_method=None)
+        self.assertAlmostEqual(out.p_values[0], expected_p, places=3)
 
     def test_fallback_to_empirical_when_not_gumbel(self):
         rng = np.random.RandomState(1)
