@@ -2,7 +2,7 @@ import pysubgroup as ps
 from pysubgroup.utils import SubgroupDiscoveryResult     # import separately to prevent loop
 from pysubgroup.subgroup_description import SelectorBase # import separately to prevent loop
 import numpy as np
-from scipy.stats import shapiro, norm, gumbel_r, anderson
+from scipy.stats import norm, gumbel_r, anderson
 from joblib import Parallel, delayed
 from statsmodels.stats.multitest import multipletests
 from tqdm.auto import tqdm
@@ -251,7 +251,7 @@ class StatisticalSignificance:
             bool: True if the null distribution passes the Anderson-Darling test for Normality at the given significance level.
 
         Raises:
-            ValueError: If `alpha` is not supported for the Anderson-Darling test.
+            ValueError: If alpha is not supported for the Anderson-Darling test.
         """
         if len(self.null_distribution) < 8:
             return False
@@ -281,7 +281,7 @@ class StatisticalSignificance:
             bool: True if the null distribution passes the Anderson-Darling test for Gumbel R at the given significance level.
         
         Raises:
-            ValueError: If `alpha` is not supported for the Anderson-Darling test.
+            ValueError: If alpha is not supported for the Anderson-Darling test.
         """
         if len(self.null_distribution) < 2:
             return False
@@ -334,7 +334,7 @@ class SignificantSubgroupResult(SubgroupDiscoveryResult):
 
 class Stats:
     def __init__(self, search_method, num_permutations=1000, num_qualities=1, adjust_method='holm', alpha=0.05, n_jobs=-1):
-        """Wrapper that adds statistical significance metrics (z-score, p-value) to subgroup discovery results
+        """Wrapper that adds statistical significance metrics to subgroup discovery results
 
         Parameters:
             search_method: Subgroup search strategy (e.g. BeamSearch)
