@@ -74,3 +74,16 @@ class MinSupportConstraint:
                   False otherwise.
         """
         return self.get_size_sg(node) >= self.min_support
+
+
+class ContainsValueConstraint:
+    def __init__(self, attribute_name, value):
+        self.attribute_name = attribute_name
+        self.value = value
+
+    @property
+    def is_monotone(self):
+        return True
+
+    def is_satisfied(self, subgroup, statistics=None, data=None):
+        return sum(data[self.attribute_name][subgroup.representation] == self.value) > 0

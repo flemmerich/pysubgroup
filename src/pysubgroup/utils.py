@@ -15,6 +15,20 @@ import pysubgroup as ps
 from .algorithms import SubgroupDiscoveryTask
 
 
+def create_subgroup_with_representation(data, selectors):
+    """
+    Create an object representing the conjunction of the given selectors,
+    including a bitmask indicating which instances in the dataset are covered.
+
+    :param data: dataset to evaluate the cover on
+    :param selectors: list of selectors to form the conjunction
+    """
+    data_representation = ps.BitSetRepresentation(data, selectors)
+    data_representation.patch_all_selectors()
+    ps.BitSet_Conjunction.n_instances = len(data)
+    return ps.BitSet_Conjunction(selectors)
+
+
 def str_to_bool(s):
     """
     Converts a string representation of a boolean value to a boolean type.
