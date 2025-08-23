@@ -37,7 +37,7 @@ class TestPermutationTest(unittest.TestCase):
             ),
             qf=qf,
         )
-        p_values, _, _ = ps.permutation_test(
+        p_values, _, _, _, _ = ps.permutation_test(
             qf=qf,
             result=ps.SubgroupDiscoveryResult([(0, self.subgroup, None)], task),
             target=self.target,

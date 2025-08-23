@@ -9,7 +9,7 @@ from statsmodels.stats.multitest import multipletests
 import pysubgroup as ps
 
 
-class NegativeClassCountRandomSelector(ps.SelectorBase):
+class NegativeClassCountRandomSelector:
     """
     A selector that covers a random subset of the given indices, such that
     the number of covered instances as well as the number of negatives instances
@@ -145,7 +145,7 @@ def _random_sampling(
 
 def permutation_test(
     qf: any,
-    result: ps.SubgroupDiscoveryResult,
+    result: any,
     target: ps.SoftClassifierTarget,
     data: pd.DataFrame,
     num_random_samples: int,
@@ -156,7 +156,7 @@ def permutation_test(
     neg_label: any = 0,
     multitest_correction_method: str = "fdr_by",
     tqdm: any = None,
-) -> tuple[list[float], list[float], list[list[float]]]:
+):
     """
     Test the subgroups in the result for statistical significance by comparison to qualities of random samples from the data.
     Random samples are drawn such that the number of instances from each class in the sample is the same as in the tested subgroup.
@@ -164,7 +164,7 @@ def permutation_test(
     Only for SoftClassifierTargets.
 
     :param qf: Quality function to use as the test statistic.
-    :param result: Result object holding the subgroups to test.
+    :param result: ps.SubgroupDiscoveryResult object holding the subgroups to test.
     :param target: Target concept to use in the quality function.
     :param data: Dataset to compute all qualities from. The qualities of the given subgroups are also recomputed on this data for the test.
     :param num_random_samples: How many random samples to draw. More samples allow to distinguish p-values more fine-grained.
@@ -173,6 +173,11 @@ def permutation_test(
     :param pos_label: Which value in the dataset to count as a positive class.
     :param neg_label: Which value in the dataset to count as a negative class.
     :param multitest_correction_method: Which method to correct the p-values against the multiple comparison problem with. Refer to statsmodels.stats.multitest.multipletests for all possible values.
+    :return p_values_raw: Uncorrected p-values for each subgroup
+    :return reject: Test result after multiple testing correction.
+    :return p_values_corrected: P-values after multiple testing correction.
+    :return qualities: Subgroup qualities on the testing data.
+    :return samples: The full random sample of qualities that was generated for each subgroup.
     """
     if tqdm is None:
         tqdm = lambda x: x
