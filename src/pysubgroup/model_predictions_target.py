@@ -17,12 +17,25 @@ import pysubgroup as ps
 
 
 class SoftClassifierTarget:
+    """
+    Minimal target concept implementation to select label and prediction columns for binary soft classifier performance measures.
+    """
+
+    statistic_types = ()  # included for compatibility
+
     def __init__(self, label_column="label", prediction_column="prediction"):
         self.label_column = label_column
         self.prediction_column = prediction_column
 
     def get_target_columns(self, data: pd.DataFrame):
-        return data[:, [self.label_column, self.prediction_column]]
+        """
+        Select the label and prediction columns from object initialization.
+        """
+        return data.loc[:, [self.label_column, self.prediction_column]]
+
+    def calculate_statistics(self, subgroup, data: pd.DataFrame, statistics={}):
+        # Implemented for compatibility
+        return statistics
 
 
 ########################
@@ -32,8 +45,11 @@ class SoftClassifierTarget:
 
 def average_ranking_loss(y_true, y_pred):
     """
-    :param y_true: Binary Labels, must be ordered to match y_pred
-    :param y_pred: Predicted Scores, must be in ascending order
+    Implementation of the Average Ranking Loss (ARL) performance measure for binary soft classifiers based on the definitions
+    in the paper ["Understanding Where Your Classifier Does (Not) Work -- The SCaPE Model Class for EMM"](https://doi.org/10.1109/ICDM.2014.10).
+
+    :param y_true: Binary Labels, must be ordered to match y_pred.
+    :param y_pred: Predicted Scores, must be in ascending order.
     """
     negatives_loop_count = 0
     penalty_sum = 0
@@ -67,6 +83,12 @@ def average_ranking_loss(y_true, y_pred):
 
 
 def pr_auc_score(y_true, y_pred):
+    """
+    Area Under the Precision-Recall Curve (PR AUC) performance measure for binary soft classifiers.
+
+    :param y_true: Binary Labels, must be ordered to match y_pred.
+    :param y_pred: Predicted Scores.
+    """
     precision, recall, _ = metrics.precision_recall_curve(
         y_true, y_pred, drop_intermediate=True
     )
@@ -192,7 +214,7 @@ def _PR_AUC_lower_bound(y_true: np.array, y_pred: np.array) -> float:
             worst_subset_y_true.append(label)
             worst_subset_y_pred.append(score)
 
-    return prc_auc_score(worst_subset_y_true, worst_subset_y_pred)
+    return pr_auc_score(worst_subset_y_true, worst_subset_y_pred)
 
 
 #####################
@@ -201,14 +223,17 @@ def _PR_AUC_lower_bound(y_true: np.array, y_pred: np.array) -> float:
 
 
 def _label_balance_fraction(labels: pd.Series):
+    """
+    Zero if the series does not consist of exactly two unique values.
+    Otherwise returns the fraction of the label count of one label over the other.
+    Takes the reciprocal if the fraction is >1 so it is always between 0 and 1.
+
+    Implementation of the class balance factor cb() from the paper ["SubROC: AUC-Based Discovery of Exceptional Subgroup Performance for Binary Classifiers"](https://doi.org/10.48550/arXiv.2505.11283).
+    """
     if labels.nunique() != 2:
         return 0
 
     labels = labels.groupby(by=lambda x: labels[x]).count()
-
-    if labels.iloc[1] == 0:
-        return np.inf
-
     result = labels.iloc[0] / labels.iloc[1]
 
     if result > 1:
@@ -276,7 +301,7 @@ class BaseSoftClassifierPerformanceQF(ps.BoundedInterestingnessMeasure):
         subgroup,
         target: SoftClassifierTarget,
         data: pd.DataFrame,
-        statistics=None,
+        statistics={},
     ):
         """calculates necessary statistics
         this statistics object is passed on to the evaluate
@@ -285,7 +310,7 @@ class BaseSoftClassifierPerformanceQF(ps.BoundedInterestingnessMeasure):
         if not hasattr(subgroup, "representation"):
             subgroup = ps.create_subgroup_with_representation(data, subgroup._selectors)
 
-        return {"size_sg": sum(subgroup.representation)}
+        return statistics
 
     def _get_quality_weight(self, subgroup, target, data: pd.DataFrame):
         subgroup_labels = data.loc[subgroup.representation, target.label_column]
@@ -337,18 +362,16 @@ class BaseSoftClassifierPerformanceQF(ps.BoundedInterestingnessMeasure):
         sorted_subgroup_y_pred = self.scores_sorted[
             sorted_subgroup_representation
         ].to_numpy()
-        statistics["performance measure"] = self.performance_measure(
+        performance_value = self.performance_measure(
             sorted_subgroup_y_true, sorted_subgroup_y_pred
         )
 
-        quality = statistics["performance measure"] - self.dataset_quality
+        quality = performance_value - self.dataset_quality
 
         if self.performance_measure_type == "score":
             quality = -quality
 
-        return quality * self._get_quality_weight(
-            subgroup, target, data, quality, statistics=statistics
-        )
+        return quality * self._get_quality_weight(subgroup, target, data)
 
     def optimistic_estimate(
         self,
@@ -416,6 +439,19 @@ class BaseSoftClassifierPerformanceQF(ps.BoundedInterestingnessMeasure):
 
 
 class ARLQF(BaseSoftClassifierPerformanceQF):
+    """
+    A quality function which scores binary soft classifier performance in a subgroup based on the difference
+    of the classifier's average ranking loss (ARL) on the subgroup cover vs. the entire dataset.
+    If the classifier performs worse on the subgroup (i.e. it has a greater ARL) compared to the entire
+    dataset, then the quality is positive.
+
+    Weighting factors are provided to let the subgroup size and class balance influence the quality.
+
+    The overall quality is captured by the formula q = (ARL(subgroup) - ARL(dataset)) * |subgroup|^(size_weight) * class_balance(subgroup)^(class_balance_weight).
+
+    Implementation of phi^{rasl}_{alpha, beta} from the paper ["SubROC: AUC-Based Discovery of Exceptional Subgroup Performance for Binary Classifiers"](https://doi.org/10.48550/arXiv.2505.11283).
+    """
+
     def __init__(
         self,
         label_column: str,
@@ -424,10 +460,11 @@ class ARLQF(BaseSoftClassifierPerformanceQF):
         subgroup_size_weight: float = 0,
     ):
         """
-        :param label_column: column identifier of the labels / ground truth in the dataset
-        :param positive_label_value: label value that is considered the positive class
-        :param subgroup_class_balance_weight: amplifies the quality score of subgroups with a more balanced class ratio
-        :param subgroup_size_weight: amplifies the quality score of subgroups with a greater cover size
+        Parameters:
+            label_column: column identifier of the labels / ground truth in the dataset
+            positive_label_value: label value that is considered the positive class
+            subgroup_class_balance_weight: amplifies the quality score of subgroups with a more balanced class ratio
+            subgroup_size_weight: amplifies the quality score of subgroups with a greater cover size
         """
 
         # define a constraint in which case ARL is undefined
@@ -444,27 +481,33 @@ class ARLQF(BaseSoftClassifierPerformanceQF):
 
 
 class ROCAUCQF(BaseSoftClassifierPerformanceQF):
+    """
+    A quality function which scores binary soft classifier performance in a subgroup based on the difference
+    of the classifier's Area Under the Receiver Operating Characteristic Curve (ROC AUC) on the subgroup cover vs. the entire dataset.
+    If the classifier performs worse on the subgroup (i.e. it has a lower ROC AUC) compared to the entire
+    dataset, then the quality is positive.
+
+    Weighting factors are provided to let the subgroup size and class balance influence the quality.
+
+    The overall quality is captured by the formula q = (ROCAUC(subgroup) - ROCAUC(dataset)) * |subgroup|^(size_weight) * class_balance(subgroup)^(class_balance_weight).
+
+    Implementation of phi^{rROCAUC}_{alpha, beta} from the paper ["SubROC: AUC-Based Discovery of Exceptional Subgroup Performance for Binary Classifiers"](https://doi.org/10.48550/arXiv.2505.11283).
+    """
+
     def __init__(
         self,
         label_column: str,
-        positive_label_value: any,
-        negative_label_value: any,
         subgroup_class_balance_weight: float = 0,
         subgroup_size_weight: float = 0,
     ):
         """
         :param label_column: column identifier of the labels / ground truth in the dataset
-        :param positive_label_value: label value that is considered the positive class
-        :param negative_label_value: label value that is considered the negative class
         :param subgroup_class_balance_weight: amplifies the quality score of subgroups with a more balanced class ratio
         :param subgroup_size_weight: amplifies the quality score of subgroups with a greater cover size
         """
 
         # define constraints in which case ROC AUC is undefined
-        constraints = [
-            ps.ContainsValueConstraint(label_column, positive_label_value),
-            ps.ContainsValueConstraint(label_column, negative_label_value),
-        ]
+        constraints = [ps.MinUniqueValuesConstraint(label_column, 2)]
 
         super().__init__(
             metrics.roc_auc_score,
@@ -477,6 +520,19 @@ class ROCAUCQF(BaseSoftClassifierPerformanceQF):
 
 
 class PRAUCQF(BaseSoftClassifierPerformanceQF):
+    """
+    A quality function which scores binary soft classifier performance in a subgroup based on the difference
+    of the classifier's Area Under the Precision-Recall Curve (PR AUC) on the subgroup cover vs. the entire dataset.
+    If the classifier performs worse on the subgroup (i.e. it has a lower PR AUC) compared to the entire
+    dataset, then the quality is positive.
+
+    Weighting factors are provided to let the subgroup size and class balance influence the quality.
+
+    The overall quality is captured by the formula q = (PRAUC(subgroup) - PRAUC(dataset)) * |subgroup|^(size_weight) * class_balance(subgroup)^(class_balance_weight).
+
+    Implementation of phi^{rPRAUC}_{alpha, beta} from the paper ["SubROC: AUC-Based Discovery of Exceptional Subgroup Performance for Binary Classifiers"](https://doi.org/10.48550/arXiv.2505.11283).
+    """
+
     def __init__(
         self,
         label_column: str,
