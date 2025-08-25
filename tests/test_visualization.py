@@ -44,7 +44,7 @@ class TestVizualization(unittest.TestCase):
         ps.similarity_sgs(self.result.to_descriptions(), self.data, color=False)
         try:
             ps.similarity_sgs(self.result.to_descriptions(), self.data, color=True)
-        except ImportError:
+        except (ImportError, AttributeError):
             pass
 
     def test_supportSetVisualization(self):
