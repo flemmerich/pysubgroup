@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Literal
 
 import numpy as np
 
@@ -199,3 +200,55 @@ def supportSetVisualization(result, in_order=True, drop_empty=True):
         )
         img_arr = img_arr[keep_entities, :]
     return img_arr.T
+
+
+def plot_qualities_on_sample_distribution(
+    result,
+    qualities,
+    samples,
+    alpha=0.05,
+    side: Literal["left", "right"] = "right",
+    bins=25,
+):
+    """
+    Create plots of the empirical sample distribution as a histogram for each subgroup.
+    Include indicators for the subgroup quality and the quality that the alpha threshold corresponds to.
+    """
+    from matplotlib import pyplot as plt
+
+    if side == "left":
+        quantile_spec = alpha
+        legend_loc = "upper right"
+    else:
+        quantile_spec = 1 - alpha
+        legend_loc = "upper left"
+
+    figs = []
+
+    for result_item, quality, sample in zip(result.results, qualities, samples):
+        fig, ax = plt.subplots()
+
+        ax.hist(sample, bins=bins)
+        ax.set_xlabel("Quality")
+        ax.set_ylabel("Count")
+        ax.set_title(
+            f"Subgroup Qualities on Quality Sample Distribution\n{result_item[1]}"
+        )
+
+        axvline_handle = ax.axvline(quality, color="red", linewidth=1)
+
+        alpha_axvline = ax.axvline(
+            np.quantile(sample, quantile_spec),
+            color="black",
+            linestyle="--",
+            linewidth=1,
+        )
+        ax.legend(
+            [axvline_handle, alpha_axvline],
+            ["subgroup quality", "alpha threshold"],
+            loc=legend_loc,
+        )
+
+        figs.append(fig)
+
+    return figs
