@@ -811,7 +811,7 @@ class GeneralizationAware_StandardQF(
 
         if len(list_of_pairs) == 0:  # empty pattern
             return GeneralizationAware_StandardQF.ga_sQF_agg_tuple(
-                get_percentage_positives(stats_subgroup), np.infty, np.infty
+                get_percentage_positives(stats_subgroup), np.inf, np.inf
             )
 
         subgroup_negatives = stats_subgroup.size_sg - stats_subgroup.positives_count
