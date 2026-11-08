@@ -1,0 +1,11 @@
+/_build/
+/.jupyter_cache/
+/.ipynb_checkpoints/
+/**/.ipynb_checkpoints/
+/__pycache__/
+/**/__pycache__/
+/node_modules/
+/.cache/
+/.tools/
+/.home/
+/data-cache/

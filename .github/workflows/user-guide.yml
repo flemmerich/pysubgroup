@@ -1,0 +1,47 @@
+name: User guide
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: uv sync --locked --extra plot --extra numba
+      - run: uv pip install -r user_guide/requirements-book.txt
+      - run: npm ci --ignore-scripts --no-bin-links --cache .cache/npm
+        working-directory: user_guide
+      - run: ../.venv/bin/python -B build.py html
+        working-directory: user_guide
+        env:
+          BASE_URL: /pysubgroup
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: user_guide/_build/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

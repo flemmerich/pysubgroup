@@ -1,76 +1,18 @@
-# Custom
-.vs
-/.vs/pysubgroup/v16
-/env_pysubgroup_new
-/env_pysubgroup
-env/*
-test_gp_binary.txt
-test_gp_fi.txt
-test_gp_model.txt
-program.prof
-import.log
-doc/_build
-
-
-
-# Temporary and binary files
-*~
-*.py[cod]
-*.so
-*.cfg
-!.isort.cfg
-!setup.cfg
-*.orig
-*.log
-*.pot
-__pycache__/*
-.cache/*
-.*.swp
-*/.ipynb_checkpoints/*
-.DS_Store
-__pycache__
-.ipynb_checkpoints
-
-# Project files
-.ropeproject
-.project
-.pydevproject
-.settings
-.idea
-.vscode
-tags
-
-# Package files
-*.egg
-*.eggs/
-.installed.cfg
-*.egg-info
-
-# Unittest and coverage
-htmlcov/*
-.coverage
-.coverage.*
-.tox
-junit*.xml
-coverage.xml
+.venv/
 .pytest_cache/
-
-# Build and docs folder/files
-build/*
-dist/*
-sdist/*
-docs/api/*
-docs/_rst/*
-docs/_build/*
-cover/*
-MANIFEST
-
-# Per-project virtualenvs
-.venv*/
-.conda*/
-.python-version
+.ruff_cache/
+__pycache__/
+*.py[cod]
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+benchmark-results/
+papers/
+data-cache/
+.ipynb_checkpoints/
 
 
-Untitled1.ipynb
-Untitled.ipynb
-tests/pysubgroup.code-workspace
+# Temporary files of interrupted atomic writes
+*.py.tmp.*

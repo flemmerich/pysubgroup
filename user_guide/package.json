@@ -1,0 +1,11 @@
+{
+  "name": "pysubgroup-user-guide",
+  "private": true,
+  "scripts": {
+    "start": "python3 -B build.py preview",
+    "build": "python3 -B build.py html"
+  },
+  "devDependencies": {
+    "jupyter-book": "2.1.7"
+  }
+}

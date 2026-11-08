@@ -1,9 +1,70 @@
 [build-system]
-# AVOID CHANGING REQUIRES: IT WILL BE UPDATED BY PYSCAFFOLD!
-requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=5"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.9.0,<0.13.0"]
+build-backend = "uv_build"
 
-[tool.setuptools_scm]
-# For smarter version schemes and other configuration options,
-# check out https://github.com/pypa/setuptools_scm
-version_scheme = "no-guess-dev"
+[project]
+name = "pysubgroup"
+version = "2.0.0"
+description = "Fast subgroup discovery with exhaustive and heuristic search."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11,<3.15"
+authors = [{ name = "Florian Lemmerich" }]
+keywords = ["subgroup discovery", "exceptional model mining", "data mining", "pattern mining"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+  "numpy>=2.0",
+  "pandas>=2.2",
+  "scikit-learn>=1.5,<1.8",
+  "scipy>=1.11,<2",
+]
+
+[project.urls]
+Homepage = "https://github.com/flemmerich/pysubgroup"
+Documentation = "https://flemmerich.github.io/pysubgroup/"
+Issues = "https://github.com/flemmerich/pysubgroup/issues"
+Changelog = "https://github.com/flemmerich/pysubgroup/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.7"]
+numba = ["numba>=0.60"]
+gpu = ["cupy-cuda13x[ctk]>=14"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=6.0",
+  "psutil>=7.0",
+  "ruff>=0.11",
+]
+benchmark = [
+  "psutil>=7.0",
+]
+notebook = [
+    "ipykernel>=7.4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+  "benchmark: runtime benchmark tests excluded from normal timing assertions",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

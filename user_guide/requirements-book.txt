@@ -1,0 +1,4 @@
+# Install alongside the dependencies of pysubgroup[plot].
+ipykernel>=7.4
+jupyter-server>=2,<3
+nbformat>=5,<6

@@ -1,0 +1,56 @@
+version: 1
+project:
+  title: Subgroup Discovery with pysubgroup
+  description: A practical guide to finding, understanding, and validating interesting subgroups.
+  keywords:
+    - subgroup discovery
+    - pysubgroup
+    - exceptional model mining
+  bibliography:
+    - references.bib
+  exclude:
+    - README.md
+    - data-cache/**
+  toc:
+    - file: index.md
+    - title: I. Getting started
+      children:
+        - file: 01-what-is-subgroup-discovery.md
+        - file: 02-first-discovery.md
+    - title: II. Defining the search
+      children:
+        - file: 03-data-and-descriptions.md
+        - file: 04-binary-quality.md
+        - file: 05-tasks-and-constraints.md
+        - file: 06-search-algorithms.md
+    - title: III. Beyond binary targets
+      children:
+        - file: 07-numeric-targets.md
+        - file: 08-multiple-targets-and-wkl.md
+        - file: 09-exceptional-model-mining.md
+        - file: 10-classifier-auditing.md
+    - title: IV. Understanding and validating results
+      children:
+        - file: 11-results-and-visualization.md
+        - file: 12-diverse-subgroups.md
+        - file: 13-generalization-awareness.md
+        - file: 14-validation.md
+    - title: V. End-to-end workflows
+      children:
+        - file: 15-exploratory-workflow.md
+        - file: 16-validated-audit.md
+    - title: VI. Advanced use and extension
+      children:
+        - file: 17-performance.md
+        - file: 18-custom-quality-functions.md
+        - file: 19-custom-extensions.md
+        - file: 20-specialized-tasks.md
+    - title: Reference
+      children:
+        - file: reference-choosing-methods.md
+        - file: reference-api.md
+        - file: reference-glossary.md
+        - file: reference-troubleshooting.md
+        - file: reference-bibliography.md
+site:
+  template: book-theme
